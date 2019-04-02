@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/state"
 )
 
@@ -20,5 +19,5 @@ type Header struct {
 
 type Block struct {
 	header		*Header
-	transaction	types.Transaction
+	transaction	Transaction
 }
