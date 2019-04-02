@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"github.com/altair-lab/xoreum/common"
 )
 
