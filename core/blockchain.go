@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/altair-lab/xoreum/core/types"
 )
 
