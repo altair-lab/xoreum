@@ -5,7 +5,10 @@ import(
 	"github.com/altair-lab/xoreum/common"
 )
 
-type State struct{
-	statenode	map[Address]uint64
-}
+type State map[Address]uint64
 
+type Account struct{
+	Address	Address
+	Nonce	uint64
+	Balance	uint64
+}
