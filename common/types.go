@@ -2,7 +2,6 @@
 
 package common
 
-import "fmt"
 
 const (
 	HashLength		= 32
