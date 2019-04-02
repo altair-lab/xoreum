@@ -9,16 +9,12 @@ import (
 )
 
 func main() {
-	account1 := state.Account{}
-	account1.Balance = 77
-	balance := fmt.Sprintf("%d", account1.Balance)
-	fmt.Println("account1's balance: " + balance)
-
-
 
 	fmt.Println("---test common/types.go---")
-	hash1 := common.Hash
-	address1 := common.Address
+	hl := common.HashLength
+	al := common.AddressLength
+	//hash1 := common.Hash
+	//address1 := common.Address
 
 	fmt.Println("---test core---")
 	blockchain1 := core.BlockChain{}
