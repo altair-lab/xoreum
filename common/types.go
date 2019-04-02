@@ -1,6 +1,6 @@
 // Block components are based on go-ethereum/common/types.go
 
-package types 
+package common
 
 import "fmt"
 

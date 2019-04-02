@@ -1,13 +1,13 @@
-package transactions
+package types
 
 import (
 	"fmt"
-	"types"
+	"github.com/altair-lab/xoreum/common"
 )
 
 type Transaction struct {
 	data txdata
-	hash types.Hash 
+	hash Hash 
 }
 
 
@@ -19,7 +19,7 @@ type Transaction struct {
 // Payload : ""
 
 type txdata struct {
-	Participants		[]*types.Address
+	Participants		[]*Address
 	ParticipantNonces	[]uint64
 	XORs				[]uint64
 	Payload				[]byte

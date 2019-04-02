@@ -1,8 +1,8 @@
-package blockchains
+package core
 
 import (
 	"fmt"
-	"types"
+	"github.com/altair-lab/xoreum/core/types"
 )
 
 type BlockChain struct {
