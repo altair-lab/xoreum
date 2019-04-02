@@ -7,7 +7,7 @@ import (
 
 type Transaction struct {
 	data txdata
-	hash Hash 
+	hash common.Hash 
 }
 
 
@@ -19,7 +19,7 @@ type Transaction struct {
 // Payload : ""
 
 type txdata struct {
-	Participants		[]*Address
+	Participants		[]*common.Address
 	ParticipantNonces	[]uint64
 	XORs				[]uint64
 	Payload				[]byte

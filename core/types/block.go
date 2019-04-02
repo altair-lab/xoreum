@@ -8,11 +8,11 @@ import (
 )
 
 type Header struct {
-	ParentHash	Hash	`parentHash`
-	Coinbase	Address	`miner`
-	Root		Hash	`stateRoot`
-	TxHash		Hash	`transactionsRoot`
-	State		State		`state`
+	ParentHash	common.Hash	`parentHash`
+	Coinbase	common.Address	`miner`
+	Root		common.Hash	`stateRoot`
+	TxHash		common.Hash	`transactionsRoot`
+	State		state.State		`state`
 	Difficulty	uint64		`difficulty`
 	Time		uint64		`timestamp`
 	Nonce		uint64		`nonce`
@@ -20,5 +20,5 @@ type Header struct {
 
 type Block struct {
 	header		*Header
-	transaction	Transaction
+	transaction	types.Transaction
 }

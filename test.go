@@ -1,16 +1,14 @@
 package main
 
-import(
+import (
 	"fmt"
 	"github.com/altair-lab/xoreum/core/state"
 )
 
-func main(){
-	var account1 Account
-
+func main() {
+	account1 := state.Account{}
 	account1.Balance = 77
-
-	fmt.Println("account1's balance: " + account1.Balance)
-
+	balance := fmt.Sprintf("%d", account1.Balance)
+	fmt.Println("account1's balance: " + balance)
 
 }

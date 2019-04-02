@@ -6,8 +6,8 @@ import (
 )
 
 type BlockChain struct {
-	genesisBlock	*Block
-	currentBlock	*Block
+	genesisBlock	*types.Block
+	currentBlock	*types.Block
 	//processor	Processor
 	//validator	Validator
 }
