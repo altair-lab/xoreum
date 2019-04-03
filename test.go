@@ -6,6 +6,7 @@ import (
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/core/crypto"
 )
 
 func main() {
@@ -37,6 +38,10 @@ func main() {
 	fmt.Println(header1)
 	fmt.Println(block1)
 	fmt.Println(transaction1)
+
+	fmt.Println("---test core/crypto---")
+	keccak256_1 := crypto.Keccak256()
+	fmt.Println(keccak256_1)
 
 	fmt.Println("---all test passed---")
 
