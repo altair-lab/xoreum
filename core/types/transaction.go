@@ -9,6 +9,8 @@ type Transaction struct {
 	hash common.Hash 
 }
 
+// Transactions is a Transaction slice type for basic sorting
+type Transactions []*Transaction
 
 // txdata could be generated between more than 2 participants
 // For example, if A, B, C are participants, data of txdata is 

@@ -16,7 +16,14 @@ type Header struct {
 	Nonce		uint64		`nonce`
 }
 
+/*
+type Body struct {
+	Transactions	[]*Transaction
+	Uncles		[]*Header
+}
+*/
+
 type Block struct {
 	header		*Header
-	transaction	Transaction
+	transactions	Transactions
 }
