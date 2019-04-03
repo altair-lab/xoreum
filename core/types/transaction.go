@@ -16,7 +16,7 @@ type Transaction struct {
 // participantNonces: [10, 3, 5]
 // XORs : ['1234', '3245', '4313']
 // Payload : ""
-
+/*
 type txdata struct {
 	Participants		[]*common.Address
 	ParticipantNonces	[]uint64
@@ -24,4 +24,27 @@ type txdata struct {
 	Payload				[]byte
 	
 	// Signature values
+}
+*/
+
+// simple implementation
+type txdata struct {
+	AccountNonce	uint64
+	Recipient	*common.Address
+	Amount		uint64
+}
+
+
+func NewTransaction(nonce uint64, to common.Address, amount uint64) *Transaction {
+	return newTransaction(nonce, &to, amount)
+}
+
+func newTransaction(nonce uint64, to *common.Address, amount uint64) *Transaction {
+	d := txdata{
+		AccountNonce: nonce,
+		Recipient:    to,
+		Amount:       amount,
+	}
+
+	return &Transaction{data: d}
 }
