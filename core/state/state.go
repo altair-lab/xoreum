@@ -11,3 +11,15 @@ type Account struct {
 	Nonce   uint64
 	Balance uint64
 }
+
+func NewAccount(address common.Address, nonce uint64, balance uint64) *Account {
+	return newAccount(address, nonce, balance)
+}
+
+func newAccount(address common.Address, nonce uint64, balance uint64) *Account {
+	return &Account{
+		Address:	address,
+		Nonce:		nonce,
+		Balance:	balance,
+	}
+}
