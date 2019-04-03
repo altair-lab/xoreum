@@ -6,7 +6,7 @@ import (
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/core/crypto"
+	"github.com/altair-lab/xoreum/crypto"
 )
 
 func main() {
