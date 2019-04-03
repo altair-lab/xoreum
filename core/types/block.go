@@ -10,7 +10,7 @@ type Header struct {
 	Coinbase	common.Address	`miner`
 	Root		common.Hash	`stateRoot`
 	TxHash		common.Hash	`transactionsRoot`
-	State		state.State		`state`
+	State		state.State	`state`
 	Difficulty	uint64		`difficulty`
 	Time		uint64		`timestamp`
 	Nonce		uint64		`nonce`
@@ -19,4 +19,11 @@ type Header struct {
 type Block struct {
 	header		*Header
 	transaction	Transaction
+}
+
+func NewBlock(header *Header, tx Transaction) *Block {
+	return &Block{
+		header:		header,
+		transaction:	tx,
+	}
 }
