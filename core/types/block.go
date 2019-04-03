@@ -27,3 +27,16 @@ func NewBlock(header *Header, tx Transaction) *Block {
 		transaction:	tx,
 	}
 }
+
+func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Hash, txHash common.Hash, state state.State, difficulty uint64, time uint64, nonce uint64) *Header {
+	return &Header{
+		ParentHash:	parentHash,
+		Coinbase:	miner,
+		Root:		stateRoot,
+		TxHash:		txHash,
+		State:		state,
+		Difficulty:	difficulty,
+		Time:		time,
+		Nonce:		nonce,
+	}
+}
