@@ -29,8 +29,7 @@ type Body struct {
 
 type Block struct {
 	header       *Header
-	transactions Transactions
-
+	transaction Transaction
 	hash	atomic.Value
 }
 
