@@ -5,20 +5,16 @@ import (
 )
 
 type BlockChain struct {
-	genesisBlock	*types.Block
-	currentBlock	*types.Block
+	genesisBlock *types.Block
+	currentBlock *types.Block
 	//processor	Processor
 	//validator	Validator
 
-	blocks		[]types.Block
+	blocks []types.Block
 }
 
+func (bc *BlockChain) insert(block *types.Block) {
 
-func (bc *BlockChain) insert(block *types.Block){
-	
-	bc.blocks = append(bc.blocks, *block);
-	bc.currentBlock = block;
+	bc.blocks = append(bc.blocks, *block)
+	bc.currentBlock = block
 }
-
-
-

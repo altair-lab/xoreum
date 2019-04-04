@@ -1,20 +1,17 @@
 package core
 
-import(
+import (
 	"github.com/altair-lab/xoreum/core/types"
 )
 
-type BlockValidator struct{
-
-	bc	*BlockChain
+type BlockValidator struct {
+	bc *BlockChain
 }
 
-func (v *BlockValidator) ValidateBody(block *types.Block) error{
+func (v *BlockValidator) ValidateBody(block *types.Block) error {
 	return nil
 }
 
-func (v *BlockValidator) ValidateState(block *types.Block) error{
+func (v *BlockValidator) ValidateState(block *types.Block) error {
 	return nil
 }
-
-

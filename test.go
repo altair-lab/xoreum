@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+
 	"github.com/altair-lab/xoreum/common"
+	//"github.com/altair-lab/xoreum/common/hexutil"
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
@@ -15,6 +18,9 @@ func main() {
 	hl := common.HashLength
 	al := common.AddressLength
 	hash1 := common.Hash{}
+	hash2 := make([]byte, 32)
+	hash3 := crypto.Keccak256Hash()
+	rand.Read(hash2)
 	address1 := common.Address{}
 	fmt.Println(hl)
 	fmt.Println(al)
@@ -45,4 +51,5 @@ func main() {
 
 	fmt.Println("---all test passed---")
 
+	fmt.Println("hash2: ", hash3.ToHex())
 }

@@ -31,11 +31,10 @@ type txdata struct {
 
 // simple implementation
 type txdata struct {
-	AccountNonce	uint64
-	Recipient	*common.Address
-	Amount		uint64
+	AccountNonce uint64
+	Recipient    *common.Address
+	Amount       uint64
 }
-
 
 func NewTransaction(nonce uint64, to common.Address, amount uint64) *Transaction {
 	return newTransaction(nonce, &to, amount)

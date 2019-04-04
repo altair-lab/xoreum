@@ -18,8 +18,8 @@ func NewAccount(address common.Address, nonce uint64, balance uint64) *Account {
 
 func newAccount(address common.Address, nonce uint64, balance uint64) *Account {
 	return &Account{
-		Address:	address,
-		Nonce:		nonce,
-		Balance:	balance,
+		Address: address,
+		Nonce:   nonce,
+		Balance: balance,
 	}
 }
