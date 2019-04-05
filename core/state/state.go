@@ -4,7 +4,7 @@ import (
 	"github.com/altair-lab/xoreum/common"
 )
 
-type State map[common.Address]uint64
+type State map[common.Address]Account
 
 type Account struct {
 	Address common.Address
@@ -18,8 +18,8 @@ func NewAccount(address common.Address, nonce uint64, balance uint64) *Account {
 
 func newAccount(address common.Address, nonce uint64, balance uint64) *Account {
 	return &Account{
-		Address:	address,
-		Nonce:		nonce,
-		Balance:	balance,
+		Address: address,
+		Nonce:   nonce,
+		Balance: balance,
 	}
 }

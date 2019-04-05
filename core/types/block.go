@@ -31,7 +31,7 @@ type Block struct {
 	header       *Header
 	transactions Transactions
 
-	hash	atomic.Value
+	hash atomic.Value
 }
 
 func (h *Header) Hash() common.Hash {
@@ -47,22 +47,22 @@ func (b *Block) Hash() common.Hash {
 	return v
 }
 
-func NewBlock(header *Header, tx Transaction) *Block {
+func NewBlock(header *Header, txs []*Transaction) *Block {
 	return &Block{
-		header:		header,
-		transaction:	tx,
+		header:       header,
+		transactions: txs,
 	}
 }
 
 func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Hash, txHash common.Hash, state state.State, difficulty uint64, time uint64, nonce uint64) *Header {
 	return &Header{
-		ParentHash:	parentHash,
-		Coinbase:	miner,
-		Root:		stateRoot,
-		TxHash:		txHash,
-		State:		state,
-		Difficulty:	difficulty,
-		Time:		time,
-		Nonce:		nonce,
+		ParentHash: parentHash,
+		Coinbase:   miner,
+		Root:       stateRoot,
+		TxHash:     txHash,
+		State:      state,
+		Difficulty: difficulty,
+		Time:       time,
+		Nonce:      nonce,
 	}
 }
