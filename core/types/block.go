@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 	"sync/atomic"
-
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
@@ -47,6 +46,8 @@ func (b *Block) Hash() common.Hash {
 }
 
 func NewBlock(header *Header, tx Transaction) *Block {
+	tx.validateTx(header.State)
+
 	return &Block{
 		header:		header,
 		transaction:	tx,
