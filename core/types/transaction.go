@@ -32,18 +32,22 @@ type txdata struct {
 // simple implementation
 type txdata struct {
 	AccountNonce	uint64
+	Sender		*common.Address
 	Recipient	*common.Address
 	Amount		uint64
 }
 
 
-func NewTransaction(nonce uint64, to common.Address, amount uint64) *Transaction {
-	return newTransaction(nonce, &to, amount)
+func NewTransaction(from common.Address, to common.Address, amount uint64) *Transaction {
+	return newTransaction(&from, &to, amount)
 }
 
-func newTransaction(nonce uint64, to *common.Address, amount uint64) *Transaction {
+func newTransaction(from *common.Address, to *common.Address, amount uint64) *Transaction {
+	nonce := uint64(0)
+
 	d := txdata{
 		AccountNonce: nonce,
+		Sender:       from,
 		Recipient:    to,
 		Amount:       amount,
 	}
