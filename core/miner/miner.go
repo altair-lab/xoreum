@@ -23,9 +23,6 @@ func (miner Miner) Mine(tx types.Transaction, state state.State) *types.Block{
 	
 	// Calculate txHash
 	txHash := tx.Hash()
-	//txHash := sha256.New()
-	//txHash.Write([]byte(fmt.Sprintf("%v", tx)))
-	//txHash = common.Hash(txHash)
 
 	// Set difficulty
 	difficulty := uint64(1)
