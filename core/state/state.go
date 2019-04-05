@@ -4,7 +4,7 @@ import (
 	"github.com/altair-lab/xoreum/common"
 )
 
-type State map[common.Address]uint64
+type State map[common.Address]Account
 
 type Account struct {
 	Address common.Address

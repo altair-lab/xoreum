@@ -12,6 +12,12 @@ import (
 	"github.com/altair-lab/xoreum/crypto"
 )
 
+func makeTestBlockChain(){
+	
+	return	
+
+}
+
 func main() {
 
 	fmt.Println("---test common/types.go---")
@@ -52,4 +58,10 @@ func main() {
 	fmt.Println("---all test passed---")
 
 	fmt.Println("hash2: ", hash3.ToHex())
+
+
+	fmt.Println("\n\n\n\n\n\n")
+
+
+
 }

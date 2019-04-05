@@ -18,7 +18,7 @@ type Address [AddressLength]byte
 
 func (h Hash) ToHex() string {
 	var b = make([]byte, HashLength)
-	for i:=0;i<HashLength;i++{
+	for i := 0; i < HashLength; i++ {
 		b[i] = h[i]
 	}
 
@@ -32,3 +32,8 @@ func (h Hash) ToHex() string {
 func Bytes2Hex(d []byte) string {
 	return hex.EncodeToString(d)
 }
+
+func HexToHash(s string) Hash{
+	return Hash{}
+}
+
