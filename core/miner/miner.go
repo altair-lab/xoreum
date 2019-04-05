@@ -18,25 +18,24 @@ func (miner *Miner) Stop() {}
 
 
 // [TODO] make this private function
-func (miner Miner) Mine(tx types.Transaction, state state.State) *types.Block{
+func (miner Miner) Mine(tx types.Transaction, state state.State, difficulty uint64) *types.Block{
 	// [TODO] Originally you can transaction and state in TxPool, not by parameter
 	
 	// Calculate txHash
 	txHash := tx.Hash()
-
-	// Set difficulty
-	difficulty := uint64(1)
 
 	// Make header
 	// [TODO] get parent hash, stateroot hash
 	parentHash := crypto.Keccak256Hash([]byte("parentHash"))
 	stateRoot := crypto.Keccak256Hash([]byte("stateRoot"))
 	header := types.NewHeader(parentHash, miner.Coinbase, stateRoot, txHash, state, difficulty, uint64(time.Now().Unix()), uint64(0))
-	
+
+	// Print Difficulty
+	fmt.Println("Difficulty: ", difficulty)
+
 	// PoW
 	for true {
 		h := header.Hash()
-		fmt.Println("header hash : ", h)
 		// check difficulty
 		if checkDifficulty(h, difficulty) {
 			break
@@ -56,5 +55,10 @@ func (miner Miner) Mine(tx types.Transaction, state state.State) *types.Block{
 
 // [TODO] check difficulty
 func checkDifficulty(hash common.Hash, difficulty uint64) bool{
-	return true
+	fmt.Println("header hash[0]: ", hash[0])
+	if uint64(hash[0]) < (255 - difficulty) {
+		return true
+	} else {
+		return false
+	}
 }
