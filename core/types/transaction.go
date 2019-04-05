@@ -1,9 +1,11 @@
 package types
 
 import (
+	"fmt"
 	"errors"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/crypto"
 )
 
 type Transaction struct {
@@ -57,14 +59,22 @@ func newTransaction(from *common.Address, to *common.Address, amount uint64) *Tr
 	return &Transaction{data: d}
 }
 
-// Reference : tx_pool.go#L603
+func (tx *Transaction) Hash() common.Hash {
+	return crypto.Keccak256Hash([]byte(fmt.Sprintf("%v", *tx)))
+}
+
+// [TODO] Reference : tx_pool.go#L603
 func (tx *Transaction) validateTx(currentState state.State) error {
 	// Ensure the transaction adheres to nonce ordering
-	return errors.New("nonce too low") 
-
+	if false {
+		return errors.New("nonce too low") 
+	}
+	
 	// Transactor should have enough funds to cover the costs
-	return errors.New("insufficient balance")
-
+	if false {
+		return errors.New("insufficient balance")
+	}
+	
 	// nothing
 	return nil
 }
