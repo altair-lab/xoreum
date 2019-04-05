@@ -1,8 +1,8 @@
 package crypto
 
 import (
-	"golang.org/x/crypto/sha3"
 	"github.com/altair-lab/xoreum/common"
+	"golang.org/x/crypto/sha3"
 )
 
 // Keccak256 calculates and returns the Keccak256 hash of the input data.

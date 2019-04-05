@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+
 	"github.com/altair-lab/xoreum/common"
 	//"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/state"
@@ -9,6 +11,12 @@ import (
 	"github.com/altair-lab/xoreum/core/miner"
 	//"github.com/altair-lab/xoreum/crypto"
 )
+
+func makeTestBlockChain(){
+	
+	return	
+
+}
 
 func main() {
 	// send "10" to "account 1"
