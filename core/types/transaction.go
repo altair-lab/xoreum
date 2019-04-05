@@ -1,6 +1,8 @@
 package types
 
 import (
+	"errors"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/common"
 )
 
@@ -53,4 +55,16 @@ func newTransaction(from *common.Address, to *common.Address, amount uint64) *Tr
 	}
 
 	return &Transaction{data: d}
+}
+
+// Reference : tx_pool.go#L603
+func (tx *Transaction) validateTx(currentState state.State) error {
+	// Ensure the transaction adheres to nonce ordering
+	return errors.New("nonce too low") 
+
+	// Transactor should have enough funds to cover the costs
+	return errors.New("insufficient balance")
+
+	// nothing
+	return nil
 }
