@@ -30,14 +30,11 @@ func (miner Miner) Mine(tx types.Transaction, state state.State) *types.Block{
 	// Set difficulty
 	difficulty := uint64(1)
 
-	// Set nonce
-	nonce:= uint64(0)
-
 	// Make header
 	// [TODO] get parent hash, stateroot hash
 	parentHash := crypto.Keccak256Hash([]byte("parentHash"))
 	stateRoot := crypto.Keccak256Hash([]byte("stateRoot"))
-	header := types.NewHeader(parentHash, miner.Coinbase, stateRoot, txHash, state, difficulty, uint64(time.Now().Unix()), nonce)
+	header := types.NewHeader(parentHash, miner.Coinbase, stateRoot, txHash, state, difficulty, uint64(time.Now().Unix()), uint64(0))
 	
 	// PoW
 	for true {
@@ -50,8 +47,8 @@ func (miner Miner) Mine(tx types.Transaction, state state.State) *types.Block{
 			header.Nonce++
 		}
 	}
-
-	fmt.Println("Mining Success!")
+	
+	fmt.Println("Mining Success! nonce = ", header.Nonce)
 
 	// Make block
 	block := types.NewBlock(header, tx)
