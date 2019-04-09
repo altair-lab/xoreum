@@ -19,7 +19,7 @@ func (miner *Miner) Stop() {}
 
 // [TODO] make this private function
 func (miner Miner) Mine(tx types.Transaction, state state.State, difficulty uint64) *types.Block{
-	// [TODO] Originally you can transaction and state in TxPool, not by parameter
+	// [TODO] Originally you can get transaction and state in TxPool, not by parameter
 	
 	// Calculate txHash
 	txHash := tx.Hash()
