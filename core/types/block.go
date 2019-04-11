@@ -51,7 +51,7 @@ func NewBlock(header *Header, tx Transaction) *Block {
 
 	return &Block{
 		header:       header,
-		transactions: txs,
+		transaction: tx,
 	}
 }
 
