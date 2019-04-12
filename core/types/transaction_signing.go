@@ -32,13 +32,6 @@ func SignTx(tx *Transaction, priv *ecdsa.PrivateKey) (*Transaction, error) {
 	return tx, nil
 }
 
-/*
-// verify that this tx is sent by this publickey owner
-func VerifySender(pub *ecdsa.PublicKey, tx *Transaction) bool {
-	//return ecdsa.Verify(pub, tx.GetTxdataHash(), tx.R, tx.S)
-	return true
-}
-*/
 // verify that this signed tx is really signed with sender's and recipient's private key
 func VerifyTxSignature(tx *Transaction) bool {
 	return ecdsa.Verify(tx.data.Sender, tx.GetTxdataHash(), tx.Sender_R, tx.Sender_S) && ecdsa.Verify(tx.data.Recipient, tx.GetTxdataHash(), tx.Recipient_R, tx.Recipient_S)
