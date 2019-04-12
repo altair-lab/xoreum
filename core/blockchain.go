@@ -15,7 +15,7 @@ type BlockChain struct {
 	blocks []types.Block
 }
 
-func NewBlockChain() *BlockChain{
+func NewBlockChain() *BlockChain {
 	return &BlockChain{}
 }
 

@@ -2,10 +2,10 @@ package types
 
 import (
 	"fmt"
-	"sync/atomic"
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
+	"sync/atomic"
 )
 
 type Header struct {
@@ -27,10 +27,9 @@ type Body struct {
 */
 
 type Block struct {
-	header       *Header
-	transaction Transaction
-	hash	atomic.Value
-
+	header      *Header
+	transactions Transactions
+	hash        atomic.Value
 }
 
 func (h *Header) Hash() common.Hash {
@@ -46,8 +45,8 @@ func (b *Block) Hash() common.Hash {
 	return v
 }
 
-func NewBlock(header *Header, tx Transaction) *Block {
-	tx.validateTx(header.State)
+func NewBlock(header *Header, txs []*Transaction) *Block {
+	//tx.validateTx(header.State)
 
 	return &Block{
 		header:       header,
