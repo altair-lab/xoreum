@@ -59,6 +59,8 @@ func newTransaction(from *common.Address, to *common.Address, amount uint64) *Tr
 	return &Transaction{data: d}
 }
 
+func (tx *Transaction) Nonce() uint64	{ return tx.data.AccountNonce }
+
 func (tx *Transaction) Hash() common.Hash {
 	return crypto.Keccak256Hash([]byte(fmt.Sprintf("%v", *tx)))
 }
