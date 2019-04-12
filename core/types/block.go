@@ -28,7 +28,7 @@ type Body struct {
 
 type Block struct {
 	header       *Header
-	transaction Transaction
+	transactions Transactions
 	hash	atomic.Value
 
 }
@@ -46,12 +46,12 @@ func (b *Block) Hash() common.Hash {
 	return v
 }
 
-func NewBlock(header *Header, tx Transaction) *Block {
-	tx.validateTx(header.State)
+func NewBlock(header *Header, txs []*Transaction) *Block {
+	// txs.validateTx(header.State)
 
 	return &Block{
 		header:       header,
-		transaction: tx,
+		transactions: txs,
 	}
 }
 
