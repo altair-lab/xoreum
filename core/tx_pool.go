@@ -115,24 +115,33 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 // whitelisted, preventing any associated transaction from being dropped out of
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error){
+	hash := tx.Hash()
 	// If the transaction fails basic validation, discard it
 	if err := pool.validateTx(tx); err != nil {
 		// [TODO] Print error
 		return false, err
 	}
-
-	// [TODO] enqueueTx here
+	// We don't deal with "full" of transaction pool
 	
+	// [TODO] If the transaction is replacing an already pending one, do directly
 
-	return false, nil
+	// New transaction isn't replacing a pending one, push into queue
+	replace, err := pool.enqueueTx(hash, tx)
+	if err != nil {
+		return false, err
+	}
+
+	// [TODO?] Mark local addresses and journal local transactions
+
+	return replace, nil
 }
 
 // enqueueTx inserts a new transaction into the non-executable transaction queue.
 // we don't have any lookup algorithm or overwrite algorithm for simple design
 func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
-	// [TODO] Get from signature
-	from := tx.Sender
+	// [TODO] Get sender from signature
+	from := tx.Sender()
 	if pool.queue[from] == nil {
 		pool.queue[from] = newTxList(false)
 	}
@@ -145,6 +154,22 @@ func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, er
 	return inserted, nil
 }
 
-// [TODO] removeTx
+// promoteTx adds a transaction to the pending (processable) list of transactions
+// and returns whether it was inserted or an older was better.
+//
+// Note, this method assumes the pool lock is held!
+func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.Transaction) bool {
+	// this function is called in promoteExecutables
+	// and promoteExcutables is called in addTx
+	return false
+}
 
+// addTx enqueues a single transaction into the pool if it is valid.
+func (pool *TxPool) addTx(tx *types.Transaction, local bool) error {
+	return nil
+}
 
+// removeTx removes a single transaction from the queue, moving all subsequent
+// transactions back to the future queue.
+func (pool *TxPool) removeTx(hash common.Hash, outofbound bool) {
+}

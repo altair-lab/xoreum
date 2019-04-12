@@ -59,6 +59,7 @@ func newTransaction(from *common.Address, to *common.Address, amount uint64) *Tr
 
 func (tx *Transaction) Nonce() uint64	{ return tx.data.AccountNonce }
 func (tx *Transaction) Value() uint64 { return tx.data.Amount } 
+func (tx *Transaction) Sender() common.Address { return *tx.data.Sender } // Temporal function until signature is implemented
 
 func (tx *Transaction) Hash() common.Hash {
 	return crypto.Keccak256Hash([]byte(fmt.Sprintf("%v", *tx)))
