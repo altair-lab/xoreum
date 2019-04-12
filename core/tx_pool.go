@@ -25,6 +25,9 @@ var (
 	// ErrNegativeValue is a sanity error to ensure noone is able to specify a
 	// transaction with a negative value.
 	ErrNegativeValue = errors.New("negative value")
+
+	// ErrOverwrite is returned if a transaction is attempted to be written with already existing nonce
+	ErrOverwrite = errors.New("already existing nonce")
 )
 
 // Reference : tx_pool.go#L205
@@ -83,7 +86,30 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 // whitelisted, preventing any associated transaction from being dropped out of
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error){
-// [TODO] difference with addTx, enque.....
+// [TODO] validateTx here
+	
+// [TODO] enqueueTx here
 	return false, nil
 }
+
+// enqueueTx inserts a new transaction into the non-executable transaction queue.
+// we don't have any lookup algorithm or overwrite algorithm for simple design
+func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, error) {
+	// Try to insert the transaction into the future queue
+	// [TODO] Get from signature
+	from := tx.Sender
+	if pool.queue[from] == nil {
+		pool.queue[from] = newTxList(false)
+	}
+	inserted := pool.queue[from].Add(tx)
+	if !inserted {
+		// An older transaction exists, discard this
+		return false, ErrOverwrite
+	}
+
+	return inserted, nil
+}
+
+// [TODO] removeTx
+
 
