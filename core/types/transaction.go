@@ -1,6 +1,7 @@
 package types
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"math/big"
@@ -15,8 +16,10 @@ type Transaction struct {
 	hash common.Hash
 
 	// signature values
-	R *big.Int
-	S *big.Int
+	Sender_R    *big.Int
+	Sender_S    *big.Int
+	Recipient_R *big.Int
+	Recipient_S *big.Int
 }
 
 // Transactions is a Transaction slice type for basic sorting
@@ -36,16 +39,18 @@ type txdata struct {
 // simple implementation
 type txdata struct {
 	AccountNonce uint64
-	Sender       *common.Address
-	Recipient    *common.Address
-	Amount       uint64
+	//Sender       *common.Address
+	//Recipient    *common.Address
+	Sender    *ecdsa.PublicKey
+	Recipient *ecdsa.PublicKey
+	Amount    uint64
 }
 
-func NewTransaction(from common.Address, to common.Address, amount uint64) *Transaction {
+func NewTransaction(from ecdsa.PublicKey, to ecdsa.PublicKey, amount uint64) *Transaction {
 	return newTransaction(&from, &to, amount)
 }
 
-func newTransaction(from *common.Address, to *common.Address, amount uint64) *Transaction {
+func newTransaction(from *ecdsa.PublicKey, to *ecdsa.PublicKey, amount uint64) *Transaction {
 	nonce := uint64(0)
 
 	d := txdata{
