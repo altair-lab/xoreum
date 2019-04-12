@@ -36,7 +36,7 @@ type txdata struct {
 // simple implementation
 type txdata struct {
 	AccountNonce	uint64
-	Sender		*common.Address
+	Sender		*common.Address // [TODO] Implement it using signature values (ref: transaction_signing.go)
 	Recipient	*common.Address
 	Amount		uint64
 }
