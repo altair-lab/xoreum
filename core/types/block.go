@@ -47,6 +47,7 @@ func (b *Block) Hash() common.Hash {
 }
 
 func NewBlock(header *Header, txs []*Transaction) *Block {
+	// [TODO] Move validateTx in tx_pool
 	// txs.validateTx(header.State)
 
 	return &Block{
