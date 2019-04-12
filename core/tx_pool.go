@@ -10,7 +10,6 @@ import (
 
 // Reference : tx_pool.go#L43
 var (
-
 	// ErrInvalidSender is returned if the transaction contains an invalid signature.
 	ErrInvalidSender = errors.New("invalid sender")
 
@@ -96,8 +95,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	// [TODO] transaction_signing 
 	/*
 	// Make sure the transaction is signed properly
-	from, err := types.Sender(pool.signer, tx)
-	if err != nil {
+	validity := types.VerifySender(tx.Sender().PublicKey(), tx)
+	if !validity {
 		return ErrInvalidSender
 	}
 	*/
