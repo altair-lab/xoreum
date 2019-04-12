@@ -2,8 +2,6 @@ package types
 
 import (
 	"fmt"
-	"errors"
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/crypto"
 )
@@ -60,23 +58,9 @@ func newTransaction(from *common.Address, to *common.Address, amount uint64) *Tr
 }
 
 func (tx *Transaction) Nonce() uint64	{ return tx.data.AccountNonce }
+func (tx *Transaction) Value() uint64 { return tx.data.Amount } 
 
 func (tx *Transaction) Hash() common.Hash {
 	return crypto.Keccak256Hash([]byte(fmt.Sprintf("%v", *tx)))
 }
 
-// [TODO] Reference : tx_pool.go#L603
-func (tx *Transaction) validateTx(currentState state.State) error {
-	// Ensure the transaction adheres to nonce ordering
-	if false {
-		return errors.New("nonce too low") 
-	}
-	
-	// Transactor should have enough funds to cover the costs
-	if false {
-		return errors.New("insufficient balance")
-	}
-	
-	// nothing
-	return nil
-}
