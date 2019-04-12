@@ -73,9 +73,38 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction) error {
-	return nil
-}
+	// Transactions can't be negative. This may never happen using RLP decoded
+	// transactions but may occur if you create a transaction using the RPC.
+	if tx.Value() < 0 {
+		return ErrNegativeValue
+	}
 
+	// [TODO] currentState
+	// Ensure the transaction adheres to nonce ordering
+	/*
+	if pool.currentState.GetNonce(from) > tx.Nonce() {
+		return ErrNonceTooLow
+	}
+
+	// Transactor should have enough funds to cover the costs
+	// cost == V + GP * GL
+	if pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
+		return ErrInsufficientFunds
+	}
+	*/
+
+	// [TODO] transaction_signing 
+	/*
+	// Make sure the transaction is signed properly
+	from, err := types.Sender(pool.signer, tx)
+	if err != nil {
+		return ErrInvalidSender
+	}
+	*/
+        
+        // nothing
+        return nil 
+}
 
 // add validates a transaction and inserts it into the non-executable queue for
 // later pending promotion and execution. If the transaction is a replacement for
@@ -86,9 +115,15 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 // whitelisted, preventing any associated transaction from being dropped out of
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error){
-// [TODO] validateTx here
+	// If the transaction fails basic validation, discard it
+	if err := pool.validateTx(tx); err != nil {
+		// [TODO] Print error
+		return false, err
+	}
+
+	// [TODO] enqueueTx here
 	
-// [TODO] enqueueTx here
+
 	return false, nil
 }
 
