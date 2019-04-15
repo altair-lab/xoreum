@@ -4,6 +4,7 @@ package common
 
 import (
 	"encoding/hex"
+	"fmt"
 )
 
 const (
@@ -48,4 +49,8 @@ func Bytes2Hex(d []byte) string {
 
 func HexToHash(s string) Hash {
 	return Hash{}
+}
+
+func ToBytes(v interface{}) []byte {
+	return []byte(fmt.Sprintf("%v", v))
 }
