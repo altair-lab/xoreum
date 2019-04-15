@@ -31,7 +31,7 @@ var (
 
 // Reference : tx_pool.go#L205
 type TxPool struct {
-	chain       BlockChain
+	//chain       BlockChain
 	queue	    map[common.Address]*txList // Address-txList map for validation
 	all         *txQueue // Queued transactions for time ordering (FIFO)
 	
@@ -40,9 +40,9 @@ type TxPool struct {
 	// [TODO] pendingState : Pending state tracking virtual nonces
 }
 
-func NewTxPool(chain BlockChain) *TxPool {
+func NewTxPool() *TxPool {
 	pool := &TxPool{
-		chain:		chain,
+		//chain:		chain,
 		queue:		make(map[common.Address]*txList),
 		all:		newTxQueue(),
 	}
@@ -51,6 +51,10 @@ func NewTxPool(chain BlockChain) *TxPool {
 	// [TODO] Start the event loop
 
 	return pool
+}
+
+func (pool *TxPool) Len() int {
+	return pool.all.Len()
 }
 
 // Add single transaction to txpool
@@ -130,27 +134,27 @@ func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 	return inserted, nil
 }
 
-func (pool *TxPool) dequeueTx() bool  {
+func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 	tx := pool.all.Dequeue()
 	if tx == nil {
 		// empty queue
-		return false
+		return nil, false
 	}
 
 	// [TODO] Get sender from signature
 	from := tx.Sender()
 	if pool.queue[from] == nil {
 		// exist in txQueue, but not in txList
-		return false
+		return tx, false
 	}
 
 	deleted := pool.queue[from].Remove(tx)
 	if !deleted {
 		// exist in txQueue, but not in txList
-		return false
+		return tx, false
 	}
 	
-	return deleted
+	return tx, deleted
 }
 
 
@@ -170,11 +174,15 @@ func (t *txQueue) Enqueue(tx *types.Transaction) {
 }
 
 func (t *txQueue) Dequeue() *types.Transaction {
-	if len(t.all) == 0 {
+	if t.Len() == 0 {
 		// empty
 		return nil
 	}
 	x := t.all[0]
 	t.all = t.all[1:]
 	return x
+}
+
+func (t *txQueue) Len() int {
+	return len(t.all)
 }

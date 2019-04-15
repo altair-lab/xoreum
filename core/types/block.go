@@ -46,10 +46,20 @@ func (b *Block) Hash() common.Hash {
 	return v
 }
 
-func NewBlock(header *Header, txs []*Transaction) *Block {
-	// [TODO] Move validateTx in tx_pool
-	// txs.validateTx(header.State)
+func (b* Block) PrintTx() {
+	for i := 0; i < len(b.transactions); i++ {
+		fmt.Println("====================")
+		fmt.Println("Sender: ", b.transactions[i].Sender())
+		fmt.Println("Recipient: ", b.transactions[i].Recipient())
+		fmt.Println("Value: ", b.transactions[i].Value())
+	}
+}
 
+func (b* Block) InsertTx(tx *Transaction) {
+	b.transactions = append(b.transactions, tx)
+}
+
+func NewBlock(header *Header, txs []*Transaction) *Block {
 	return &Block{
 		header:       header,
 		transactions: txs,
