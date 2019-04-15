@@ -32,9 +32,10 @@ var (
 // Reference : tx_pool.go#L205
 type TxPool struct {
 	chain       BlockChain
-	pending map[common.Address]*txList // All currently processable transactions
-	queue	map[common.Address]*txList // Queued but non-processable transactions
+	queue	    map[common.Address]*txList // Address-txList map for validation
+	all         *txQueue // Queued transactions for time ordering (FIFO)
 	
+	// [TODO] pending map[common.Address]*txList // All currently processable transactions
 	// [TODO] currentState : Current state in the blockchain head
 	// [TODO] pendingState : Pending state tracking virtual nonces
 }
@@ -42,8 +43,8 @@ type TxPool struct {
 func NewTxPool(chain BlockChain) *TxPool {
 	pool := &TxPool{
 		chain:		chain,
-		pending:        make(map[common.Address]*txList),
 		queue:		make(map[common.Address]*txList),
+		all:		newTxQueue(),
 	}
 	
 	// [TODO] Subscribe events from blockchain
@@ -52,19 +53,25 @@ func NewTxPool(chain BlockChain) *TxPool {
 	return pool
 }
 
+// Add single transaction to txpool
+// Reference : tx_pool.go#L654
+func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
+	// If the transaction fails basic validation, discard it
+	if err := pool.validateTx(tx); err != nil {
+		// [TODO] Print error
+		return false, err
+	}
+	// We don't deal with "full" of transaction pool
+	
+	// [TODO] If the transaction is replacing an already pending one, do directly
 
-// loop is the transaction pool's main event loop, waiting for and reacting to
-// outside blockchain events as well as for various reporting and transaction
-// eviction events.
-func (pool *TxPool) loop() {
-}
+	// New transaction isn't replacing a pending one, push into queue
+	replace, err := pool.enqueueTx(tx)
+	if err != nil {
+		return false, err
+	}
 
-
-// Pending retrieves all currently processable transactions, grouped by origin
-// account and sorted by nonce. The returned transaction set is a copy and can be
-// freely modified by calling code.
-func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
-	return nil, nil
+	return replace, nil
 }
 
 
@@ -105,39 +112,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
         return nil 
 }
 
-// add validates a transaction and inserts it into the non-executable queue for
-// later pending promotion and execution. If the transaction is a replacement for
-// an already pending or queued one, it overwrites the previous and returns this
-// so outer code doesn't uselessly call promote.
-//
-// If a newly added transaction is marked as local, its sending account will be
-// whitelisted, preventing any associated transaction from being dropped out of
-// the pool due to pricing constraints.
-func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error){
-	hash := tx.Hash()
-	// If the transaction fails basic validation, discard it
-	if err := pool.validateTx(tx); err != nil {
-		// [TODO] Print error
-		return false, err
-	}
-	// We don't deal with "full" of transaction pool
-	
-	// [TODO] If the transaction is replacing an already pending one, do directly
-
-	// New transaction isn't replacing a pending one, push into queue
-	replace, err := pool.enqueueTx(hash, tx)
-	if err != nil {
-		return false, err
-	}
-
-	// [TODO?] Mark local addresses and journal local transactions
-
-	return replace, nil
-}
-
-// enqueueTx inserts a new transaction into the non-executable transaction queue.
-// we don't have any lookup algorithm or overwrite algorithm for simple design
-func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, error) {
+// enqueue a single trasaction to pool.queue, pool.all
+func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
 	// [TODO] Get sender from signature
 	from := tx.Sender()
@@ -149,26 +125,56 @@ func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, er
 		// An older transaction exists, discard this
 		return false, ErrOverwrite
 	}
-
+	
+	pool.all.Enqueue(tx)
 	return inserted, nil
 }
 
-// promoteTx adds a transaction to the pending (processable) list of transactions
-// and returns whether it was inserted or an older was better.
-//
-// Note, this method assumes the pool lock is held!
-func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.Transaction) bool {
-	// this function is called in promoteExecutables
-	// and promoteExcutables is called in addTx
-	return false
+func (pool *TxPool) dequeueTx() bool  {
+	tx := pool.all.Dequeue()
+	if tx == nil {
+		// empty queue
+		return false
+	}
+
+	// [TODO] Get sender from signature
+	from := tx.Sender()
+	if pool.queue[from] == nil {
+		// exist in txQueue, but not in txList
+		return false
+	}
+
+	deleted := pool.queue[from].Remove(tx)
+	if !deleted {
+		// exist in txQueue, but not in txList
+		return false
+	}
+	
+	return deleted
 }
 
-// addTx enqueues a single transaction into the pool if it is valid.
-func (pool *TxPool) addTx(tx *types.Transaction, local bool) error {
-	return nil
+
+
+type txQueue struct {
+	all []*types.Transaction
 }
 
-// removeTx removes a single transaction from the queue, moving all subsequent
-// transactions back to the future queue.
-func (pool *TxPool) removeTx(hash common.Hash, outofbound bool) {
+func newTxQueue() *txQueue {
+	return &txQueue{
+		all: make([]*types.Transaction, 0),
+	}
+}
+
+func (t *txQueue) Enqueue(tx *types.Transaction) {
+	t.all = append(t.all, tx)
+}
+
+func (t *txQueue) Dequeue() *types.Transaction {
+	if len(t.all) == 0 {
+		// empty
+		return nil
+	}
+	x := t.all[0]
+	t.all = t.all[1:]
+	return x
 }

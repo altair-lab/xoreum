@@ -118,6 +118,11 @@ func (l *txList) Add(tx *types.Transaction) (bool) {
 	return true
 }
 
+func (l *txList) Remove(tx *types.Transaction) (bool) {
+	nonce := tx.Nonce()
+	return l.txs.Remove(nonce)
+}
+
 // Len returns the length of the transaction list.
 func (l *txList) Len() int {
 	return l.txs.Len()
