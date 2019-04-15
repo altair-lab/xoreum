@@ -1,9 +1,7 @@
-package main
+package test
 
 import (
 	"fmt"
-	"math/rand"
-
 	"github.com/altair-lab/xoreum/common"
 	//"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/state"
@@ -12,13 +10,7 @@ import (
 	//"github.com/altair-lab/xoreum/crypto"
 )
 
-func makeTestBlockChain(){
-	
-	return	
-
-}
-
-func main() {
+func ExampleMining() {
 	// send "10" to "account 1"
 	
 	// Create default accounts
@@ -43,4 +35,7 @@ func main() {
 	miner := miner.Miner{acc2.Address}
 	block := miner.Mine(*tx, state, 240) // Difficulty is 0~255 for now
 	fmt.Println("Created Block: " , block)
+
+	// output:
+	// "a"
 }
