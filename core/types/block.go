@@ -36,6 +36,7 @@ func (h *Header) Hash() common.Hash {
 	return crypto.Keccak256Hash(common.ToBytes(*h))
 }
 
+// block's hash is same with header's hash
 func (b *Block) Hash() common.Hash {
 	if hash := b.hash.Load(); hash != nil {
 		return hash.(common.Hash)
