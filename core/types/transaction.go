@@ -3,7 +3,6 @@ package types
 import (
 	"crypto/ecdsa"
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/altair-lab/xoreum/common"
@@ -64,7 +63,7 @@ func newTransaction(from *ecdsa.PublicKey, to *ecdsa.PublicKey, amount uint64) *
 }
 
 func (tx *Transaction) Hash() common.Hash {
-	return crypto.Keccak256Hash([]byte(fmt.Sprintf("%v", *tx)))
+	return crypto.Keccak256Hash(common.ToBytes(*tx))
 }
 
 // [TODO] Reference : tx_pool.go#L603
@@ -84,5 +83,5 @@ func (tx *Transaction) validateTx(currentState state.State) error {
 }
 
 func (tx *Transaction) GetTxdataHash() []byte {
-	return crypto.Keccak256([]byte(fmt.Sprintf("%v", tx.data)))
+	return crypto.Keccak256(common.ToBytes(tx.data))
 }

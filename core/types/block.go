@@ -1,11 +1,11 @@
 package types
 
 import (
-	"fmt"
+	"sync/atomic"
+
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
-	"sync/atomic"
 )
 
 type Header struct {
@@ -27,13 +27,13 @@ type Body struct {
 */
 
 type Block struct {
-	header      *Header
+	header       *Header
 	transactions Transactions
-	hash        atomic.Value
+	hash         atomic.Value
 }
 
 func (h *Header) Hash() common.Hash {
-	return crypto.Keccak256Hash([]byte(fmt.Sprintf("%v", *h)))
+	return crypto.Keccak256Hash(common.ToBytes(*h))
 }
 
 func (b *Block) Hash() common.Hash {
