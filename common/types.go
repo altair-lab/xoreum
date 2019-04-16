@@ -5,6 +5,7 @@ package common
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
 )
 
 const (
@@ -16,6 +17,18 @@ const (
 type Hash [HashLength]byte
 
 type Address [AddressLength]byte
+
+func (h Hash) ToBigInt() *big.Int {
+	byteArr := []byte{}
+
+	for i := 0; i < HashLength; i++ {
+		byteArr = append(byteArr, h[i])
+	}
+
+	r := new(big.Int)
+	r.SetBytes(byteArr)
+	return r
+}
 
 func (h Hash) ToHex() string {
 	var b = make([]byte, HashLength)

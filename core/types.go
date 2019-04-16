@@ -1,5 +1,6 @@
 package core
 
+/*
 import (
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
@@ -13,3 +14,4 @@ type Validator interface {
 	// ValidateState validates the given statedb and optionally the receipts and gas used
 	ValidateState(block *types.Block, state *state.State) error
 }
+*/

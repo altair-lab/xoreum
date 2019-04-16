@@ -1,5 +1,6 @@
 package test
 
+/*
 import (
 	"fmt"
 	"github.com/altair-lab/xoreum/common"
@@ -12,7 +13,7 @@ import (
 
 func ExampleMining() {
 	// send "10" to "account 1"
-	
+
 	// Create default accounts
 	fmt.Println("===== Create default accounts . . . =====")
 	acc0 := state.NewAccount(common.Address{0}, uint64(0), uint64(100)) // acc0 [Address:0, Nonce:0, Balance:100]
@@ -39,3 +40,4 @@ func ExampleMining() {
 	// output:
 	// "a"
 }
+*/

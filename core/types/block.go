@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"sync/atomic"
 
 	"github.com/altair-lab/xoreum/common"
@@ -9,14 +10,16 @@ import (
 )
 
 type Header struct {
-	ParentHash common.Hash    `parentHash`
+	ParentHash common.Hash    `parentHash` // previous block's hash
 	Coinbase   common.Address `miner`
 	Root       common.Hash    `stateRoot`
 	TxHash     common.Hash    `transactionsRoot`
 	State      state.State    `state`
-	Difficulty uint64         `difficulty`
+	Number     uint64         `number` // (Number == Height) A scalar value equal to the number of ancestor blocks. The genesis block has a number of zero
 	Time       uint64         `timestamp`
 	Nonce      uint64         `nonce`
+	InterLink  []uint64       `interlink` // list of block's level
+	Difficulty uint64         `difficulty`
 }
 
 /*
@@ -30,6 +33,7 @@ type Block struct {
 	header       *Header
 	transactions Transactions
 	hash         atomic.Value
+	level        uint64 // used in interlink
 }
 
 func (h *Header) Hash() common.Hash {
@@ -46,7 +50,7 @@ func (b *Block) Hash() common.Hash {
 	return v
 }
 
-func (b* Block) PrintTx() {
+func (b *Block) PrintTx() {
 	for i := 0; i < len(b.transactions); i++ {
 		fmt.Println("====================")
 		fmt.Println("Sender: ", b.transactions[i].Sender())
@@ -55,7 +59,7 @@ func (b* Block) PrintTx() {
 	}
 }
 
-func (b* Block) InsertTx(tx *Transaction) {
+func (b *Block) InsertTx(tx *Transaction) {
 	b.transactions = append(b.transactions, tx)
 }
 

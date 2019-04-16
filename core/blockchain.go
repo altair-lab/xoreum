@@ -1,27 +1,31 @@
 package core
 
 import (
-	"math/big"
 	"sync/atomic"
 
+	"github.com/altair-lab/xoreum/common/math"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/params"
 )
 
+var (
+	Difficulty = math.BigPow(2, 256-10) // mining difficulty: 100
+)
+
 type BlockChain struct {
-	ChainID *big.Int // chainId identifies the current chain and is used for replay protection
+	//ChainID *big.Int // chainId identifies the current chain and is used for replay protection
 
 	genesisBlock *types.Block
 	currentBlock atomic.Value
 	//processor	Processor
-	validator Validator
+	//validator Validator
 
 	blocks []types.Block
 }
 
 func NewBlockChain() *BlockChain {
 	return &BlockChain{
-		ChainID:      big.NewInt(0),
+		//ChainID:      big.NewInt(0),
 		genesisBlock: params.GetGenesisBlock(),
 	}
 }

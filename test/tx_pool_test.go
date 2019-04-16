@@ -1,5 +1,6 @@
 package test
 
+/*
 import (
 	"fmt"
 	"github.com/altair-lab/xoreum/common"
@@ -9,11 +10,7 @@ import (
 	"github.com/altair-lab/xoreum/core/miner"
 )
 
-///////////////////////
-///*   CHECKLIST   *///
-///* 1. FIFO       *///
-///* 2. ValidateTx *///
-///////////////////////
+
 
 func ExampleTxpool() {
 
@@ -71,3 +68,4 @@ func ExampleTxpool() {
 	// output:
 	// true
 }
+*/
