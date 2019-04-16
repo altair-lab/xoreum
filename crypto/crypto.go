@@ -1,6 +1,10 @@
 package crypto
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+
 	"github.com/altair-lab/xoreum/common"
 	"golang.org/x/crypto/sha3"
 )
@@ -25,4 +29,20 @@ func Keccak256Hash(data ...[]byte) (h common.Hash) {
 	}
 	d.Sum(h[:0])
 	return h
+}
+
+// Keccak256Address calculates and returns the Keccak256 hash of the input data,
+// converting it to an internal Address data structure.
+func Keccak256Address(data ...[]byte) (a common.Address) {
+	d := sha3.NewLegacyKeccak256()
+	for _, b := range data {
+		d.Write(b)
+	}
+	d.Sum(a[:0])
+	return a
+}
+
+func GenerateKey() (*ecdsa.PrivateKey, error) {
+	//return ecdsa.GenerateKey(S256(), rand.Reader)
+	return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 }

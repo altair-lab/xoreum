@@ -47,7 +47,8 @@ func (miner Miner) Mine(tx types.Transaction, state state.State, difficulty uint
 	fmt.Println("Mining Success! nonce = ", header.Nonce)
 
 	// Make block
-	block := types.NewBlock(header, tx)
+	txs := []*types.Transaction{&tx}
+	block := types.NewBlock(header, txs)
 	block.Hash() //set block hash
 
 	return block
