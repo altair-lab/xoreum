@@ -2,7 +2,7 @@ package types
 
 import (
 	"sync/atomic"
-
+	"fmt"
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
@@ -48,10 +48,10 @@ func (b *Block) Hash() common.Hash {
 
 func (b* Block) PrintTx() {
 	for i := 0; i < len(b.transactions); i++ {
-		fmt.Println("====================")
-		fmt.Println("Sender: ", b.transactions[i].Sender())
-		fmt.Println("Recipient: ", b.transactions[i].Recipient())
-		fmt.Println("Value: ", b.transactions[i].Value())
+		fmt.Printf("====================\n")
+		fmt.Printf("Sender: %x\n", b.transactions[i].Sender())
+		fmt.Printf("Recipient: %x\n", b.transactions[i].Recipient())
+		fmt.Printf("Value: %d\n", b.transactions[i].Value())
 	}
 }
 

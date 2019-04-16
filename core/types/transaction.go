@@ -2,11 +2,8 @@ package types
 
 import (
 	"crypto/ecdsa"
-	"errors"
 	"math/big"
-
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
 )
 
@@ -64,8 +61,8 @@ func newTransaction(from *ecdsa.PublicKey, to *ecdsa.PublicKey, amount uint64) *
 
 func (tx *Transaction) Nonce() uint64	{ return tx.data.AccountNonce }
 func (tx *Transaction) Value() uint64 { return tx.data.Amount } 
-func (tx *Transaction) Sender() common.Address { return *tx.data.Sender } // Temporal function until signature is implemented
-func (tx *Transaction) Recipient() common.Address { return *tx.data.Recipient }
+func (tx *Transaction) Sender() common.Address { return crypto.Keccak256Address(common.ToBytes(*tx.data.Sender)) } // Temporal function until signature is implemented
+func (tx *Transaction) Recipient() common.Address { return crypto.Keccak256Address(common.ToBytes(*tx.data.Recipient)) }
 
 func (tx *Transaction) Hash() common.Hash {
 	return crypto.Keccak256Hash(common.ToBytes(*tx))
