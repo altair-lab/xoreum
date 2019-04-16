@@ -38,8 +38,6 @@ type txdata struct {
 // simple implementation
 type txdata struct {
 	AccountNonce uint64
-	//Sender       *common.Address
-	//Recipient    *common.Address
 	Sender    *ecdsa.PublicKey
 	Recipient *ecdsa.PublicKey
 	Amount    uint64
@@ -49,6 +47,8 @@ func NewTransaction(from ecdsa.PublicKey, to ecdsa.PublicKey, amount uint64) *Tr
 	return newTransaction(&from, &to, amount)
 }
 
+
+// [TODO] Set nonce
 func newTransaction(from *ecdsa.PublicKey, to *ecdsa.PublicKey, amount uint64) *Transaction {
 	nonce := uint64(0)
 
@@ -62,24 +62,17 @@ func newTransaction(from *ecdsa.PublicKey, to *ecdsa.PublicKey, amount uint64) *
 	return &Transaction{data: d}
 }
 
+func (tx *Transaction) Nonce() uint64	{ return tx.data.AccountNonce }
+func (tx *Transaction) Value() uint64 { return tx.data.Amount } 
+func (tx *Transaction) Sender() common.Address { return *tx.data.Sender } // Temporal function until signature is implemented
+func (tx *Transaction) Recipient() common.Address { return *tx.data.Recipient }
+
 func (tx *Transaction) Hash() common.Hash {
 	return crypto.Keccak256Hash(common.ToBytes(*tx))
 }
 
-// [TODO] Reference : tx_pool.go#L603
-func (tx *Transaction) validateTx(currentState state.State) error {
-	// Ensure the transaction adheres to nonce ordering
-	if false {
-		return errors.New("nonce too low")
-	}
-
-	// Transactor should have enough funds to cover the costs
-	if false {
-		return errors.New("insufficient balance")
-	}
-
-	// nothing
-	return nil
+func (txs *Transactions) Hash() common.Hash {
+  return crypto.Keccak256Hash(common.ToBytes(*txs))
 }
 
 func (tx *Transaction) GetTxdataHash() []byte {
