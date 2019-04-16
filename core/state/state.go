@@ -28,6 +28,10 @@ func (s State) Print() {
 	}
 }
 
+func (s State) GetBalance(address common.Address) uint64 {
+	return s[address].Balance
+}
+
 func NewAccount(address common.Address, nonce uint64, balance uint64) *Account {
 	return newAccount(address, nonce, balance)
 }

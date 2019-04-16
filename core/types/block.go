@@ -48,10 +48,10 @@ func (b *Block) Hash() common.Hash {
 
 func (b* Block) PrintTx() {
 	for i := 0; i < len(b.transactions); i++ {
-		fmt.Printf("====================\n")
 		fmt.Printf("Sender: %x\n", b.transactions[i].Sender())
 		fmt.Printf("Recipient: %x\n", b.transactions[i].Recipient())
 		fmt.Printf("Value: %d\n", b.transactions[i].Value())
+		fmt.Printf("====================\n")
 	}
 }
 
