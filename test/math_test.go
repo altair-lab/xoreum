@@ -10,7 +10,7 @@ import (
 
 func ExampleFunc2() {
 
-	h1 := common.Hash{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}
+	h1 := common.Hash{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}
 
 	//fmt.Println("hash: ", h1.ToBigInt())
 	//fmt.Println("diff: ", core.Difficulty)
