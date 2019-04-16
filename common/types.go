@@ -4,11 +4,12 @@ package common
 
 import (
 	"encoding/hex"
+	"fmt"
 )
 
 const (
 	HashLength    = 32
-	AddressLength = 20
+	AddressLength = 32 // can be changed later
 )
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.
@@ -29,11 +30,27 @@ func (h Hash) ToHex() string {
 	return "0x" + hex
 }
 
+func (a Address) ToHex() string {
+	var b = make([]byte, AddressLength)
+	for i := 0; i < AddressLength; i++ {
+		b[i] = a[i]
+	}
+
+	hex := Bytes2Hex(b)
+	if len(hex) == 0 {
+		hex = "0"
+	}
+	return "0x" + hex
+}
+
 func Bytes2Hex(d []byte) string {
 	return hex.EncodeToString(d)
 }
 
-func HexToHash(s string) Hash{
+func HexToHash(s string) Hash {
 	return Hash{}
 }
 
+func ToBytes(v interface{}) []byte {
+	return []byte(fmt.Sprintf("%v", v))
+}

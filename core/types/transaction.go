@@ -1,25 +1,29 @@
 package types
 
 import (
-	"fmt"
+	"crypto/ecdsa"
+	"errors"
+	"math/big"
+
 	"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
 )
 
 type Transaction struct {
 	data txdata
 	hash common.Hash
+
+	// signature values
+	Sender_R    *big.Int
+	Sender_S    *big.Int
+	Recipient_R *big.Int
+	Recipient_S *big.Int
 }
 
 // Transactions is a Transaction slice type for basic sorting
 type Transactions []*Transaction
 
-// txdata could be generated between more than 2 participants
-// For example, if A, B, C are participants, data of txdata is
-// participants: [A, B, C]
-// participantNonces: [10, 3, 5]
-// XORs : ['1234', '3245', '4313']
-// Payload : ""
 /*
 type txdata struct {
 	Participants      []*common.Address
@@ -33,19 +37,19 @@ type txdata struct {
 
 // simple implementation
 type txdata struct {
-	AccountNonce	uint64
-	Sender		*common.Address // [TODO] Implement it using signature values (ref: transaction_signing.go)
-	Recipient	*common.Address
-	Amount		uint64
+	AccountNonce uint64
+	Sender    *ecdsa.PublicKey
+	Recipient *ecdsa.PublicKey
+	Amount    uint64
 }
 
-
-func NewTransaction(from common.Address, to common.Address, amount uint64) *Transaction {
+func NewTransaction(from ecdsa.PublicKey, to ecdsa.PublicKey, amount uint64) *Transaction {
 	return newTransaction(&from, &to, amount)
 }
 
-func newTransaction(from *common.Address, to *common.Address, amount uint64) *Transaction {
-	// [TODO] Set nonce
+
+// [TODO] Set nonce
+func newTransaction(from *ecdsa.PublicKey, to *ecdsa.PublicKey, amount uint64) *Transaction {
 	nonce := uint64(0)
 
 	d := txdata{
@@ -64,9 +68,13 @@ func (tx *Transaction) Sender() common.Address { return *tx.data.Sender } // Tem
 func (tx *Transaction) Recipient() common.Address { return *tx.data.Recipient }
 
 func (tx *Transaction) Hash() common.Hash {
-	return crypto.Keccak256Hash([]byte(fmt.Sprintf("%v", *tx)))
+	return crypto.Keccak256Hash(common.ToBytes(*tx))
 }
 
 func (txs *Transactions) Hash() common.Hash {
-	return crypto.Keccak256Hash([]byte(fmt.Sprintf("%v", *txs)))
+  return crypto.Keccak256Hash(common.ToBytes(*txs))
+}
+
+func (tx *Transaction) GetTxdataHash() []byte {
+	return crypto.Keccak256(common.ToBytes(tx.data))
 }

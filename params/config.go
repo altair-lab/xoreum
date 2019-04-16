@@ -1,10 +1,28 @@
 package params
 
-import(
+import (
 	"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/core/state"
+	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/crypto"
 )
 
-var(
-	MainnetGenesisHash = common.HexToHash("0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3")
-	TestnetGenesisHash = common.HexToHash("0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d")
+var (
+	// 0x53800a835b517523ddbb6be59ae41562da255e6fd33304cc23878c7156b22e69
+	MainnetGenesisHash = GetGenesisBlock().Hash()
 )
+
+func GetGenesisBlock() (b *types.Block) {
+	genesis_header := types.Header{
+		ParentHash: crypto.Keccak256Hash(common.ToBytes("AAAAA")),
+		Coinbase:   common.Address{},
+		Root:       crypto.Keccak256Hash(common.ToBytes("AAAAA")),
+		TxHash:     crypto.Keccak256Hash(common.ToBytes("AAAAA")),
+		State:      state.State{},
+		Difficulty: 100,
+		Time:       0,
+		Nonce:      0,
+	}
+
+	return types.NewBlock(&genesis_header, types.Transactions{})
+}
