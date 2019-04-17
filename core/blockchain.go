@@ -3,15 +3,15 @@ package core
 import (
 	"sync/atomic"
 
-	"github.com/altair-lab/xoreum/common/math"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/params"
 )
 
+/*
 var (
-	Difficulty = math.BigPow(2, 256-10) // mining difficulty: 100
+	Difficulty = math.BigPow(2, 256-10) // mining difficulty: 10
 )
-
+*/
 type BlockChain struct {
 	//ChainID *big.Int // chainId identifies the current chain and is used for replay protection
 

@@ -2,9 +2,11 @@ package types
 
 import (
 	"fmt"
+	"math/big"
 	"sync/atomic"
 
 	"github.com/altair-lab/xoreum/common"
+	//"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
 )
@@ -61,6 +63,26 @@ func (b *Block) PrintTx() {
 
 func (b *Block) InsertTx(tx *Transaction) {
 	b.transactions = append(b.transactions, tx)
+}
+
+func (b *Block) GetLevel() uint64 {
+	var level uint64 = 0
+	//dif := core.Difficulty
+	//dif := big.NewInt(10000)
+	dif := common.Difficulty
+	blockHash := b.Hash().ToBigInt()
+
+	for {
+		if blockHash.Cmp(dif) == -1 {
+			//dif.Sub(dif, big.NewInt(2)) // 이게 문제인듯
+			dif = new(big.Int).Div(dif, big.NewInt(2))
+			level++
+		} else {
+			break
+		}
+	}
+
+	return level
 }
 
 func NewBlock(header *Header, txs []*Transaction) *Block {

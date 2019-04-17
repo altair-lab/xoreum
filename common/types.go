@@ -6,11 +6,17 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+
+	"github.com/altair-lab/xoreum/common/math"
 )
 
 const (
 	HashLength    = 32
 	AddressLength = 32 // can be changed later
+)
+
+var (
+	Difficulty = math.BigPow(2, 256-1) // mining difficulty: 10
 )
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.

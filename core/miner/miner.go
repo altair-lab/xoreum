@@ -44,7 +44,7 @@ func (miner Miner) Mine(pool *core.TxPool, state state.State, difficulty uint64)
 	for true {
 		h := header.Hash()
 		// check difficulty
-		if CheckDifficulty(h, core.Difficulty) {
+		if CheckDifficulty(h, common.Difficulty) {
 			break
 		} else {
 			header.Nonce++
