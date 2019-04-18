@@ -110,3 +110,35 @@ func (bc *BlockChain) PrintBlockChain() {
 	fmt.Println("====================")
 	fmt.Println("=== End of Chain ===")
 }
+
+// make blockchain for test. insert simple blocks
+func MakeTestBlockChain(chainLength uint64) *BlockChain {
+
+	bc := NewBlockChain()
+
+	var empty_txs []*types.Transaction
+	empty_txs = []*types.Transaction{}
+
+	// insert blocks into blockchain
+	for i := uint64(1); i <= chainLength; i++ {
+		b := types.NewBlock(&types.Header{}, empty_txs)
+		//b.GetHeader().ParentHash = params.GetGenesisBlock().Hash()
+		b.GetHeader().ParentHash = bc.CurrentBlock().Hash()
+		b.GetHeader().Number = i
+		b.GetHeader().Nonce = 0
+		b.GetHeader().InterLink = bc.CurrentBlock().GetUpdatedInterlink()
+
+		// simple PoW
+		for {
+			err := bc.Insert(b)
+
+			if err != nil {
+				b.GetHeader().Nonce++
+			} else {
+				break
+			}
+		}
+	}
+
+	return bc
+}

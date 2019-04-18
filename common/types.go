@@ -16,7 +16,11 @@ const (
 )
 
 var (
+	// original
 	Difficulty = math.BigPow(2, 256-1) // mining difficulty: 10
+
+	// this is for test
+	//Difficulty = math.BigPow(2, 260)
 )
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.
