@@ -99,8 +99,6 @@ func ExampleFunc() {
 		fmt.Println("success to insert b6")
 	}
 
-	bc.PrintBlockChain()
-
 	// output:
 	// success to insert b1
 	// fail to insert b2: block's parent hash does not match with current block
