@@ -24,13 +24,6 @@ type Header struct {
 	Difficulty uint64         `difficulty`
 }
 
-/*
-type Body struct {
-	Transactions	[]*Transaction
-	Uncles		[]*Header
-}
-*/
-
 type Block struct {
 	header       *Header
 	transactions Transactions
@@ -87,6 +80,10 @@ func (b *Block) GetLevel() uint64 {
 	b.level = level - 1
 
 	return b.level
+}
+
+func (b *Block) GetHeader() *Header {
+	return b.header
 }
 
 func NewBlock(header *Header, txs []*Transaction) *Block {
