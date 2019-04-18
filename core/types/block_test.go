@@ -2,8 +2,6 @@ package types
 
 import (
 	"fmt"
-
-	"github.com/altair-lab/xoreum/common"
 )
 
 func ExampleFunc() {
@@ -11,14 +9,15 @@ func ExampleFunc() {
 		header: &Header{
 			Nonce:  321,
 			Number: 651,
+			Time:   11,
 		},
 	}
 
-	fmt.Println(b1.Hash().ToBigInt())
-	fmt.Println(common.Difficulty)
+	//fmt.Println(b1.Hash().ToBigInt())
+	//fmt.Println(common.Difficulty)
 
-	fmt.Println("block level: ", b1.GetLevel())
+	fmt.Println("block level:", b1.GetLevel())
 
 	// output:
-	// true
+	// block level: 2
 }

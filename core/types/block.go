@@ -20,7 +20,7 @@ type Header struct {
 	Number     uint64         `number` // (Number == Height) A scalar value equal to the number of ancestor blocks. The genesis block has a number of zero
 	Time       uint64         `timestamp`
 	Nonce      uint64         `nonce`
-	InterLink  []uint64       `interlink` // list of block's level
+	InterLink  [10]uint64     `interlink` // list of block's level
 	Difficulty uint64         `difficulty`
 }
 
@@ -73,16 +73,20 @@ func (b *Block) GetLevel() uint64 {
 	blockHash := b.Hash().ToBigInt()
 
 	for {
+		// if blockhash < dif
 		if blockHash.Cmp(dif) == -1 {
-			//dif.Sub(dif, big.NewInt(2)) // 이게 문제인듯
-			dif = new(big.Int).Div(dif, big.NewInt(2))
+			dif = new(big.Int).Div(dif, big.NewInt(2)) // dif /= 2
 			level++
 		} else {
 			break
 		}
 	}
 
-	return level
+	// level starts from 0
+	// set block's level
+	b.level = level - 1
+
+	return b.level
 }
 
 func NewBlock(header *Header, txs []*Transaction) *Block {
