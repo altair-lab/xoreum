@@ -111,6 +111,15 @@ func (b *Block) GetHeader() *Header {
 	return b.header
 }
 
+func (b *Block) PrintBlock() {
+	fmt.Println("====================")
+	fmt.Println("block number:", b.header.Number)
+	fmt.Println("block parent hash:", b.header.ParentHash.ToHex())
+	fmt.Println("       block hash:", b.Hash().ToHex())
+	fmt.Println("block level:", b.GetLevel())
+	fmt.Println("block interlink:", b.header.InterLink)
+}
+
 func NewBlock(header *Header, txs []*Transaction) *Block {
 	return &Block{
 		header:       header,

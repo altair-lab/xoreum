@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"sync/atomic"
 
 	"github.com/altair-lab/xoreum/common"
@@ -38,6 +39,7 @@ func NewBlockChain() *BlockChain {
 		genesisBlock: params.GetGenesisBlock(),
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
+	bc.blocks = append(bc.blocks, *bc.genesisBlock)
 
 	return bc
 }
@@ -98,4 +100,13 @@ func (bc *BlockChain) insert(block *types.Block) {
 
 func (bc *BlockChain) CurrentBlock() *types.Block {
 	return bc.currentBlock.Load().(*types.Block)
+}
+
+func (bc *BlockChain) PrintBlockChain() {
+	fmt.Println("=== Print Blocks ===")
+	for i := 0; i < len(bc.blocks); i++ {
+		bc.blocks[i].PrintBlock()
+	}
+	fmt.Println("====================")
+	fmt.Println("=== End of Chain ===")
 }
