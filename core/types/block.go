@@ -11,17 +11,21 @@ import (
 	"github.com/altair-lab/xoreum/crypto"
 )
 
+const (
+	InterlinkLength = 10
+)
+
 type Header struct {
-	ParentHash common.Hash    `parentHash` // previous block's hash
-	Coinbase   common.Address `miner`
-	Root       common.Hash    `stateRoot`
-	TxHash     common.Hash    `transactionsRoot`
-	State      state.State    `state`
-	Number     uint64         `number` // (Number == Height) A scalar value equal to the number of ancestor blocks. The genesis block has a number of zero
-	Time       uint64         `timestamp`
-	Nonce      uint64         `nonce`
-	InterLink  [10]uint64     `interlink` // list of block's level
-	Difficulty uint64         `difficulty`
+	ParentHash common.Hash             `parentHash` // previous block's hash
+	Coinbase   common.Address          `miner`
+	Root       common.Hash             `stateRoot`
+	TxHash     common.Hash             `transactionsRoot`
+	State      state.State             `state`
+	Number     uint64                  `number` // (Number == Height) A scalar value equal to the number of ancestor blocks. The genesis block has a number of zero
+	Time       uint64                  `timestamp`
+	Nonce      uint64                  `nonce`
+	InterLink  [InterlinkLength]uint64 `interlink` // list of block's level
+	Difficulty uint64                  `difficulty`
 }
 
 type Block struct {
@@ -80,6 +84,27 @@ func (b *Block) GetLevel() uint64 {
 	b.level = level - 1
 
 	return b.level
+}
+
+// return interlink that contains this block too
+// to compare with next block's interlink
+// should be current_block.GetUpdatedInterlink() == next_block.header.Interlink
+// Also, this function can be used when you fill newly mined block's interlink
+// new_mined_block.header.Interlink = current_block.GetUpdatedInterlink()
+func (b *Block) GetUpdatedInterlink() [InterlinkLength]uint64 {
+	// copy interlink
+	updatedInterlink := b.header.InterLink
+
+	// get updated interlink
+	lv := b.GetLevel()
+	if lv > 10 {
+		lv = 10
+	}
+	for i := uint64(0); i < lv; i++ {
+		updatedInterlink[i] = b.header.Number
+	}
+
+	return updatedInterlink
 }
 
 func (b *Block) GetHeader() *Header {
