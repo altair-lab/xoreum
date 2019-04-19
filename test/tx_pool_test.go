@@ -68,6 +68,12 @@ func ExampleTxpool() {
 	tx_overwrite_signed, _ := types.SignTx(tx_overwrite_invalid, privatekey0) // sign by sender
 	tx2_signed, _ := types.SignTx(tx2, privatekey0) // sign by sender
 	tx_insufficient_signed,_ := types.SignTx(tx_insufficient_invalid, privatekey3) // sign by sender
+	
+	tx0_signed, _ = types.SignTx(tx0_signed, privatekey1) // sign by receiver
+	tx1_signed, _ = types.SignTx(tx1_signed, privatekey0) // sign by receiver
+	tx_overwrite_signed, _ = types.SignTx(tx_overwrite_signed, privatekey1) // sign by receiver
+	tx2_signed, _ = types.SignTx(tx2_signed, privatekey1) // sign by receiver
+	tx_insufficient_signed,_ = types.SignTx(tx_insufficient_signed, privatekey2) // sign by receiver
 
 	// Create txpool
 	txpool := core.NewTxPool(state)
