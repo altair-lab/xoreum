@@ -23,8 +23,8 @@ type Header struct {
 	Number     uint64                  `number` // (Number == Height) A scalar value equal to the number of ancestor blocks. The genesis block has a number of zero
 	Time       uint64                  `timestamp`
 	Nonce      uint64                  `nonce`
-	InterLink  [InterlinkLength]uint64 `interlink` // list of block's level
-	Difficulty uint64                  `difficulty`
+	InterLink  [InterlinkLength]uint64 `interlink`  // list of block's level
+	Difficulty uint64                  `difficulty` // no difficulty change, so set global Difficulty
 }
 
 type Block struct {
