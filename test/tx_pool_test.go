@@ -62,31 +62,38 @@ func ExampleTxpool() {
 	// tx_nonce_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(5000)) // send [5000] from [account0] to [account1]
 	// tx_sender_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(5000)) // send [5000] from [account0] to [account1]
 
+	// Sign to transaction
+	tx0_signed, _ := types.SignTx(tx0, privatekey0) // sign by sender
+	tx1_signed, _ := types.SignTx(tx1, privatekey1) // sign by sender
+	tx_overwrite_signed, _ := types.SignTx(tx_overwrite_invalid, privatekey0) // sign by sender
+	tx2_signed, _ := types.SignTx(tx2, privatekey0) // sign by sender
+	tx_insufficient_signed,_ := types.SignTx(tx_insufficient_invalid, privatekey3) // sign by sender
+
 	// Create txpool
 	txpool := core.NewTxPool(state)
 
 	// Add txs to txpool
-	success, err := txpool.Add(tx0)
+	success, err := txpool.Add(tx0_signed)
 	if !success {
 		fmt.Println(err)
 	}
 
-	success, err = txpool.Add(tx1)
+	success, err = txpool.Add(tx1_signed)
 	if !success {
 		fmt.Println(err)
 	}
 
-	success, err = txpool.Add(tx_overwrite_invalid)
+	success, err = txpool.Add(tx_overwrite_signed)
 	if !success {
 		fmt.Println(err)
 	}
 
-	success, err = txpool.Add(tx2)
+	success, err = txpool.Add(tx2_signed)
 	if !success {
 		fmt.Println(err)
 	}
 
-	success, err = txpool.Add(tx_insufficient_invalid)
+	success, err = txpool.Add(tx_insufficient_signed)
 	if !success {
 		fmt.Println(err)
 	}
