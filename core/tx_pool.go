@@ -101,13 +101,9 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 		return ErrInsufficientFunds
 	}
 	
-	// [TODO] currentState
-	// Ensure the transaction adheres to nonce ordering
-	/*
 	if pool.currentState.GetNonce(from) > tx.Nonce() {
 		return ErrNonceTooLow
 	}
-	*/
 
 	// [TODO] transaction_signing 
 	/*

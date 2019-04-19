@@ -54,12 +54,13 @@ func ExampleTxpool() {
 
 	// Create tranaction
 	fmt.Println("========== Create Transactions ==========")
-	tx0 := types.NewTransaction(publickey0, publickey1, uint64(2000)) // send [2000] from [account0] to [account1]
-	tx1 := types.NewTransaction(publickey1, publickey0, uint64(500)) // send [500] from [account1] to [account0]
-	tx_overwrite_invalid := types.NewTransaction(publickey0, publickey1, uint64(100)) // send [100] from [account0] to [account1]
-	tx_insufficient_invalid := types.NewTransaction(publickey3, publickey2, uint64(200)) // send [5000] from [account3] to [account2]
-	// tx_nonce_invalid := types.NewTransaction(publickey0, publickey1, uint64(5000)) // send [5000] from [account0] to [account1]
-	// tx_sender_invalid := types.NewTransaction(publickey0, publickey1, uint64(5000)) // send [5000] from [account0] to [account1]
+	tx0 := types.NewTransaction(0, publickey0, publickey1, uint64(2000)) // send [2000] from [account0] to [account1]
+	tx1 := types.NewTransaction(0, publickey1, publickey0, uint64(500)) // send [500] from [account1] to [account0]
+	tx_overwrite_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(100)) // send [100] from [account0] to [account1]
+	tx2 := types.NewTransaction(1, publickey0, publickey1, uint64(300)) // send [100] from [account0] to [account1]
+	tx_insufficient_invalid := types.NewTransaction(0, publickey3, publickey2, uint64(200)) // send [5000] from [account3] to [account2]
+	// tx_nonce_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(5000)) // send [5000] from [account0] to [account1]
+	// tx_sender_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(5000)) // send [5000] from [account0] to [account1]
 
 	// Create txpool
 	txpool := core.NewTxPool(state)
@@ -76,6 +77,11 @@ func ExampleTxpool() {
 	}
 
 	success, err = txpool.Add(tx_overwrite_invalid)
+	if !success {
+		fmt.Println(err)
+	}
+
+	success, err = txpool.Add(tx2)
 	if !success {
 		fmt.Println(err)
 	}
