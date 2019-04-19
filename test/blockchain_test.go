@@ -6,7 +6,7 @@ import (
 
 func ExampleFunc3() {
 
-	testbc := core.MakeTestBlockChain(100)
+	testbc := core.MakeTestBlockChain(1000)
 	testbc.PrintBlockChain()
 
 	// output: 1

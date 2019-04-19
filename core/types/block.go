@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	InterlinkLength = 10
+	InterlinkLength = uint64(10)
 )
 
 type Header struct {
@@ -96,8 +96,8 @@ func (b *Block) GetUpdatedInterlink() [InterlinkLength]uint64 {
 
 	// get updated interlink
 	lv := b.GetLevel()
-	if lv > 10 {
-		lv = 10
+	if lv > InterlinkLength {
+		lv = InterlinkLength
 	}
 	for i := uint64(0); i < lv; i++ {
 		updatedInterlink[i] = b.header.Number
