@@ -122,7 +122,6 @@ func MakeTestBlockChain(chainLength uint64) *BlockChain {
 	// insert blocks into blockchain
 	for i := uint64(1); i <= chainLength; i++ {
 		b := types.NewBlock(&types.Header{}, empty_txs)
-		//b.GetHeader().ParentHash = params.GetGenesisBlock().Hash()
 		b.GetHeader().ParentHash = bc.CurrentBlock().Hash()
 		b.GetHeader().Number = i
 		b.GetHeader().Nonce = 0

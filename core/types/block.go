@@ -6,7 +6,6 @@ import (
 	"sync/atomic"
 
 	"github.com/altair-lab/xoreum/common"
-	//"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
 )
