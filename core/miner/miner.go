@@ -37,9 +37,10 @@ func (miner Miner) Mine(pool *core.TxPool, state state.State, difficulty uint64)
 
 	// Make header
 	// [TODO] get parent hash, stateroot hash
-	parentHash := crypto.Keccak256Hash([]byte("parentHash"))
+	parentHash := pool.Chain().CurrentBlock().Hash()
+	number := pool.Chain().CurrentBlock().GetHeader().Number+1
 	stateRoot := crypto.Keccak256Hash([]byte("stateRoot"))
-	header := types.NewHeader(parentHash, miner.Coinbase, stateRoot, txsHash, state, difficulty, uint64(time.Now().Unix()), uint64(0))
+	header := types.NewHeader(parentHash, miner.Coinbase, stateRoot, txsHash, state, difficulty, number, uint64(time.Now().Unix()), uint64(0))
 
 	// PoW
 	for true {

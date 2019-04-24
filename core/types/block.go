@@ -127,7 +127,7 @@ func NewBlock(header *Header, txs []*Transaction) *Block {
 	}
 }
 
-func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Hash, txHash common.Hash, state state.State, difficulty uint64, time uint64, nonce uint64) *Header {
+func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Hash, txHash common.Hash, state state.State, difficulty uint64, number uint64, time uint64, nonce uint64) *Header {
 	return &Header{
 		ParentHash: parentHash,
 		Coinbase:   miner,
@@ -135,6 +135,7 @@ func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Ha
 		TxHash:     txHash,
 		State:      state,
 		Difficulty: difficulty,
+		Number:	    number,
 		Time:       time,
 		Nonce:      nonce,
 	}
