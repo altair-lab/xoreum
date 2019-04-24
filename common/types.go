@@ -5,6 +5,9 @@ package common
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
+
+	"github.com/altair-lab/xoreum/common/math"
 )
 
 const (
@@ -12,10 +15,30 @@ const (
 	AddressLength = 32 // can be changed later
 )
 
+var (
+	// original
+	Difficulty = math.BigPow(2, 256-1) // mining difficulty: 10
+
+	// this is for test
+	//Difficulty = math.BigPow(2, 260)
+)
+
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.
 type Hash [HashLength]byte
 
 type Address [AddressLength]byte
+
+func (h Hash) ToBigInt() *big.Int {
+	byteArr := []byte{}
+
+	for i := 0; i < HashLength; i++ {
+		byteArr = append(byteArr, h[i])
+	}
+
+	r := new(big.Int)
+	r.SetBytes(byteArr)
+	return r
+}
 
 func (h Hash) ToHex() string {
 	var b = make([]byte, HashLength)

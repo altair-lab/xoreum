@@ -4,8 +4,10 @@ package core
 
 import (
 	"errors"
+
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/crypto"
 )
 
 // Reference : tx_pool.go#L43
@@ -32,9 +34,9 @@ var (
 // Reference : tx_pool.go#L205
 type TxPool struct {
 	//chain       BlockChain
-	queue	    map[common.Address]*txList // Address-txList map for validation
-	all         *txQueue // Queued transactions for time ordering (FIFO)
-	
+	queue map[common.Address]*txList // Address-txList map for validation
+	all   *txQueue                   // Queued transactions for time ordering (FIFO)
+
 	// [TODO] pending map[common.Address]*txList // All currently processable transactions
 	// [TODO] currentState : Current state in the blockchain head
 	// [TODO] pendingState : Pending state tracking virtual nonces
@@ -43,10 +45,10 @@ type TxPool struct {
 func NewTxPool() *TxPool {
 	pool := &TxPool{
 		//chain:		chain,
-		queue:		make(map[common.Address]*txList),
-		all:		newTxQueue(),
+		queue: make(map[common.Address]*txList),
+		all:   newTxQueue(),
 	}
-	
+
 	// [TODO] Subscribe events from blockchain
 	// [TODO] Start the event loop
 
@@ -59,14 +61,14 @@ func (pool *TxPool) Len() int {
 
 // Add single transaction to txpool
 // Reference : tx_pool.go#L654
-func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
+func (pool *TxPool) Add(tx *types.Transaction) (bool, error) {
 	// If the transaction fails basic validation, discard it
 	if err := pool.validateTx(tx); err != nil {
 		// [TODO] Print error
 		return false, err
 	}
 	// We don't deal with "full" of transaction pool
-	
+
 	// [TODO] If the transaction is replacing an already pending one, do directly
 
 	// New transaction isn't replacing a pending one, push into queue
@@ -77,8 +79,6 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 
 	return replace, nil
 }
-
-
 
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
@@ -92,35 +92,37 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	// [TODO] currentState
 	// Ensure the transaction adheres to nonce ordering
 	/*
-	if pool.currentState.GetNonce(from) > tx.Nonce() {
-		return ErrNonceTooLow
-	}
+		if pool.currentState.GetNonce(from) > tx.Nonce() {
+			return ErrNonceTooLow
+		}
 
-	// Transactor should have enough funds to cover the costs
-	// cost == V + GP * GL
-	if pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
-		return ErrInsufficientFunds
-	}
+		// Transactor should have enough funds to cover the costs
+		// cost == V + GP * GL
+		if pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
+			return ErrInsufficientFunds
+		}
 	*/
 
-	// [TODO] transaction_signing 
+	// [TODO] transaction_signing
 	/*
-	// Make sure the transaction is signed properly
-	validity := types.VerifySender(tx.Sender().PublicKey(), tx)
-	if !validity {
-		return ErrInvalidSender
-	}
+		// Make sure the transaction is signed properly
+		validity := types.VerifySender(tx.Sender().PublicKey(), tx)
+		if !validity {
+			return ErrInvalidSender
+		}
 	*/
-        
-        // nothing
-        return nil 
+
+	// nothing
+	return nil
 }
 
 // enqueue a single trasaction to pool.queue, pool.all
 func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
 	// [TODO] Get sender from signature
-	from := tx.Sender()
+	//from := tx.Sender()
+	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
+
 	if pool.queue[from] == nil {
 		pool.queue[from] = newTxList(false)
 	}
@@ -129,12 +131,12 @@ func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 		// An older transaction exists, discard this
 		return false, ErrOverwrite
 	}
-	
+
 	pool.all.Enqueue(tx)
 	return inserted, nil
 }
 
-func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
+func (pool *TxPool) DequeueTx() (*types.Transaction, bool) {
 	tx := pool.all.Dequeue()
 	if tx == nil {
 		// empty queue
@@ -142,7 +144,9 @@ func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 	}
 
 	// [TODO] Get sender from signature
-	from := tx.Sender()
+	//from := tx.Sender()
+	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
+
 	if pool.queue[from] == nil {
 		// exist in txQueue, but not in txList
 		return tx, false
@@ -153,11 +157,9 @@ func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 		// exist in txQueue, but not in txList
 		return tx, false
 	}
-	
+
 	return tx, deleted
 }
-
-
 
 type txQueue struct {
 	all []*types.Transaction

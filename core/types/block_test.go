@@ -5,11 +5,19 @@ import (
 )
 
 func ExampleFunc() {
-	b1 := Block{header: &Header{}}
+	b1 := Block{
+		header: &Header{
+			Nonce:  321,
+			Number: 651,
+			Time:   11,
+		},
+	}
 
-	fmt.Println(b1.Hash())
-	fmt.Println(b1.header.Hash())
+	//fmt.Println(b1.Hash().ToBigInt())
+	//fmt.Println(common.Difficulty)
+
+	fmt.Println("block level:", b1.GetLevel())
 
 	// output:
-	// true
+	// block level: 2
 }

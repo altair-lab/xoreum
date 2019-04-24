@@ -1,13 +1,13 @@
 package core
 
 import (
-	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/consensus"
+	"github.com/altair-lab/xoreum/core/types"
 )
 
 type BlockValidator struct {
-	bc *BlockChain		// Canonical blockchain
-	engine consensus.Engine	// Consensus engine used for validating
+	bc     *BlockChain      // Canonical blockchain
+	engine consensus.Engine // Consensus engine used for validating
 }
 
 func (v *BlockValidator) ValidateBody(block *types.Block) error {
