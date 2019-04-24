@@ -75,8 +75,9 @@ func ExampleTxpool() {
 	tx2_signed, _ = types.SignTx(tx2_signed, privatekey1) // sign by receiver
 	tx_insufficient_signed,_ = types.SignTx(tx_insufficient_signed, privatekey2) // sign by receiver
 
-	// Create txpool
-	txpool := core.NewTxPool(state)
+	// Create Chain, txpool
+	bc := core.NewBlockChain()
+	txpool := core.NewTxPool(state, bc)
 
 	// Add txs to txpool
 	success, err := txpool.Add(tx0_signed)
@@ -115,6 +116,13 @@ func ExampleTxpool() {
 	} else {
 		fmt.Println("Mining Fail")
 	}
+
+	// Add to Blockchain
+	err = bc.Insert(block)
+	if err != nil {
+		fmt.Println(err)
+	}
+	bc.PrintBlockChain()
 
 	// output:
 	// true
