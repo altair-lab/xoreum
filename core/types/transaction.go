@@ -3,7 +3,6 @@ package types
 import (
 	"crypto/ecdsa"
 	"math/big"
-
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/crypto"
 )
@@ -41,14 +40,11 @@ type txdata struct {
 	Amount       uint64
 }
 
-func NewTransaction(from ecdsa.PublicKey, to ecdsa.PublicKey, amount uint64) *Transaction {
-	return newTransaction(&from, &to, amount)
+func NewTransaction(nonce uint64, from ecdsa.PublicKey, to ecdsa.PublicKey, amount uint64) *Transaction {
+	return newTransaction(nonce, &from, &to, amount)
 }
 
-// [TODO] Set nonce
-func newTransaction(from *ecdsa.PublicKey, to *ecdsa.PublicKey, amount uint64) *Transaction {
-	nonce := uint64(0)
-
+func newTransaction(nonce uint64, from *ecdsa.PublicKey, to *ecdsa.PublicKey, amount uint64) *Transaction {
 	d := txdata{
 		AccountNonce: nonce,
 		Sender:       from,

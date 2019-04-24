@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"sync/atomic"
-
+	"fmt"
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
