@@ -57,8 +57,8 @@ func newTransaction(nonce uint64, from *ecdsa.PublicKey, to *ecdsa.PublicKey, am
 
 func (tx *Transaction) Nonce() uint64               { return tx.data.AccountNonce }
 func (tx *Transaction) Value() uint64               { return tx.data.Amount }
-func (tx *Transaction) Sender() *ecdsa.PublicKey    { return tx.data.Sender } // Temporal function until signature is implemented
-func (tx *Transaction) Recipient() *ecdsa.PublicKey { return tx.data.Recipient }
+func (tx *Transaction) Sender() ecdsa.PublicKey    { return *tx.data.Sender } // Temporal function until signature is implemented
+func (tx *Transaction) Recipient() ecdsa.PublicKey { return *tx.data.Recipient }
 
 func (tx *Transaction) Hash() common.Hash {
 	return crypto.Keccak256Hash(common.ToBytes(*tx))

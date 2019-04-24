@@ -4,7 +4,7 @@ package core
 
 import (
 	"errors"
-  
+
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
@@ -89,8 +89,7 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction) error {
-	from := tx.Sender()
-
+	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
 	// Transactions can't be negative. This may never happen using RLP decoded
 	// transactions but may occur if you create a transaction using the RPC.
 	if tx.Value() < 0 {
@@ -113,8 +112,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 		return ErrInvalidSender
 	}
         
-  // nothing
-  return nil 
+	// nothing
+	return nil 
 }
 
 // enqueue a single trasaction to pool.queue, pool.all
