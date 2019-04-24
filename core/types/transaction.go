@@ -35,9 +35,9 @@ type txdata struct {
 // simple implementation
 type txdata struct {
 	AccountNonce uint64
-	Sender    *ecdsa.PublicKey
-	Recipient *ecdsa.PublicKey
-	Amount    uint64
+	Sender       *ecdsa.PublicKey
+	Recipient    *ecdsa.PublicKey
+	Amount       uint64
 }
 
 func NewTransaction(nonce uint64, from ecdsa.PublicKey, to ecdsa.PublicKey, amount uint64) *Transaction {
@@ -45,7 +45,6 @@ func NewTransaction(nonce uint64, from ecdsa.PublicKey, to ecdsa.PublicKey, amou
 }
 
 func newTransaction(nonce uint64, from *ecdsa.PublicKey, to *ecdsa.PublicKey, amount uint64) *Transaction {
-
 	d := txdata{
 		AccountNonce: nonce,
 		Sender:       from,
@@ -56,17 +55,17 @@ func newTransaction(nonce uint64, from *ecdsa.PublicKey, to *ecdsa.PublicKey, am
 	return &Transaction{data: d}
 }
 
-func (tx *Transaction) Nonce() uint64	{ return tx.data.AccountNonce }
-func (tx *Transaction) Value() uint64 { return tx.data.Amount } 
-func (tx *Transaction) Sender() common.Address { return crypto.Keccak256Address(common.ToBytes(*tx.data.Sender)) } // Temporal function until signature is implemented
-func (tx *Transaction) Recipient() common.Address { return crypto.Keccak256Address(common.ToBytes(*tx.data.Recipient)) }
+func (tx *Transaction) Nonce() uint64               { return tx.data.AccountNonce }
+func (tx *Transaction) Value() uint64               { return tx.data.Amount }
+func (tx *Transaction) Sender() *ecdsa.PublicKey    { return tx.data.Sender } // Temporal function until signature is implemented
+func (tx *Transaction) Recipient() *ecdsa.PublicKey { return tx.data.Recipient }
 
 func (tx *Transaction) Hash() common.Hash {
 	return crypto.Keccak256Hash(common.ToBytes(*tx))
 }
 
 func (txs *Transactions) Hash() common.Hash {
-  return crypto.Keccak256Hash(common.ToBytes(*txs))
+	return crypto.Keccak256Hash(common.ToBytes(*txs))
 }
 
 func (tx *Transaction) GetTxdataHash() []byte {

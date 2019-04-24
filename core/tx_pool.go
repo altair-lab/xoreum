@@ -4,9 +4,11 @@ package core
 
 import (
 	"errors"
+  
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/core/state"
+	"github.com/altair-lab/xoreum/crypto"
 )
 
 // Reference : tx_pool.go#L43
@@ -50,7 +52,7 @@ func NewTxPool(state state.State) *TxPool {
 		all:		newTxQueue(),
 		currentState:	state,
 	}
-	
+
 	// [TODO] Subscribe events from blockchain
 	// [TODO] Start the event loop
 
@@ -63,6 +65,7 @@ func (pool *TxPool) Len() int {
 
 // Add single transaction to txpool
 // Reference : tx_pool.go#L654
+
 func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 	// If the transaction fails basic validation, discard it
 	if err := pool.validateTx(tx); err != nil {
@@ -70,7 +73,7 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 		return false, err
 	}
 	// We don't deal with "full" of transaction pool
-	
+
 	// [TODO] If the transaction is replacing an already pending one, do directly
 
 	// New transaction isn't replacing a pending one, push into queue
@@ -81,7 +84,6 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 
 	return replace, nil
 }
-
 
 
 // validateTx checks whether a transaction is valid according to the consensus
@@ -111,15 +113,16 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 		return ErrInvalidSender
 	}
         
-        // nothing
-        return nil 
+  // nothing
+  return nil 
 }
 
 // enqueue a single trasaction to pool.queue, pool.all
 func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
 	// [TODO] Get sender from signature
-	from := tx.Sender()
+	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
+
 	if pool.queue[from] == nil {
 		pool.queue[from] = newTxList(false)
 	}
@@ -128,7 +131,7 @@ func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 		// An older transaction exists, discard this
 		return false, ErrOverwrite
 	}
-	
+
 	pool.all.Enqueue(tx)
 	return inserted, nil
 }
@@ -141,7 +144,8 @@ func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 	}
 
 	// [TODO] Get sender from signature
-	from := tx.Sender()
+	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
+
 	if pool.queue[from] == nil {
 		// exist in txQueue, but not in txList
 		return tx, false
@@ -152,11 +156,9 @@ func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 		// exist in txQueue, but not in txList
 		return tx, false
 	}
-	
+  
 	return tx, deleted
 }
-
-
 
 type txQueue struct {
 	all []*types.Transaction

@@ -104,7 +104,6 @@ func ExampleTxpool() {
 		fmt.Println(err)
 	}
 
-
 	fmt.Printf("\n")
 	
 	// Mining from txpool
