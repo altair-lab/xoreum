@@ -40,6 +40,7 @@ func (miner Miner) Mine(pool *core.TxPool, difficulty uint64) *types.Block {
 	number := pool.Chain().CurrentBlock().GetHeader().Number+1
 	stateRoot := crypto.Keccak256Hash([]byte("stateRoot"))
 	header := types.NewHeader(parentHash, miner.Coinbase, stateRoot, txsHash, difficulty, number, uint64(time.Now().Unix()), uint64(0))
+	header.InterLink = pool.Chain().CurrentBlock().GetUpdatedInterlink() // Set Interlink
 
 	// PoW
 	for true {
