@@ -110,7 +110,7 @@ func ExampleTxpool() {
 	// Mining from txpool
 	fmt.Println("============ Mining block  ============")
 	miner := miner.Miner{acc0.Address}
-	block := miner.Mine(txpool, state, 240)
+	block := miner.Mine(txpool, 240)
 	if block != nil {
 		block.PrintTx()
 	} else {
