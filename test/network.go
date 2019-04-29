@@ -5,20 +5,27 @@ import (
 	"encoding/json"
 	"log"
 	"net"
-	"os"
 	"time"
 	"io"
 	"sync"
 	"bufio"
+	"strconv"
 
+	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
-	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/crypto"
+	"github.com/altair-lab/xoreum/core/state"
+	"github.com/altair-lab/xoreum/core/miner"
+
 	"github.com/joho/godotenv"
 )
 
 // [TODO] replaceChain (logest chain rule)
-
 var Blockchain *core.BlockChain
+var Acc0 *state.Account
+var State state.State
+var Txpool *core.TxPool
+var Miner miner.Miner
 
 // bcServer handles incoming concurrent Blocks
 var bcServer chan *core.BlockChain
@@ -35,9 +42,19 @@ func main() {
 
 	// create genesis block
 	Blockchain = core.NewBlockChain()
+	
+	// set account, txpool, state, miner for mining
+	privatekey0, _ := crypto.GenerateKey()
+	publickey0 := privatekey0.PublicKey
+	address0 := crypto.Keccak256Address(common.ToBytes(publickey0))
+	Acc0 := state.NewAccount(address0, uint64(0), uint64(7000)) // acc0 [Address:0, Nonce:0, Balance:7000]
+	State = state.NewState()
+	State.Add(Acc0)
+	Txpool = core.NewTxPool(State, Blockchain)
+	Miner = miner.Miner{Acc0.Address}
 
 	// start TCP and serve TCP server
-	server, err := net.Listen("tcp", ":"+os.Getenv("ADDR"))
+	server, err := net.Listen("tcp", ":9000")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,46 +68,23 @@ func main() {
 		}
 		go handleConn(conn)
 	}
-
-	// output:
-	// true
-
 }
 
 func handleConn(conn net.Conn) {
-	// [TODO] Making block by mining
-
-	/*
-	privatekey0, _ := crypto.GenerateKey()
-	publickey0 := privatekey0.PublicKey
-	address0 := crypto.Keccak256Address(common.ToBytes(publickey0))
-	acc0 := state.NewAccount(address0, uint64(0), uint64(7000)) // acc0 [Address:0, Nonce:0, Balance:7000]
-	state := state.NewState()
-	state.Add(acc0)
-	*/	
 	defer conn.Close()
-
-	io.WriteString(conn, "Enter a value:")
+	
+	// [TODO] Create transaction using this
+	//        Not block (block will be created periodically)
+	io.WriteString(conn, "Enter a difficulty: ")
 
 	scanner := bufio.NewScanner(conn)
 
-	// Make Tx and Mining
 	// Add it to blockchain after conducting validation
 	go func() {
 		for scanner.Scan() {
-			empty_txs := []*types.Transaction{}
-			block := types.NewBlock(&types.Header{}, empty_txs)
-			block.GetHeader().ParentHash = Blockchain.CurrentBlock().Hash()
-			block.GetHeader().Number = Blockchain.CurrentBlock().GetHeader().Number+1
-			block.GetHeader().Nonce = 0
-			block.GetHeader().InterLink = Blockchain.CurrentBlock().GetUpdatedInterlink()
-			block.GetHeader().Difficulty = 1
-
-			/*
 			// Mining from txpool
-        		miner := miner.Miner{acc0.Address}
-        		block := miner.Mine(txpool, state, uint64(scanner.Text()))
-			*/
+			inputNum, _ := strconv.Atoi(scanner.Text())
+			block := Miner.Mine(Txpool, uint64(inputNum))
 
 			if block != nil {
        	        	 	block.PrintTx()
@@ -111,14 +105,15 @@ func handleConn(conn net.Conn) {
 	// Simulate receiving broadcast
 	go func() {
 		for {
-			time.Sleep(30 * time.Second)
+			// client output
+			time.Sleep(5 * time.Second)
 			mutex.Lock()
-			output, err := json.Marshal(Blockchain)
+			output, err := json.Marshal(Blockchain.CurrentBlock().GetHeader())
 			if err != nil {
 				log.Fatal(err)
 			}
 			mutex.Unlock()
-			io.WriteString(conn, string(output))
+			io.WriteString(conn, string(output)+"\n")
 		}
 	}()
 
@@ -126,5 +121,4 @@ func handleConn(conn net.Conn) {
 		Blockchain.PrintBlockChain()
 	}
 }
-
 
