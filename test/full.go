@@ -8,7 +8,7 @@ import (
 	"time"
 	"io"
 	"sync"
-	"bufio"
+	//"bufio"
 	"strconv"
 
 	"github.com/altair-lab/xoreum/common"
@@ -70,39 +70,50 @@ func main() {
 	}
 }
 
+// connection : go run network_client.go
 func handleConn(conn net.Conn) {
-	defer conn.Close()
+	recvBuf := make([]byte, 4096) // receive buffer: 4kb
 	
-	// [TODO] Create transaction using this
-	//        Not block (block will be created periodically)
-	io.WriteString(conn, "Enter a difficulty: ")
-
-	scanner := bufio.NewScanner(conn)
-
-	// Add it to blockchain after conducting validation
 	go func() {
-		for scanner.Scan() {
-			// Mining from txpool
-			inputNum, _ := strconv.Atoi(scanner.Text())
-			block := Miner.Mine(Txpool, uint64(inputNum))
+		for {
+			n, err := conn.Read(recvBuf)
 
-			if block != nil {
-       	        	 	block.PrintTx()
-        		} else {
-                		fmt.Println("Mining Fail")
-        		}
+			if nil != err {
+				if io.EOF == err {
+					log.Printf("Connection is closed from client; %v", conn.RemoteAddr().String())
+					return
+				}
+				log.Printf("fail to receive data; err: %v", err)
+				return
+			}
 
-        		// Add to Blockchain
-			err := Blockchain.Insert(block)
-        		if err != nil {
-                		fmt.Println(err)
-        		}
+			if 0 < n {
+				data := recvBuf[:n]
+				log.Println(string(data))
 
-			bcServer <- Blockchain
+				// Mining from txpool
+				inputNum, _ := strconv.Atoi(string(data))
+				block := Miner.Mine(Txpool, uint64(inputNum))
+
+				if block != nil {
+       	        		 	block.PrintTx()
+        			} else {
+                			fmt.Println("Mining Fail")
+        			}
+
+        			// Add to Blockchain
+				err := Blockchain.Insert(block)
+        			if err != nil {
+                			fmt.Println(err)
+        			}
+
+				Blockchain.PrintBlockChain()
+				bcServer <- Blockchain
+			}
 		}
+
 	}()
 
-	// Simulate receiving broadcast
 	go func() {
 		for {
 			// client output
@@ -114,13 +125,8 @@ func handleConn(conn net.Conn) {
 					log.Fatal(err)
 				}
 				mutex.Unlock()
-				io.WriteString(conn, string(output)+"\n")
+				conn.Write([]byte(string(output)+"\n"))
 			}
 		}
 	}()
-
-	for _ = range bcServer {
-		Blockchain.PrintBlockChain()
-	}
 }
-
