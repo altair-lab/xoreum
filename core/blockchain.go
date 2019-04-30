@@ -102,6 +102,10 @@ func (bc *BlockChain) CurrentBlock() *types.Block {
 	return bc.currentBlock.Load().(*types.Block)
 }
 
+func (bc *BlockChain) BlockAt(index uint64) *types.Block {
+	return &bc.blocks[index]
+}
+
 func (bc *BlockChain) PrintBlockChain() {
 	fmt.Println("=== Print Blocks ===")
 	for i := 0; i < len(bc.blocks); i++ {

@@ -107,13 +107,15 @@ func handleConn(conn net.Conn) {
 		for {
 			// client output
 			time.Sleep(5 * time.Second)
-			mutex.Lock()
-			output, err := json.Marshal(Blockchain.CurrentBlock().GetHeader())
-			if err != nil {
-				log.Fatal(err)
+			for i := uint64(0); i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
+				mutex.Lock()
+				output, err := json.Marshal(Blockchain.BlockAt(i).GetHeader())
+				if err != nil {
+					log.Fatal(err)
+				}
+				mutex.Unlock()
+				io.WriteString(conn, string(output)+"\n")
 			}
-			mutex.Unlock()
-			io.WriteString(conn, string(output)+"\n")
 		}
 	}()
 
