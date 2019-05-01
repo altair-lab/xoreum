@@ -141,26 +141,6 @@ func handleConn(conn net.Conn) {
 				data := recvBuf[:n]
 				log.Println(string(data))
 				// [TODO] Make Tx ?
-				/*
-				// Mining from txpool
-				inputNum, _ := strconv.Atoi(string(data))
-				block := Miner.Mine(Txpool, uint64(inputNum))
-
-				if block != nil {
-       	        		 	block.PrintTx()
-        			} else {
-                			fmt.Println("Mining Fail")
-        			}
-
-        			// Add to Blockchain
-				err := Blockchain.Insert(block)
-        			if err != nil {
-                			fmt.Println(err)
-        			}
-
-				Blockchain.PrintBlockChain()
-				bcServer <- Blockchain
-				*/
 			}
 		}
 
