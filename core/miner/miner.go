@@ -18,7 +18,6 @@ type Miner struct {
 func (miner *Miner) Start() {}
 func (miner *Miner) Stop()  {}
 
-
 func (miner Miner) Mine(pool *core.TxPool, state state.State, difficulty uint64) *types.Block {
 	// [TODO] Originally you should get state in TxPool, not by parameter
 	// Get txs from txpool
