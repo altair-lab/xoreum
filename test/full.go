@@ -9,7 +9,7 @@ import (
 	"io"
 	"sync"
 	//"bufio"
-	"strconv"
+	//"strconv"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
@@ -19,6 +19,8 @@ import (
 
 	"github.com/joho/godotenv"
 )
+
+const MINING_INTERVAL = 10
 
 // [TODO] replaceChain (logest chain rule)
 var Blockchain *core.BlockChain
@@ -42,6 +44,7 @@ func main() {
 
 	// create genesis block
 	Blockchain = core.NewBlockChain()
+	Blockchain.PrintBlockChain()
 	
 	// set account, txpool, state, miner for mining
 	privatekey0, _ := crypto.GenerateKey()
@@ -53,6 +56,30 @@ func main() {
 	Txpool = core.NewTxPool(State, Blockchain)
 	Miner = miner.Miner{Acc0.Address}
 
+	// Keep mining every MINING_INTERVAL
+	go func() {
+		for {
+			time.Sleep(MINING_INTERVAL * time.Second)
+			
+			// Mining from txpool
+			block := Miner.Mine(Txpool, uint64(0))
+
+			if block != nil {
+               		 	block.PrintTx()
+       			} else {
+               			fmt.Println("Mining Fail")
+       			}
+
+       			// Add to Blockchain
+			err := Blockchain.Insert(block)
+       			if err != nil {
+               			fmt.Println(err)
+       			}
+
+			Blockchain.PrintBlockChain()
+		}
+	}()
+	
 	// start TCP and serve TCP server
 	server, err := net.Listen("tcp", ":9000")
 	if err != nil {
@@ -73,9 +100,28 @@ func main() {
 // connection : go run network_client.go
 func handleConn(conn net.Conn) {
 	recvBuf := make([]byte, 4096) // receive buffer: 4kb
+	addr := conn.RemoteAddr().String()
+
+	// Connected to new client
+	log.Printf("CONNECTED TO %v\n", addr)
+
+	// Send full block data once
+	for i := uint64(0); i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
+		mutex.Lock()
+		output, err := json.Marshal(Blockchain.BlockAt(i).GetHeader())
+		if err != nil {
+			log.Fatal(err)
+		}
+		mutex.Unlock()
+		conn.Write([]byte(string(output)+"\n"))
+	}
 	
+
+	// Check recvBuf every clock
 	go func() {
 		for {
+			
+			// Get input data from clients every clock
 			n, err := conn.Read(recvBuf)
 
 			if nil != err {
@@ -90,7 +136,8 @@ func handleConn(conn net.Conn) {
 			if 0 < n {
 				data := recvBuf[:n]
 				log.Println(string(data))
-
+				// [TODO] Make Tx ?
+				/*
 				// Mining from txpool
 				inputNum, _ := strconv.Atoi(string(data))
 				block := Miner.Mine(Txpool, uint64(inputNum))
@@ -109,11 +156,13 @@ func handleConn(conn net.Conn) {
 
 				Blockchain.PrintBlockChain()
 				bcServer <- Blockchain
+				*/
 			}
 		}
 
 	}()
-
+/*
+	// Broadcast to clients every 5 sec
 	go func() {
 		for {
 			// client output
@@ -129,4 +178,5 @@ func handleConn(conn net.Conn) {
 			}
 		}
 	}()
+*/
 }
