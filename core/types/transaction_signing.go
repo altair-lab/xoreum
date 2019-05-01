@@ -4,20 +4,17 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"errors"
-	"fmt"
 )
 
 var ErrInvalidSigKey = errors.New("this private key's owner is not participants of tx")
+var ErrNoFields = errors.New("there are not filled fields in tx")
+var ErrInvalidSig = errors.New("this tx has invalid signature")
 
-func (tx *Transaction) TTest() {
-	fmt.Println("success!")
-}
-
-func (tx *Transaction) Sign(priv *ecdsa.PrivateKey) (*Transaction, error) {
+func (tx *Transaction) Sign(priv *ecdsa.PrivateKey) error {
 	txdataHash := tx.GetTxdataHash()
 	r, s, err := ecdsa.Sign(rand.Reader, priv, txdataHash)
 	if err != nil {
-		return tx, err
+		return err
 	}
 
 	pub := priv.PublicKey
@@ -33,11 +30,11 @@ func (tx *Transaction) Sign(priv *ecdsa.PrivateKey) (*Transaction, error) {
 		}
 	}
 
-	return tx, result
+	return result
 }
 
 // verify that this signed tx has all correct participants' signature
-func (tx *Transaction) VerifySignature() bool {
+func (tx *Transaction) VerifySignature() error {
 	//return ecdsa.Verify(tx.data.Sender, tx.GetTxdataHash(), tx.Sender_R, tx.Sender_S) && ecdsa.Verify(tx.data.Recipient, tx.GetTxdataHash(), tx.Recipient_R, tx.Recipient_S)
 
 	txdataHash := tx.GetTxdataHash()
@@ -45,17 +42,17 @@ func (tx *Transaction) VerifySignature() bool {
 
 		// if there is empty field value
 		if tx.data.Participants[i] == nil || tx.Signature_R[i] == nil || tx.Signature_S[i] == nil {
-			return false
+			return ErrNoFields
 		}
 
 		verifyResult := ecdsa.Verify(tx.data.Participants[i], txdataHash, tx.Signature_R[i], tx.Signature_S[i])
 		if verifyResult == false {
-			return false
+			return ErrInvalidSig
 		}
 	}
 
 	// all verifyResult are true, so return true
-	return true
+	return nil
 }
 
 // make signed tx with private key

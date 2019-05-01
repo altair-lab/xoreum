@@ -28,12 +28,15 @@ func ExampleFunc4() {
 	}
 
 	tx1 := types.NewTransaction(parPublicKeys, parStates, prevTxHashes)
+	tx2 := types.NewTransaction(parPublicKeys, parStates, prevTxHashes)
 
 	for i := 0; i < parNum; i++ {
 		tx1.Sign(parPrivateKeys[i])
 	}
 
 	fmt.Println(tx1.VerifySignature())
+	fmt.Println(tx2.VerifySignature())
 
-	// output: true
+	// output: <nil>
+	// there are not filled fields in tx
 }
