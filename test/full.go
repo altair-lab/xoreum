@@ -21,6 +21,7 @@ import (
 )
 
 const MINING_INTERVAL = 10
+const BROADCAST_INTERVAL = 5
 
 // [TODO] replaceChain (logest chain rule)
 var Blockchain *core.BlockChain
@@ -99,14 +100,16 @@ func main() {
 
 // connection : go run network_client.go
 func handleConn(conn net.Conn) {
-	recvBuf := make([]byte, 4096) // receive buffer: 4kb
 	addr := conn.RemoteAddr().String()
+	recvBuf := make([]byte, 4096) // receive buffer: 4kb
 
 	// Connected to new client
 	log.Printf("CONNECTED TO %v\n", addr)
 
 	// Send full block data once
-	for i := uint64(0); i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
+	currentBlockNumber := Blockchain.CurrentBlock().GetHeader().Number
+	updatedBlockNumber := uint64(0)
+	for i := uint64(0); i <= currentBlockNumber; i++ {
 		mutex.Lock()
 		output, err := json.Marshal(Blockchain.BlockAt(i).GetHeader())
 		if err != nil {
@@ -114,6 +117,7 @@ func handleConn(conn net.Conn) {
 		}
 		mutex.Unlock()
 		conn.Write([]byte(string(output)+"\n"))
+		updatedBlockNumber = i
 	}
 	
 
@@ -161,13 +165,15 @@ func handleConn(conn net.Conn) {
 		}
 
 	}()
-/*
-	// Broadcast to clients every 5 sec
+
+	// Send newly updated block (check every BROADCAST_INTERVAL)
 	go func() {
 		for {
-			// client output
-			time.Sleep(5 * time.Second)
-			for i := uint64(0); i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
+			time.Sleep(BROADCAST_INTERVAL * time.Second)
+
+			// Check updated block
+			currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
+			for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
 				mutex.Lock()
 				output, err := json.Marshal(Blockchain.BlockAt(i).GetHeader())
 				if err != nil {
@@ -175,8 +181,8 @@ func handleConn(conn net.Conn) {
 				}
 				mutex.Unlock()
 				conn.Write([]byte(string(output)+"\n"))
+				updatedBlockNumber = i
 			}
 		}
 	}()
-*/
 }
