@@ -8,6 +8,7 @@ import (
 	"time"
 	"io"
 	"sync"
+	"encoding/binary"
 	//"bufio"
 	//"strconv"
 
@@ -21,6 +22,7 @@ import (
 )
 
 const MINING_INTERVAL = 10
+const DEFAULT_BLOCK_NUMBER = 10
 const BROADCAST_INTERVAL = 5
 
 // [TODO] replaceChain (logest chain rule)
@@ -57,6 +59,24 @@ func main() {
 	Txpool = core.NewTxPool(State, Blockchain)
 	Miner = miner.Miner{Acc0.Address}
 
+	for i := 0; i < DEFAULT_BLOCK_NUMBER; i++ {
+		block := Miner.Mine(Txpool, uint64(0))
+
+		if block != nil {
+       			block.PrintTx()
+       		} else {
+       			fmt.Println("Mining Fail")
+       		}
+
+      		// Add to Blockchain
+		err := Blockchain.Insert(block)
+       		if err != nil {
+       			fmt.Println(err)
+       		}
+
+		Blockchain.CurrentBlock().PrintBlock()
+	}
+	
 	// Keep mining every MINING_INTERVAL
 	go func() {
 		for {
@@ -77,7 +97,7 @@ func main() {
                			fmt.Println(err)
        			}
 
-			Blockchain.PrintBlockChain()
+			Blockchain.CurrentBlock().PrintBlock()
 		}
 	}()
 	
@@ -98,7 +118,24 @@ func main() {
 	}
 }
 
-// connection : go run network_client.go
+// Send message with size
+func SendMessage(conn net.Conn, msg []byte) error {
+	lengthBuf := make([]byte, 4)
+	binary.LittleEndian.PutUint32(lengthBuf, uint32(len(msg)))
+	if _, err := conn.Write(lengthBuf); nil != err {
+		log.Printf("failed to send msg length; err: %v", err)
+		return err
+	}
+
+	if _, err := conn.Write(msg); nil != err {
+		log.Printf("failed to send msg; err: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+// connection
 func handleConn(conn net.Conn) {
 	addr := conn.RemoteAddr().String()
 	recvBuf := make([]byte, 4096) // receive buffer: 4kb
@@ -116,10 +153,13 @@ func handleConn(conn net.Conn) {
 			log.Fatal(err)
 		}
 		mutex.Unlock()
-		conn.Write([]byte(string(output)+"\n"))
+		log.Printf("Block Length : %d\n", len(output))
+		err = SendMessage(conn, output)
+		if err != nil {
+			log.Fatal(err)
+		}
 		updatedBlockNumber = i
 	}
-	
 
 	// Check recvBuf every clock
 	go func() {
@@ -160,6 +200,7 @@ func handleConn(conn net.Conn) {
 					log.Fatal(err)
 				}
 				mutex.Unlock()
+				log.Printf("Block Length : %d\n", len(output))
 				conn.Write([]byte(string(output)+"\n"))
 				updatedBlockNumber = i
 			}
