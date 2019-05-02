@@ -8,6 +8,8 @@ import (
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/miner"
+	
+	//"github.com/davecgh/go-spew/spew"
 )
 
 ///////////////////////
@@ -132,6 +134,8 @@ func ExampleTxpool() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	//spew.Dump(bc)
 	bc.PrintBlockChain()
 
 	// output:
