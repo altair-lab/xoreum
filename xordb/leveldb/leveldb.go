@@ -10,7 +10,7 @@ import (
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/log"
 	"github.com/altair-lab/xoreum/metrics"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/altair-lab/xoreum/xordb"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
@@ -146,7 +146,7 @@ func (db *Database) Delete(key []byte) error {
 
 // NewBatch creates a write-only key-value store that buffers changes to its host
 // database until a final write is called.
-func (db *Database) NewBatch() ethdb.Batch {
+func (db *Database) NewBatch() xordb.Batch {
 	return &batch{
 		db: db.db,
 		b:  new(leveldb.Batch),
@@ -155,13 +155,13 @@ func (db *Database) NewBatch() ethdb.Batch {
 
 // NewIterator creates a binary-alphabetical iterator over the entire keyspace
 // contained within the leveldb database.
-func (db *Database) NewIterator() ethdb.Iterator {
+func (db *Database) NewIterator() xordb.Iterator {
 	return db.NewIteratorWithPrefix(nil)
 }
 
 // NewIteratorWithPrefix creates a binary-alphabetical iterator over a subset
 // of database content with a particular key prefix.
-func (db *Database) NewIteratorWithPrefix(prefix []byte) ethdb.Iterator {
+func (db *Database) NewIteratorWithPrefix(prefix []byte) xordb.Iterator {
 	return db.db.NewIterator(util.BytesPrefix(prefix), nil)
 }
 
@@ -399,13 +399,13 @@ func (b *batch) Reset() {
 }
 
 // Replay replays the batch contents.
-func (b *batch) Replay(w ethdb.Writer) error {
+func (b *batch) Replay(w xordb.Writer) error {
 	return b.b.Replay(&replayer{writer: w})
 }
 
 // replayer is a small wrapper to implement the correct replay methods.
 type replayer struct {
-	writer  ethdb.Writer
+	writer  xordb.Writer
 	failure error
 }
 
