@@ -22,8 +22,6 @@ import (
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/miner"
-
-	"github.com/joho/godotenv"
 )
 
 const MINING_INTERVAL = 10
@@ -43,11 +41,6 @@ var mutex = &sync.Mutex{}
 
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	bcServer = make(chan *core.BlockChain)
 
 	// create genesis block
