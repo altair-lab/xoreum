@@ -10,9 +10,14 @@ import (
 	//"time"
 
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/core"
 )
 
 func main() {
+	// create genesis block
+	Blockchain := core.NewBlockChain()
+	Blockchain.PrintBlockChain()
+
 	// Print synchronized json data
 	conn, err := net.Dial("tcp","localhost:9000")
 	if nil != err {
@@ -31,13 +36,28 @@ func main() {
 		fmt.Println(string(buf))
 
 		// Make header struct
-		var h types.Header
-		json.Unmarshal([]byte(buf), &h)
-		fmt.Println(h)
+		var header types.Header
+		json.Unmarshal([]byte(buf), &header)
+		fmt.Println(header)
 
 		// [TODO] Get Txs json
 
 		// [TODO] Make Txs struct
+		txs := types.Transactions{}
+
+		// Make Block with header, txs
+		block := types.NewBlock(&header, txs)
+		block.Hash() // set block hash
+		block.PrintBlock()
+
+		// Add to blockchain
+		err = Blockchain.Insert(block)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Print chain
+		Blockchain.PrintBlockChain()
 
 		// [TODO] Check server connection
 	}
