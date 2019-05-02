@@ -159,6 +159,8 @@ func handleConn(conn net.Conn) {
 		updatedBlockNumber = i
 	}
 
+	quit := make(chan bool)
+
 	// Check recvBuf every clock
 	go func() {
 		for {
@@ -169,9 +171,11 @@ func handleConn(conn net.Conn) {
 			if nil != err {
 				if io.EOF == err {
 					log.Printf("Connection is closed from client; %v", conn.RemoteAddr().String())
+					quit <- true
 					return
 				}
 				log.Printf("fail to receive data; err: %v", err)
+				quit <- true
 				return
 			}
 
@@ -189,6 +193,10 @@ func handleConn(conn net.Conn) {
 		for {
 			time.Sleep(BROADCAST_INTERVAL * time.Second)
 
+			select {
+			case <- quit:
+				return
+			default:
 			// Check updated block
 			currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
 			for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
@@ -204,6 +212,7 @@ func handleConn(conn net.Conn) {
 					log.Fatal(err)
 				}
 				updatedBlockNumber = i
+			}
 			}
 		}
 	}()
