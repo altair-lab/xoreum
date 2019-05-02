@@ -6,7 +6,10 @@ import (
 	"log"
 	//"strings"
 	"encoding/binary"
+	"encoding/json"
 	//"time"
+
+	"github.com/altair-lab/xoreum/core/types"
 )
 
 func main() {
@@ -17,6 +20,7 @@ func main() {
 	}
 
 	for {
+		// Get header json
 		length, err := RecvLength(conn)
 		log.Println("length: ", length)
 		buf := make([]byte, length)
@@ -25,6 +29,11 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Println(string(buf))
+
+		// Make header struct
+		var h types.Header
+		json.Unmarshal([]byte(buf), &h)
+		fmt.Println(h)
 	}
 }
 
@@ -34,7 +43,7 @@ func RecvLength(conn net.Conn) (uint32, error) {
 	if nil != err {
 		return uint32(0), err
 	}
-	
+
 	msgLength := binary.LittleEndian.Uint32(lengthBuf)
 
 	return uint32(msgLength), err
