@@ -105,7 +105,10 @@ func (b *Block) GetUpdatedInterlink() [InterlinkLength]uint64 {
 }
 
 func (b *Block) GetUniqueInterlink() []uint64 {
-	return unique(b.header.InterLink)
+	// include current block
+	list := unique(b.header.InterLink)
+	list = append(list, b.GetHeader().Number)
+	return list
 }
 
 func unique(intSlice [InterlinkLength]uint64) []uint64 {

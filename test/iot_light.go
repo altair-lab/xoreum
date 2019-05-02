@@ -6,7 +6,7 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"net"
 	"log"
 	"io"
@@ -16,13 +16,12 @@ import (
 	//"time"
 
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/core"
+	//"github.com/altair-lab/xoreum/core"
 )
 
 func main() {
 	// create genesis block
-	Blockchain := core.NewBlockChain()
-	Blockchain.PrintBlockChain()
+	//Blockchain := core.NewBlockChain()
 
 	// Print synchronized json data
 	conn, err := net.Dial("tcp","localhost:9000")
@@ -40,7 +39,7 @@ func main() {
 			}
 			log.Fatal(err)
 		}
-		log.Println("length: ", length)
+		
 		buf := make([]byte, length)
 		_, err = conn.Read(buf)
 		if err != nil {
@@ -50,12 +49,10 @@ func main() {
 			}
 			log.Fatal(err)
 		}
-		fmt.Println(string(buf))
 
 		// Make header struct
 		var header types.Header
 		json.Unmarshal([]byte(buf), &header)
-		fmt.Println(header)
 
 		// [TODO] Get Txs json
 
@@ -67,16 +64,7 @@ func main() {
 		block.Hash() // set block hash
 		block.PrintBlock()
 
-		// Add to blockchain
-		err = Blockchain.Insert(block)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		// Print chain
-		Blockchain.PrintBlockChain()
-
-		// [TODO] Check server connection
+		// [TODO] State validation (sign, nonce, total balance)
 	}
 }
 
