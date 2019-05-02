@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/ethdb"
+	"github.com/altair-lab/xoreum/xordb"
 	"github.com/altair-lab/xoreum/log"
 	"github.com/altair-lab/xoreum/metrics"
 	"github.com/syndtr/goleveldb/leveldb"

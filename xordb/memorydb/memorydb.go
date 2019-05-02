@@ -24,7 +24,7 @@ import (
 	"sync"
 
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/ethdb"
+	ethdb "github.com/altair-lab/xoreum/xordb"
 )
 
 var (
