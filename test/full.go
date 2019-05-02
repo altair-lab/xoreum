@@ -201,7 +201,10 @@ func handleConn(conn net.Conn) {
 				}
 				mutex.Unlock()
 				log.Printf("Block Length : %d\n", len(output))
-				conn.Write([]byte(string(output)+"\n"))
+				err = SendMessage(conn, output)
+				if err != nil {
+					log.Fatal(err)
+				}
 				updatedBlockNumber = i
 			}
 		}
