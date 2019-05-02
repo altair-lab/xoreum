@@ -74,7 +74,7 @@ func main() {
 
 		Blockchain.CurrentBlock().PrintBlock()
 	}
-	
+
 	// Keep mining every MINING_INTERVAL
 	go func() {
 		for {
@@ -141,12 +141,14 @@ func handleConn(conn net.Conn) {
 	// Connected to new client
 	log.Printf("CONNECTED TO %v\n", addr)
 
-	// Send full block data once
+	// Send only Interlink block data
 	currentBlockNumber := Blockchain.CurrentBlock().GetHeader().Number
 	updatedBlockNumber := uint64(0)
-	for i := uint64(0); i <= currentBlockNumber; i++ {
+	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()
+	log.Printf("INTERLINKS : %v\n", interlinks)
+	for i := 0; i < len(interlinks); i++ {
 		mutex.Lock()
-		output, err := json.Marshal(Blockchain.BlockAt(i).GetHeader())
+		output, err := json.Marshal(Blockchain.BlockAt(interlinks[i]).GetHeader())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -156,7 +158,7 @@ func handleConn(conn net.Conn) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		updatedBlockNumber = i
+		updatedBlockNumber = interlinks[i]
 	}
 
 	quit := make(chan bool)

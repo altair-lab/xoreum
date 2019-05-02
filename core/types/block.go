@@ -104,6 +104,22 @@ func (b *Block) GetUpdatedInterlink() [InterlinkLength]uint64 {
 	return updatedInterlink
 }
 
+func (b *Block) GetUniqueInterlink() []uint64 {
+	return unique(b.header.InterLink)
+}
+
+func unique(intSlice [InterlinkLength]uint64) []uint64 {
+	keys := make(map[uint64]bool)
+	list := []uint64{}
+	for i := len(intSlice)-1; i >= 0; i-- {
+		if _, value := keys[intSlice[i]]; !value {
+			keys[intSlice[i]] = true
+			list = append(list, intSlice[i])
+		}
+	}
+	return list
+}
+
 func (b *Block) GetHeader() *Header {
 	return b.header
 }
