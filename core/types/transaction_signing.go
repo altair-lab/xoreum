@@ -11,7 +11,8 @@ var ErrNoFields = errors.New("there are not filled fields in tx")
 var ErrInvalidSig = errors.New("this tx has invalid signature")
 
 func (tx *Transaction) Sign(priv *ecdsa.PrivateKey) error {
-	txdataHash := tx.GetTxdataHash()
+	txdataHash := tx.data.GetHashedBytes()
+
 	r, s, err := ecdsa.Sign(rand.Reader, priv, txdataHash)
 	if err != nil {
 		return err
@@ -35,9 +36,9 @@ func (tx *Transaction) Sign(priv *ecdsa.PrivateKey) error {
 
 // verify that this signed tx has all correct participants' signature
 func (tx *Transaction) VerifySignature() error {
-	//return ecdsa.Verify(tx.data.Sender, tx.GetTxdataHash(), tx.Sender_R, tx.Sender_S) && ecdsa.Verify(tx.data.Recipient, tx.GetTxdataHash(), tx.Recipient_R, tx.Recipient_S)
 
-	txdataHash := tx.GetTxdataHash()
+	txdataHash := tx.data.GetHashedBytes()
+
 	for i := 0; i < len(tx.data.Participants); i++ {
 
 		// if there is empty field value
@@ -58,23 +59,15 @@ func (tx *Transaction) VerifySignature() error {
 // make signed tx with private key
 // if priv is neither sender's nor recipient's, then return unsigned tx & ErrInvalidSigKey error
 func SignTx(tx *Transaction, priv *ecdsa.PrivateKey) (*Transaction, error) {
-	txdataHash := tx.GetTxdataHash()
+
+	txdataHash := tx.data.GetHashedBytes()
+
 	r, s, err := ecdsa.Sign(rand.Reader, priv, txdataHash)
 	if err != nil {
 		return tx, err
 	}
 
 	pub := priv.PublicKey
-
-	/*if pub == *tx.data.Sender {
-		tx.Sender_R = r
-		tx.Sender_S = s
-	} else if pub == *tx.data.Recipient {
-		tx.Recipient_R = r
-		tx.Recipient_S = s
-	} else {
-		return tx, ErrInvalidSigKey
-	}*/
 
 	// fill signer's signature value into tx
 	result := ErrInvalidSigKey // if signer's public key is not in tx.data.Participants
@@ -92,9 +85,9 @@ func SignTx(tx *Transaction, priv *ecdsa.PrivateKey) (*Transaction, error) {
 
 // verify that this signed tx has all correct participants' signature
 func VerifyTxSignature(tx *Transaction) bool {
-	//return ecdsa.Verify(tx.data.Sender, tx.GetTxdataHash(), tx.Sender_R, tx.Sender_S) && ecdsa.Verify(tx.data.Recipient, tx.GetTxdataHash(), tx.Recipient_R, tx.Recipient_S)
 
-	txdataHash := tx.GetTxdataHash()
+	txdataHash := tx.data.GetHashedBytes()
+
 	for i := 0; i < len(tx.data.Participants); i++ {
 
 		// if there is empty field value

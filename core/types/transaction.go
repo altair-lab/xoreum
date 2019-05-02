@@ -67,22 +67,45 @@ func (tx *Transaction) Sender() ecdsa.PublicKey { return *tx.data.Sender } // Te
 
 func (tx *Transaction) Recipient() ecdsa.PublicKey { return *tx.data.Recipient }
 
-func (tx *Transaction) Hash() common.Hash {
-	return crypto.Keccak256Hash(common.ToBytes(*tx))
+// get hashed txdata's byte array
+func (data *txdata) GetHashedBytes() []byte {
+
+	bytelist := []byte{}
+	for i := 0; i < len(data.Participants); i++ {
+		bytelist = append(bytelist, common.ToBytes(*data.Participants[i])...)
+		bytelist = append(bytelist, common.ToBytes(*data.PostStates[i])...)
+		bytelist = append(bytelist, common.ToBytes(*data.PrevTxHashes[i])...)
+	}
+
+	return crypto.Keccak256(bytelist)
 }
 
-// TODO: i think this should be changed
-func (txs *Transactions) Hash() common.Hash {
-	return crypto.Keccak256Hash(common.ToBytes(*txs))
+// hashing txdata of tx
+func (tx *Transaction) Hash() common.Hash {
+	//return crypto.Keccak256Hash(common.ToBytes(*tx))
+
+	// new method
+	return crypto.Keccak256Hash(tx.data.GetHashedBytes())
+}
+
+// hashing all transactions in txs (temporary)
+// TODO: this hash value should be root value of tx's merkle tree
+func (txs Transactions) Hash() common.Hash {
+
+	//return crypto.Keccak256Hash(common.ToBytes(*txs))
+
+	// new method
+	bytelist := []byte{}
+	for i := 0; i < len(txs); i++ {
+		bytelist = append(bytelist, txs[i].data.GetHashedBytes()...)
+	}
+
+	return crypto.Keccak256Hash(bytelist)
 }
 
 // insert tx into txs
 func (txs *Transactions) Insert(tx *Transaction) {
 	*txs = append(*txs, tx)
-}
-
-func (tx *Transaction) GetTxdataHash() []byte {
-	return crypto.Keccak256(common.ToBytes(tx.data))
 }
 
 func (tx *Transaction) PrintTx() {
