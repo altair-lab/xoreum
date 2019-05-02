@@ -34,6 +34,12 @@ func main() {
 		var h types.Header
 		json.Unmarshal([]byte(buf), &h)
 		fmt.Println(h)
+
+		// [TODO] Get Txs json
+
+		// [TODO] Make Txs struct
+
+		// [TODO] Check server connection
 	}
 }
 
