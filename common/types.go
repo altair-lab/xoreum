@@ -77,3 +77,14 @@ func HexToHash(s string) Hash {
 func ToBytes(v interface{}) []byte {
 	return []byte(fmt.Sprintf("%v", v))
 }
+
+// CopyBytes returns an exact copy of the provided bytes.
+func CopyBytes(b []byte) (copiedBytes []byte) {
+	if b == nil {
+		return nil
+	}
+	copiedBytes = make([]byte, len(b))
+	copy(copiedBytes, b)
+
+	return
+}
