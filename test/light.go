@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"log"
+	"io"
 	//"strings"
 	"encoding/binary"
 	"encoding/json"
@@ -32,10 +33,21 @@ func main() {
 	for {
 		// Get header json
 		length, err := RecvLength(conn)
+		if err != nil {
+			if io.EOF == err {
+				log.Printf("Connection is closed from server; %v", conn.RemoteAddr().String())
+				return
+			}
+			log.Fatal(err)
+		}
 		log.Println("length: ", length)
 		buf := make([]byte, length)
 		_, err = conn.Read(buf)
 		if err != nil {
+			if io.EOF == err {
+				log.Printf("Connection is closed from server; %v", conn.RemoteAddr().String())
+				return
+			}
 			log.Fatal(err)
 		}
 		fmt.Println(string(buf))
