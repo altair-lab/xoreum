@@ -1,3 +1,8 @@
+/*
+  Light Node : Get all blocks from chain and insert
+  IoT Node   : Get interlink blocks from chain and validate => Set Genesis block = Currnt block
+*/
+
 package main
 
 import (

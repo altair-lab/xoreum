@@ -1,3 +1,8 @@
+/*
+  Full Node     : Send all blocks from chain and keep update
+  IoT-full Node : Send only interlink blocks from chain and keep update
+*/
+
 package main 
 
 import (
