@@ -93,3 +93,63 @@ func (tx *Transaction) PrintTx() {
 		fmt.Println("previous tx hash: ", tx.data.PrevTxHashes[i])
 	}
 }
+
+// make random tx for test
+func MakeTestTx(participantsNum int) *Transaction {
+	// make participants
+	parNum := participantsNum
+	parPrivateKeys := []*ecdsa.PrivateKey{}
+	parPublicKeys := []*ecdsa.PublicKey{}
+	parStates := []*state.Account{}
+	prevTxHashes := []*common.Hash{}
+
+	for i := 0; i < parNum; i++ {
+		// make random private/public key pairs
+		priv, _ := crypto.GenerateKey()
+		parPrivateKeys = append(parPrivateKeys, priv)
+		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
+
+		// assume that every participants has 100 ether
+		parStates = append(parStates, state.NewAccount(crypto.Keccak256Address(common.ToBytes(priv.PublicKey)), 0, 100))
+
+		// null prev tx hashes
+		prevTxHashes = append(prevTxHashes, &common.Hash{})
+	}
+
+	// make transaction
+	tx := NewTransaction(parPublicKeys, parStates, prevTxHashes)
+	return tx
+}
+
+// make random signed tx for test
+func MakeTestSignedTx(participantsNum int) *Transaction {
+	// make participants
+	parNum := participantsNum
+	parPrivateKeys := []*ecdsa.PrivateKey{}
+	parPublicKeys := []*ecdsa.PublicKey{}
+	parStates := []*state.Account{}
+	prevTxHashes := []*common.Hash{}
+
+	for i := 0; i < parNum; i++ {
+		// make random private/public key pairs
+		priv, _ := crypto.GenerateKey()
+		parPrivateKeys = append(parPrivateKeys, priv)
+		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
+
+		// assume that every participants has 100 ether
+		parStates = append(parStates, state.NewAccount(crypto.Keccak256Address(common.ToBytes(priv.PublicKey)), 0, 100))
+
+		// null prev tx hashes
+		prevTxHashes = append(prevTxHashes, &common.Hash{})
+	}
+
+	// make transaction
+	tx := NewTransaction(parPublicKeys, parStates, prevTxHashes)
+
+	// every participants sign to tx
+	for i := 0; i < parNum; i++ {
+		tx.Sign(parPrivateKeys[i])
+	}
+
+	return tx
+}
