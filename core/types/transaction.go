@@ -47,10 +47,13 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	return &tx
 }
 
-func (tx *Transaction) Nonce() uint64 { 
-	//[FIXME] How can we get tx nonce?
-	//return tx.data.AccountNonce 
-	return uint64(0)
+func (tx *Transaction) Nonce() []uint64 { 
+	//[FIXME] Get nonce from state? or account nonce field?
+	nonces := make([]uint64, 0)
+	for _, acc := range tx.data.PostStates {
+		nonces = append(nonces, acc.Nonce)
+	}
+	return nonces 
 }
 
 //func (tx *Transaction) Value() uint64 { return tx.data.Amount }
