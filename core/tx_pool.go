@@ -116,8 +116,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	}
 	*/
 	// Make sure the transaction is signed properly
-	validity := types.VerifyTxSignature(tx)
-	if !validity {
+	validity := tx.VerifySignature() 
+	if validity != nil {
 		return ErrInvalidSender
 	}
         
