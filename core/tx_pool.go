@@ -114,13 +114,13 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	if pool.currentState.GetNonce(from) > tx.Nonce() {
 		return ErrNonceTooLow
 	}
-	
+	*/
 	// Make sure the transaction is signed properly
 	validity := types.VerifyTxSignature(tx)
 	if !validity {
 		return ErrInvalidSender
 	}
-        */
+        
 	// nothing
 	return nil 
 }
