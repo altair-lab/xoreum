@@ -14,13 +14,7 @@ type Transaction struct {
 	data txdata
 	hash common.Hash
 
-	// signature values (old version)
-	/*Sender_R    *big.Int
-	Sender_S    *big.Int
-	Recipient_R *big.Int
-	Recipient_S *big.Int*/
-
-	// signature values of participants (new version)
+	// signature values of participants
 	Signature_R []*big.Int
 	Signature_S []*big.Int
 }
@@ -30,12 +24,6 @@ type Transactions []*Transaction
 
 // simple implementation
 type txdata struct {
-	// old version fields
-	AccountNonce uint64
-	Sender       *ecdsa.PublicKey
-	Recipient    *ecdsa.PublicKey
-	Amount       uint64
-
 	// new version fields
 	Participants []*ecdsa.PublicKey
 	PostStates   []*state.Account
@@ -59,13 +47,19 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	return &tx
 }
 
-func (tx *Transaction) Nonce() uint64 { return tx.data.AccountNonce }
+func (tx *Transaction) Nonce() uint64 { 
+	//[FIXME] How can we get tx nonce?
+	//return tx.data.AccountNonce 
+	return uint64(0)
+}
 
-func (tx *Transaction) Value() uint64 { return tx.data.Amount }
+//func (tx *Transaction) Value() uint64 { return tx.data.Amount }
 
-func (tx *Transaction) Sender() ecdsa.PublicKey { return *tx.data.Sender } // Temporal function until signature is implemented
+//func (tx *Transaction) Sender() ecdsa.PublicKey { return *tx.data.Sender } // Temporal function until signature is implemented
 
-func (tx *Transaction) Recipient() ecdsa.PublicKey { return *tx.data.Recipient }
+//func (tx *Transaction) Recipient() ecdsa.PublicKey { return *tx.data.Recipient }
+
+func (tx *Transaction) Participants() []*ecdsa.PublicKey { return tx.data.Participants }
 
 // get hashed txdata's byte array
 func (data *txdata) GetHashedBytes() []byte {

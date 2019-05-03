@@ -94,6 +94,10 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction) error {
+	// [FIXME] We don't have Sender, Value, Nonce fields in Tx
+	//         How can we validate?
+	
+	/*
 	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
 	// Transactions can't be negative. This may never happen using RLP decoded
 	// transactions but may occur if you create a transaction using the RPC.
@@ -116,7 +120,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	if !validity {
 		return ErrInvalidSender
 	}
-        
+        */
 	// nothing
 	return nil 
 }
@@ -124,20 +128,22 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 // enqueue a single trasaction to pool.queue, pool.all
 func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
-	// [TODO] Get sender from signature
-	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
+	// [FIXME] Enqueue to all participants ?
+	for _, pubKey := range tx.Participants() {
+		from := crypto.Keccak256Address(common.ToBytes(*pubKey))
 
-	if pool.queue[from] == nil {
-		pool.queue[from] = newTxList(false)
-	}
-	inserted := pool.queue[from].Add(tx)
-	if !inserted {
-		// An older transaction exists, discard this
-		return false, ErrOverwrite
+		if pool.queue[from] == nil {
+			pool.queue[from] = newTxList(false)
+		}
+		inserted := pool.queue[from].Add(tx)
+		if !inserted {
+			// An older transaction exists, discard this
+			return false, ErrOverwrite
+		}
 	}
 
 	pool.all.Enqueue(tx)
-	return inserted, nil
+	return true, nil
 }
 
 func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
@@ -147,21 +153,23 @@ func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 		return nil, false
 	}
 
-	// [TODO] Get sender from signature
-	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
+	// [FIXME] Dequeue to all participants ?
+	for _, pubKey := range tx.Participants() {
+		from := crypto.Keccak256Address(common.ToBytes(*pubKey)) // changed
 
-	if pool.queue[from] == nil {
-		// exist in txQueue, but not in txList
-		return tx, false
+		if pool.queue[from] == nil {
+			// exist in txQueue, but not in txList
+			return tx, false
+		}
+
+		deleted := pool.queue[from].Remove(tx)
+		if !deleted {
+			// exist in txQueue, but not in txList
+			return tx, false
+		}
 	}
 
-	deleted := pool.queue[from].Remove(tx)
-	if !deleted {
-		// exist in txQueue, but not in txList
-		return tx, false
-	}
-  
-	return tx, deleted
+	return tx, true 
 }
 
 type txQueue struct {
