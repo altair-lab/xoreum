@@ -61,7 +61,7 @@ func main() {
 		block := Miner.Mine(Txpool, uint64(0))
 
 		if block != nil {
-       			block.PrintTx()
+       			block.PrintTxs()
        		} else {
        			fmt.Println("Mining Fail")
        		}
@@ -84,7 +84,7 @@ func main() {
 			block := Miner.Mine(Txpool, uint64(0))
 
 			if block != nil {
-               		 	block.PrintTx()
+               		 	block.PrintTxs()
        			} else {
                			fmt.Println("Mining Fail")
        			}
