@@ -1,10 +1,13 @@
 package test
 
+/*package test
+
 import (
 	"fmt"
+
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
-	"github.com/altair-lab/xoreum/crypto"
+	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/miner"
@@ -12,14 +15,9 @@ import (
 	//"github.com/davecgh/go-spew/spew"
 )
 
-///////////////////////
-///*   CHECKLIST   *///
-///* 1. FIFO       *///
-///* 2. ValidateTx *///
-///////////////////////
 
 func ExampleTxpool() {
-	
+
 	// Make keys
 	fmt.Println("========== Create Accounts ==========")
 	privatekey0, _ := crypto.GenerateKey()
@@ -33,11 +31,11 @@ func ExampleTxpool() {
 	privatekey2, _ := crypto.GenerateKey()
 	publickey2 := privatekey2.PublicKey
 	address2 := crypto.Keccak256Address(common.ToBytes(publickey2))
-	
+
 	privatekey3, _ := crypto.GenerateKey()
 	publickey3 := privatekey3.PublicKey
 	address3 := crypto.Keccak256Address(common.ToBytes(publickey3))
-	
+
 	// Make account
 	acc0 := state.NewAccount(address0, uint64(0), uint64(7000)) // acc0 [Address:0, Nonce:0, Balance:7000]
 	acc1 := state.NewAccount(address1, uint64(0), uint64(2000)) // acc1 [Address:1, Nonce:0, Balance:2000]
@@ -51,7 +49,7 @@ func ExampleTxpool() {
 	state.Add(acc2)
 	state.Add(acc3)
 	state.Print()
-	
+
 	fmt.Printf("\n")
 
 	// Create tranaction
@@ -118,13 +116,13 @@ func ExampleTxpool() {
 	*/
 
 	fmt.Printf("\n")
-	
+
 	// Mining from txpool
 	fmt.Println("============ Mining block  ============")
 	miner := miner.Miner{acc0.Address}
 	block := miner.Mine(txpool, 240)
 	if block != nil {
-		block.PrintTx()
+		block.PrintTxs()
 	} else {
 		fmt.Println("Mining Fail")
 	}
@@ -141,3 +139,4 @@ func ExampleTxpool() {
 	// output:
 	// true
 }
+*/
