@@ -6,9 +6,9 @@ import (
 	"errors"
 
 	"github.com/altair-lab/xoreum/core/state"
-	"github.com/altair-lab/xoreum/common"
+	//"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/crypto"
+	//"github.com/altair-lab/xoreum/crypto"
 )
 
 // Reference : tx_pool.go#L43
@@ -35,7 +35,7 @@ var (
 // Reference : tx_pool.go#L205
 type TxPool struct {
 	//chain       BlockChain
-	queue	    map[common.Address]*txList // Address-txList map for validation
+	//queue	    map[common.Address]*txList // Address-txList map for validation
 	all         *txQueue // Queued transactions for time ordering (FIFO)
 	currentState	state.State // Current state in the blockchain head
 	chain		*BlockChain // Current chain
@@ -48,7 +48,7 @@ func NewTxPool(state state.State, chain *BlockChain) *TxPool {
 	// [TODO] Get state from chain.State, not by parameter.
 	pool := &TxPool{
 		//chain:		chain,
-		queue:		make(map[common.Address]*txList),
+		//queue:		make(map[common.Address]*txList),
 		all:		newTxQueue(),
 		currentState:	state,
 		chain:		chain,
@@ -128,6 +128,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 // enqueue a single trasaction to pool.queue, pool.all
 func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
+	/*
 	// [FIXME] Enqueue to all participants ?
 	for _, pubKey := range tx.Participants() {
 		from := crypto.Keccak256Address(common.ToBytes(*pubKey))
@@ -141,7 +142,7 @@ func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 			return false, ErrOverwrite
 		}
 	}
-
+	*/
 	pool.all.Enqueue(tx)
 	return true, nil
 }
@@ -152,7 +153,7 @@ func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 		// empty queue
 		return nil, false
 	}
-
+	/*
 	// [FIXME] Dequeue to all participants ?
 	for _, pubKey := range tx.Participants() {
 		from := crypto.Keccak256Address(common.ToBytes(*pubKey)) // changed
@@ -168,7 +169,7 @@ func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 			return tx, false
 		}
 	}
-
+	*/
 	return tx, true 
 }
 

@@ -1,7 +1,7 @@
 // Reference : https://github.com/ethereum/go-ethereum/blob/2cffd4ff3c6643e374e34bccd8d68cb52d7d4c8b/core/tx_list.go 
 
 package core
-
+/*
 import (
 	"container/heap"
 	"github.com/altair-lab/xoreum/core/types"
@@ -132,3 +132,4 @@ func (l *txList) Len() int {
 func (l *txList) Empty() bool {
 	return l.Len() == 0
 }
+*/
