@@ -10,7 +10,9 @@ import (
 	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/crypto"
+	"github.com/altair-lab/xoreum/core/miner"
+	
+	//"github.com/davecgh/go-spew/spew"
 )
 
 
@@ -52,29 +54,32 @@ func ExampleTxpool() {
 
 	// Create tranaction
 	fmt.Println("========== Create Transactions ==========")
-	tx0 := types.NewTransaction(0, publickey0, publickey1, uint64(2000))                    // send [2000] from [account0] to [account1]
-	tx1 := types.NewTransaction(0, publickey1, publickey0, uint64(500))                     // send [500] from [account1] to [account0]
-	tx_overwrite_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(100))    // send [100] from [account0] to [account1]
-	tx2 := types.NewTransaction(1, publickey0, publickey1, uint64(300))                     // send [100] from [account0] to [account1]
-	tx_insufficient_invalid := types.NewTransaction(0, publickey3, publickey2, uint64(200)) // send [5000] from [account3] to [account2]
+	tx0 := types.NewTransaction(0, publickey0, publickey1, uint64(2000)) // send [2000] from [account0] to [account1]
+	tx1 := types.NewTransaction(0, publickey1, publickey0, uint64(500)) // send [500] from [account1] to [account0]
+	tx_overwrite_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(100)) // send [100] from [account0] to [account1]
+	tx2 := types.NewTransaction(1, publickey0, publickey1, uint64(300)) // send [100] from [account0] to [account1]
+	tx_insufficient_invalid := types.NewTransaction(0, publickey3, publickey2, uint64(200)) // send [200] from [account3] to [account2]
 	// tx_nonce_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(5000)) // send [5000] from [account0] to [account1]
-	// tx_sender_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(5000)) // send [5000] from [account0] to [account1]
+	tx_sender_invalid := types.NewTransaction(0, publickey0, publickey1, uint64(5000)) // send [5000] from [account0] to [account1]
 
 	// Sign to transaction
-	tx0_signed, _ := types.SignTx(tx0, privatekey0)                                 // sign by sender
-	tx1_signed, _ := types.SignTx(tx1, privatekey1)                                 // sign by sender
-	tx_overwrite_signed, _ := types.SignTx(tx_overwrite_invalid, privatekey0)       // sign by sender
-	tx2_signed, _ := types.SignTx(tx2, privatekey0)                                 // sign by sender
+	tx0_signed, _ := types.SignTx(tx0, privatekey0) // sign by sender
+	tx1_signed, _ := types.SignTx(tx1, privatekey1) // sign by sender
+	tx_overwrite_signed, _ := types.SignTx(tx_overwrite_invalid, privatekey0) // sign by sender
+	tx2_signed, _ := types.SignTx(tx2, privatekey0) // sign by sender
 	tx_insufficient_signed, _ := types.SignTx(tx_insufficient_invalid, privatekey3) // sign by sender
-
-	tx0_signed, _ = types.SignTx(tx0_signed, privatekey1)                         // sign by receiver
-	tx1_signed, _ = types.SignTx(tx1_signed, privatekey0)                         // sign by receiver
-	tx_overwrite_signed, _ = types.SignTx(tx_overwrite_signed, privatekey1)       // sign by receiver
-	tx2_signed, _ = types.SignTx(tx2_signed, privatekey1)                         // sign by receiver
+	tx_sender_invalid_signed, _ := types.SignTx(tx_sender_invalid, privatekey1) // sign by wrong sender
+	
+	tx0_signed, _ = types.SignTx(tx0_signed, privatekey1) // sign by receiver
+	tx1_signed, _ = types.SignTx(tx1_signed, privatekey0) // sign by receiver
+	tx_overwrite_signed, _ = types.SignTx(tx_overwrite_signed, privatekey1) // sign by receiver
+	tx2_signed, _ = types.SignTx(tx2_signed, privatekey1) // sign by receiver
 	tx_insufficient_signed, _ = types.SignTx(tx_insufficient_signed, privatekey2) // sign by receiver
+	tx_sender_invalid_signed, _ = types.SignTx(tx_sender_invalid_signed, privatekey1) // sign by receiver
 
-	// Create txpool
-	txpool := core.NewTxPool(state)
+	// Create Chain, txpool
+	bc := core.NewBlockChain()
+	txpool := core.NewTxPool(state, bc)
 
 	// Add txs to txpool
 	success, err := txpool.Add(tx0_signed)
@@ -101,18 +106,35 @@ func ExampleTxpool() {
 	if !success {
 		fmt.Println(err)
 	}
+	
+	/*
+	// [TODO] return false (not runtime error!) when the sign is invalid
+	success, err = txpool.Add(tx_sender_invalid_signed)
+	if !success {
+		fmt.Println(err)
+	}
+	*/
 
 	fmt.Printf("\n")
 
 	// Mining from txpool
 	fmt.Println("============ Mining block  ============")
 	miner := miner.Miner{acc0.Address}
-	block := miner.Mine(txpool, state, 240)
+	block := miner.Mine(txpool, 240)
 	if block != nil {
 		block.PrintTxs()
 	} else {
 		fmt.Println("Mining Fail")
 	}
+
+	// Add to Blockchain
+	err = bc.Insert(block)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//spew.Dump(bc)
+	bc.PrintBlockChain()
 
 	// output:
 	// true

@@ -38,19 +38,20 @@ type TxPool struct {
 	queue	    map[common.Address]*txList // Address-txList map for validation
 	all         *txQueue // Queued transactions for time ordering (FIFO)
 	currentState	state.State // Current state in the blockchain head
+	chain		*BlockChain // Current chain
 	
-	// chain blockchain
 	// [TODO] pending map[common.Address]*txList // All currently processable transactions
 	// [TODO] pendingState : Pending state tracking virtual nonces
 }
 
-func NewTxPool(state state.State) *TxPool {
+func NewTxPool(state state.State, chain *BlockChain) *TxPool {
 	// [TODO] Get state from chain.State, not by parameter.
 	pool := &TxPool{
 		//chain:		chain,
 		queue:		make(map[common.Address]*txList),
 		all:		newTxQueue(),
 		currentState:	state,
+		chain:		chain,
 	}
 
 	// [TODO] Subscribe events from blockchain
@@ -61,6 +62,10 @@ func NewTxPool(state state.State) *TxPool {
 
 func (pool *TxPool) Len() int {
 	return pool.all.Len()
+}
+
+func (pool *TxPool) Chain() *BlockChain {
+	return pool.chain
 }
 
 // Add single transaction to txpool
