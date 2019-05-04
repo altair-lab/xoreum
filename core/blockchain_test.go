@@ -3,13 +3,16 @@ package core
 import (
 	"fmt"
 
+	"github.com/altair-lab/xoreum/xordb/memorydb"
+
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/params"
 )
 
 func ExampleFunc() {
 
-	bc := NewBlockChain()
+	db := memorydb.New()
+	bc := NewBlockChain(db)
 
 	var empty_txs []*types.Transaction
 	empty_txs = []*types.Transaction{}

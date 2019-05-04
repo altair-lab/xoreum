@@ -7,12 +7,14 @@ package main
 
 import (
 	//"fmt"
-	"net"
-	"log"
 	"io"
+	"log"
+	"net"
+
 	//"strings"
 	"encoding/binary"
 	"encoding/json"
+
 	//"time"
 
 	"github.com/altair-lab/xoreum/core/types"
@@ -24,7 +26,7 @@ func main() {
 	//Blockchain := core.NewBlockChain()
 
 	// Print synchronized json data
-	conn, err := net.Dial("tcp","localhost:9000")
+	conn, err := net.Dial("tcp", "localhost:9000")
 	if nil != err {
 		log.Fatalf("failed to connect to server")
 	}
@@ -39,7 +41,7 @@ func main() {
 			}
 			log.Fatal(err)
 		}
-		
+
 		buf := make([]byte, length)
 		_, err = conn.Read(buf)
 		if err != nil {

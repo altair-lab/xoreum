@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"sync/atomic"
 
+	"github.com/altair-lab/xoreum/xordb"
+	"github.com/altair-lab/xoreum/xordb/memorydb"
+
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/params"
@@ -24,6 +27,8 @@ var (
 type BlockChain struct {
 	//ChainID *big.Int // chainId identifies the current chain and is used for replay protection
 
+	db xordb.Database
+
 	genesisBlock *types.Block
 	currentBlock atomic.Value
 	//processor	Processor
@@ -32,10 +37,11 @@ type BlockChain struct {
 	blocks []types.Block // temporary block list. blocks will be saved in db
 }
 
-func NewBlockChain() *BlockChain {
+func NewBlockChain(db xordb.Database) *BlockChain {
 
 	bc := &BlockChain{
 		//ChainID:      big.NewInt(0),
+		db:           db,
 		genesisBlock: params.GetGenesisBlock(),
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
@@ -118,7 +124,8 @@ func (bc *BlockChain) PrintBlockChain() {
 // make blockchain for test. insert simple blocks
 func MakeTestBlockChain(chainLength uint64) *BlockChain {
 
-	bc := NewBlockChain()
+	db := memorydb.New()
+	bc := NewBlockChain(db)
 
 	var empty_txs []*types.Transaction
 	empty_txs = []*types.Transaction{}

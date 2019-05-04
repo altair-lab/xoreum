@@ -3,25 +3,28 @@
   IoT-full Node : Send only interlink blocks from chain and keep update
 */
 
-package main 
+package main
 
 import (
-	"fmt"
+	"encoding/binary"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net"
-	"time"
-	"io"
 	"sync"
-	"encoding/binary"
+	"time"
+
 	//"bufio"
 	//"strconv"
 
+	"github.com/altair-lab/xoreum/xordb/memorydb"
+
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
-	"github.com/altair-lab/xoreum/crypto"
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/miner"
+	"github.com/altair-lab/xoreum/core/state"
+	"github.com/altair-lab/xoreum/crypto"
 )
 
 const MINING_INTERVAL = 10
@@ -39,14 +42,15 @@ var Miner miner.Miner
 var bcServer chan *core.BlockChain
 var mutex = &sync.Mutex{}
 
-
 func main() {
 	bcServer = make(chan *core.BlockChain)
 
+	db := memorydb.New()
+
 	// create genesis block
-	Blockchain = core.NewBlockChain()
+	Blockchain = core.NewBlockChain(db)
 	Blockchain.PrintBlockChain()
-	
+
 	// set account, txpool, state, miner for mining
 	privatekey0, _ := crypto.GenerateKey()
 	publickey0 := privatekey0.PublicKey
@@ -61,44 +65,44 @@ func main() {
 		block := Miner.Mine(Txpool, uint64(0))
 
 		if block != nil {
-       			block.PrintTx()
-       		} else {
-       			fmt.Println("Mining Fail")
-       		}
+			block.PrintTx()
+		} else {
+			fmt.Println("Mining Fail")
+		}
 
-      		// Add to Blockchain
+		// Add to Blockchain
 		err := Blockchain.Insert(block)
-       		if err != nil {
-       			fmt.Println(err)
-       		}
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		Blockchain.CurrentBlock().PrintBlock()
 	}
-	
+
 	// Keep mining every MINING_INTERVAL
 	go func() {
 		for {
 			time.Sleep(MINING_INTERVAL * time.Second)
-			
+
 			// Mining from txpool
 			block := Miner.Mine(Txpool, uint64(0))
 
 			if block != nil {
-               		 	block.PrintTx()
-       			} else {
-               			fmt.Println("Mining Fail")
-       			}
+				block.PrintTx()
+			} else {
+				fmt.Println("Mining Fail")
+			}
 
-       			// Add to Blockchain
+			// Add to Blockchain
 			err := Blockchain.Insert(block)
-       			if err != nil {
-               			fmt.Println(err)
-       			}
+			if err != nil {
+				fmt.Println(err)
+			}
 
 			Blockchain.CurrentBlock().PrintBlock()
 		}
 	}()
-	
+
 	// start TCP and serve TCP server
 	server, err := net.Listen("tcp", ":9000")
 	if err != nil {
@@ -164,7 +168,7 @@ func handleConn(conn net.Conn) {
 	// Check recvBuf every clock
 	go func() {
 		for {
-			
+
 			// Get input data from clients every clock
 			n, err := conn.Read(recvBuf)
 
@@ -194,25 +198,25 @@ func handleConn(conn net.Conn) {
 			time.Sleep(BROADCAST_INTERVAL * time.Second)
 
 			select {
-			case <- quit:
+			case <-quit:
 				return
 			default:
-			// Check updated block
-			currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
-			for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
-				mutex.Lock()
-				output, err := json.Marshal(Blockchain.BlockAt(i).GetHeader())
-				if err != nil {
-					log.Fatal(err)
+				// Check updated block
+				currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
+				for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
+					mutex.Lock()
+					output, err := json.Marshal(Blockchain.BlockAt(i).GetHeader())
+					if err != nil {
+						log.Fatal(err)
+					}
+					mutex.Unlock()
+					log.Printf("Block Length : %d\n", len(output))
+					err = SendMessage(conn, output)
+					if err != nil {
+						log.Fatal(err)
+					}
+					updatedBlockNumber = i
 				}
-				mutex.Unlock()
-				log.Printf("Block Length : %d\n", len(output))
-				err = SendMessage(conn, output)
-				if err != nil {
-					log.Fatal(err)
-				}
-				updatedBlockNumber = i
-			}
 			}
 		}
 	}()
