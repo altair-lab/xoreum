@@ -26,6 +26,27 @@ var (
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.
 type Hash [HashLength]byte
 
+// Bytes gets the byte representation of the underlying hash.
+func (h Hash) Bytes() []byte { return h[:] }
+
+// BytesToHash sets b to hash.
+// If b is larger than len(h), b will be cropped from the left.
+func BytesToHash(b []byte) Hash {
+	var h Hash
+	h.SetBytes(b)
+	return h
+}
+
+// SetBytes sets the hash to the value of b.
+// If b is larger than len(h), b will be cropped from the left.
+func (h *Hash) SetBytes(b []byte) {
+	if len(b) > len(h) {
+		b = b[len(b)-HashLength:]
+	}
+
+	copy(h[HashLength-len(b):], b)
+}
+
 type Address [AddressLength]byte
 
 func (h Hash) ToBigInt() *big.Int {
