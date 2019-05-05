@@ -8,12 +8,12 @@ import (
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/log"
+	"github.com/altair-lab/xoreum/rlp"
 	"github.com/altair-lab/xoreum/xordb"
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
-// ReadCanonicalHash retrieves the hash assigned to a canonical block number.
-func ReadCanonicalHash(db xordb.Reader, number uint64) common.Hash {
+// ReadHash retrieves the hash assigned to a block number.
+func ReadHash(db xordb.Reader, number uint64) common.Hash {
 	data, _ := db.Get(headerHashKey(number))
 	if len(data) == 0 {
 		return common.Hash{}
@@ -21,15 +21,15 @@ func ReadCanonicalHash(db xordb.Reader, number uint64) common.Hash {
 	return common.BytesToHash(data)
 }
 
-// WriteCanonicalHash stores the hash assigned to a canonical block number.
-func WriteCanonicalHash(db xordb.Writer, hash common.Hash, number uint64) {
+// WriteHash stores the hash assigned to a block number.
+func WriteHash(db xordb.Writer, hash common.Hash, number uint64) {
 	if err := db.Put(headerHashKey(number), hash.Bytes()); err != nil {
 		log.Crit("Failed to store number to hash mapping", "err", err)
 	}
 }
 
-// DeleteCanonicalHash removes the number to hash canonical mapping.
-func DeleteCanonicalHash(db xordb.Writer, number uint64) {
+// DeleteHash removes the number to hash mapping.
+func DeleteHash(db xordb.Writer, number uint64) {
 	if err := db.Delete(headerHashKey(number)); err != nil {
 		log.Crit("Failed to delete number to hash mapping", "err", err)
 	}
@@ -66,7 +66,7 @@ func ReadHeader(db xordb.Reader, hash common.Hash, number uint64) *types.Header 
 		return nil
 	}
 	header := new(types.Header)
-	if err := ((data), header); err != nil {
+	if err := rlp.Decode(bytes.NewReader(data), header); err != nil {
 		log.Error("Invalid block header", "hash", hash, "err", err)
 		return nil
 	}
@@ -79,7 +79,7 @@ func WriteHeader(db xordb.Writer, header *types.Header) {
 	// Write the hash -> number mapping
 	var (
 		hash    = header.Hash()
-		number  = header.Number.Uint64()
+		number  = header.Number
 		encoded = encodeBlockNumber(number)
 	)
 	key := headerNumberKey(hash)
@@ -105,14 +105,14 @@ func DeleteHeader(db xordb.Writer, hash common.Hash, number uint64) {
 }
 
 // ReadBodyData retrieves the block body (transactions and uncles) in RLP encoding.
-func ReadBodyData(db xordb.Reader, hash common.Hash, number uint64) string {
+func ReadBodyData(db xordb.Reader, hash common.Hash, number uint64) rlp.RawValue {
 	data, _ := db.Get(blockBodyKey(number, hash))
 	return data
 }
 
 // WriteBodyData stores block body into the database.
-func WriteBodyData(db xordb.Writer, hash common.Hash, number uint64, data string) {
-	if err := db.Put(blockBodyKey(number, hash), string); err != nil {
+func WriteBodyData(db xordb.Writer, hash common.Hash, number uint64, rlp rlp.RawValue) {
+	if err := db.Put(blockBodyKey(number, hash), rlp); err != nil {
 		log.Crit("Failed to store block body", "err", err)
 	}
 }
@@ -140,12 +140,12 @@ func ReadBody(db xordb.Reader, hash common.Hash, number uint64) *types.Body {
 }
 
 // WriteBody stores a block body into the database.
-func WriteBody(db xordb.Writer, hash common.Hash, number uint64, body *types.Body) {
-	data, err := rlp.EncodeToBytes(body)
+func WriteBody(db xordb.Writer, hash common.Hash, number uint64, txs types.Transactions) {
+	data, err := rlp.EncodeToBytes(txs)
 	if err != nil {
 		log.Crit("Failed to RLP encode body", "err", err)
 	}
-	WriteBodyRLP(db, hash, number, data)
+	WriteBodyData(db, hash, number, data)
 }
 
 // DeleteBody removes all block body data associated with a hash.
@@ -155,7 +155,7 @@ func DeleteBody(db xordb.Writer, hash common.Hash, number uint64) {
 	}
 }
 
-// ReadTdData retrieves a block's total difficulty corresponding to the hash in RLP encoding.
+// ReadTdData retrieves a block's total difficulty corresponding to the hash.
 func ReadTdData(db xordb.Reader, hash common.Hash, number uint64) rlp.RawValue {
 	data, _ := db.Get(headerTDKey(number, hash))
 	return data
@@ -163,7 +163,7 @@ func ReadTdData(db xordb.Reader, hash common.Hash, number uint64) rlp.RawValue {
 
 // ReadTd retrieves a block's total difficulty corresponding to the hash.
 func ReadTd(db xordb.Reader, hash common.Hash, number uint64) *big.Int {
-	data := ReadTdRLP(db, hash, number)
+	data := ReadTdData(db, hash, number)
 	if len(data) == 0 {
 		return nil
 	}
@@ -193,28 +193,26 @@ func DeleteTd(db xordb.Writer, hash common.Hash, number uint64) {
 	}
 }
 
-// ReadBlock retrieves an entire block corresponding to the hash, assembling it
+// LoadBlock retrieves an entire block corresponding to the hash, assembling it
 // back from the stored header and body. If either the header or body could not
 // be retrieved nil is returned.
 //
 // Note, due to concurrent download of header and block body the header and thus
 // canonical hash can be stored in the database but the body data not (yet).
-func ReadBlock(db xordb.Reader, hash common.Hash, number uint64) *types.Block {
+func LoadBlock(db xordb.Reader, hash common.Hash, number uint64) *types.Block {
 	header := ReadHeader(db, hash, number)
 	if header == nil {
 		return nil
 	}
-	body := ReadBody(db, hash, number)
-	if body == nil {
-		return nil
-	}
-	return types.NewBlockWithHeader(header).WithBody(body.Transactions, body.Uncles)
+	tx, _, _, _ := ReadTransaction(db, hash)
+	txs := []*types.Transaction{tx}
+	return types.NewBlock(header, txs)
 }
 
-// WriteBlock serializes a block into the database, header and body separately.
-func WriteBlock(db xordb.Writer, block *types.Block) {
-	WriteBody(db, block.Hash(), block.NumberU64(), block.Body())
+// StoreBlock serializes a block into the database, header and body separately.
+func StoreBlock(db xordb.Writer, block *types.Block) {
 	WriteHeader(db, block.Header())
+	WriteBody(db, block.Hash(), block.Number(), block.Transactions())
 }
 
 // DeleteBlock removes all block data associated with a hash.
