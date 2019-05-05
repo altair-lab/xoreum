@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"sync/atomic"
-	
+
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/crypto"
 )
@@ -23,6 +23,9 @@ type Header struct {
 	Nonce      uint64                  `json:"nonce"`
 	InterLink  [InterlinkLength]uint64 `json:"interlink"`  // list of block's level
 	Difficulty uint64                  `json:"difficulty"` // no difficulty change, so set global Difficulty
+}
+
+type Body struct {
 }
 
 type Block struct {
@@ -114,7 +117,7 @@ func (b *Block) GetUniqueInterlink() []uint64 {
 func unique(intSlice [InterlinkLength]uint64) []uint64 {
 	keys := make(map[uint64]bool)
 	list := []uint64{}
-	for i := len(intSlice)-1; i >= 0; i-- {
+	for i := len(intSlice) - 1; i >= 0; i-- {
 		if _, value := keys[intSlice[i]]; !value {
 			keys[intSlice[i]] = true
 			list = append(list, intSlice[i])
@@ -151,8 +154,14 @@ func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Ha
 		Root:       stateRoot,
 		TxHash:     txHash,
 		Difficulty: difficulty,
-		Number:	    number,
+		Number:     number,
 		Time:       time,
 		Nonce:      nonce,
 	}
 }
+
+func (b *Block) Number() uint64 { return (b.header.Number) }
+
+func (b *Block) Header() *Header { return (b.header) }
+
+func (b *Block) Transactions() Transactions { return b.transactions }
