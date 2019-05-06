@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/log"
 	"github.com/altair-lab/xoreum/rlp"
@@ -210,13 +211,8 @@ func DeleteTd(db xordb.Writer, hash common.Hash, number uint64) {
 	}
 }
 
-// LoadBlockN retrieves an entire block corresponding to the number, assembling it
-// back from the stored header and body. If either the header or body could not
-// be retrieved nil is returned.
-//
-// Note, due to concurrent download of header and block body the header and thus
-// canonical hash can be stored in the database but the body data not (yet).
-func LoadBlockN(db xordb.Reader, number uint64) *types.Block {
+// LoadBlockByBN retrieves an entire block corresponding to the number
+func LoadBlockByBN(db xordb.Reader, number uint64) *types.Block {
 	hash := ReadHash(db, number)
 
 	header := ReadHeader(db, hash, number)
@@ -231,22 +227,64 @@ func LoadBlockN(db xordb.Reader, number uint64) *types.Block {
 	return types.NewBlock(header, txs)
 }
 
-// LoadBlock retrieves an entire block corresponding to the hash & number, assembling it
-// back from the stored header and body. If either the header or body could not
-// be retrieved nil is returned.
-//
-// Note, due to concurrent download of header and block body the header and thus
-// canonical hash can be stored in the database but the body data not (yet).
-func LoadBlock(db xordb.Reader, hash common.Hash, number uint64) *types.Block {
+// LoadHeaderByBN retrieves an entire header corresponding to the number
+func LoadHeaderByBN(db xordb.Reader, number uint64) *types.Header {
+	hash := ReadHash(db, number)
+
 	header := ReadHeader(db, hash, number)
 
 	if header == nil {
 		fmt.Println("header empty")
 		return nil
 	}
+
+	return types.CopyHeader(header)
+}
+
+// LoadHeader retrieves an entire header corresponding to the hash & number
+func LoadHeader(db xordb.Reader, hash common.Hash, number uint64) *types.Header {
+	header := ReadHeader(db, hash, number)
+
+	if header == nil {
+		fmt.Println("header empty")
+		return nil
+	}
+
+	return types.CopyHeader(header)
+}
+
+// LoadBlock retrieves an entire block corresponding to the hash & number
+func LoadBlock(db xordb.Reader, hash common.Hash, number uint64) *types.Block {
+	header := ReadHeader(db, hash, number)
+
+	if header == nil {
+		fmt.Println("header nil")
+		return nil
+	}
+	//tx, blockHash, *blockNumber, uint64(txIndex)
 	tx, _, _, _ := ReadTransaction(db, hash)
+	if tx == nil {
+		fmt.Println("tx nil")
+		return nil
+	}
+
 	txs := []*types.Transaction{tx}
 	return types.NewBlock(header, txs)
+}
+
+// LoadBlockChain retrieves the whoe block chain
+// increasing block index by 1 for now
+func LoadBlockChain(db xordb.Database) *core.BlockChain {
+	blockchain := core.NewBlockChain(db)
+	lastHash := ReadLastHeaderHash(db)
+	lastBN := ReadHeaderNumber(db, lastHash)
+	fmt.Println(*lastBN)
+	for i := uint64(0); i <= uint64(*lastBN); i++ {
+		block := LoadBlockByBN(db, i)
+		blockchain.Insert(block)
+	}
+
+	return blockchain
 }
 
 // StoreBlock serializes a block into the database, header and body separately.
