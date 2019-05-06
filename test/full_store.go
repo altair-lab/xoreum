@@ -1,8 +1,3 @@
-/*
-  Full Node     : Send all blocks from chain and keep update
-  IoT-full Node : Send only interlink blocks from chain and keep update
-*/
-
 package main
 
 import (
@@ -49,7 +44,6 @@ func main() {
 
 	// create genesis block
 	Blockchain = core.NewBlockChain(db)
-	Blockchain.PrintBlockChain()
 
 	// set account, txpool, state, miner for mining
 	privatekey0, _ := crypto.GenerateKey()
@@ -60,8 +54,8 @@ func main() {
 	State.Add(Acc0)
 	Txpool = core.NewTxPool(State, Blockchain)
 	Miner = miner.Miner{Acc0.Address}
-
-	for i := 0; i < DEFAULT_BLOCK_NUMBER; i++ {
+	last_BN := uint64(0)
+	for i := uint64(1); i < uint64(DEFAULT_BLOCK_NUMBER+1); i++ {
 		block := Miner.Mine(Txpool, uint64(0))
 
 		if block != nil {
@@ -76,14 +70,12 @@ func main() {
 			fmt.Println(err)
 		}
 
-		Blockchain.CurrentBlock().PrintBlock()
-
-		fmt.Println("saving block")
+		//store block via rawdb accessor api
+		fmt.Println("storing block", block.Number())
 		rawdb.StoreBlock(db, block)
-		loadedBlock := rawdb.LoadBlock(db, block.Hash(), block.Number())
-		fmt.Println("loading block")
-		loadedBlock.PrintBlock()
-		fmt.Println("\n\n\n\n")
+		fmt.Println("\n")
+
+		last_BN = i
 	}
 
 	// Keep mining every MINING_INTERVAL
@@ -106,7 +98,14 @@ func main() {
 				fmt.Println(err)
 			}
 
-			Blockchain.CurrentBlock().PrintBlock()
+			fmt.Println("storing block", block.Number())
+			rawdb.StoreBlock(db, block)
+			fmt.Println("\n")
+
+			last_BN = block.Number()
+			last_hash := rawdb.ReadHash(db, last_BN)
+			rawdb.WriteLastHeaderHash(db, last_hash)
+			fmt.Println("last:", last_BN)
 		}
 	}()
 
