@@ -159,7 +159,18 @@ func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Ha
 		Nonce:      nonce,
 	}
 }
-
+func CopyHeader(header *Header) *Header {
+	return &Header{
+		ParentHash: header.ParentHash,
+		Coinbase:   header.Coinbase,
+		Root:       header.Root,
+		TxHash:     header.TxHash,
+		Difficulty: header.Difficulty,
+		Number:     header.Number,
+		Time:       header.Time,
+		Nonce:      header.Nonce,
+	}
+}
 func (b *Block) Number() uint64 { return (b.header.Number) }
 
 func (b *Block) Header() *Header { return (b.header) }
