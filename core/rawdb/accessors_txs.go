@@ -47,7 +47,7 @@ func DeleteTxLookupEntry(db xordb.Writer, hash common.Hash) {
 }
 
 // ReadTransaction retrieves a specific transaction from the database, along with
-// its added positional metadata.
+// its added positional metadata. (tx, blockHash, *blockNumber, uint64(txIndex))
 func ReadTransaction(db xordb.Reader, hash common.Hash) (*types.Transaction, common.Hash, uint64, uint64) {
 	blockNumber := ReadTxLookupEntry(db, hash)
 	if blockNumber == nil {
