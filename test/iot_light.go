@@ -10,13 +10,12 @@ import (
 	"net"
 	"log"
 	"io"
-	//"strings"
-	"encoding/binary"
 	"encoding/json"
+	//"strings"
 	//"time"
 
 	"github.com/altair-lab/xoreum/core/types"
-	//"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/network"
 )
 
 func main() {
@@ -31,7 +30,7 @@ func main() {
 
 	for {
 		// Get header json
-		length, err := RecvLength(conn)
+		length, err := network.RecvLength(conn)
 		if err != nil {
 			if io.EOF == err {
 				log.Printf("Connection is closed from server; %v", conn.RemoteAddr().String())
@@ -63,19 +62,8 @@ func main() {
 		block := types.NewBlock(&header, txs)
 		block.Hash() // set block hash
 		block.PrintBlock()
+		block.PrintTxs()
 
 		// [TODO] State validation (sign, nonce, total balance)
 	}
-}
-
-func RecvLength(conn net.Conn) (uint32, error) {
-	lengthBuf := make([]byte, 4)
-	_, err := conn.Read(lengthBuf)
-	if nil != err {
-		return uint32(0), err
-	}
-
-	msgLength := binary.LittleEndian.Uint32(lengthBuf)
-
-	return uint32(msgLength), err
 }

@@ -7,18 +7,17 @@ package main
 
 import (
 	"fmt"
-	"encoding/json"
 	"log"
 	"net"
 	"time"
 	"io"
 	"sync"
-	"encoding/binary"
 	//"bufio"
 	//"strconv"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
@@ -123,39 +122,6 @@ func main() {
 	}
 }
 
-// Send message with size
-func SendMessage(conn net.Conn, msg []byte) error {
-	lengthBuf := make([]byte, 4)
-	binary.LittleEndian.PutUint32(lengthBuf, uint32(len(msg)))
-	if _, err := conn.Write(lengthBuf); nil != err {
-		log.Printf("failed to send msg length; err: %v", err)
-		return err
-	}
-
-	if _, err := conn.Write(msg); nil != err {
-		log.Printf("failed to send msg; err: %v", err)
-		return err
-	}
-
-	return nil
-}
-
-// Send object with handling mutex, err
-func SendObject(conn net.Conn, v interface{}) {
-	mutex.Lock()
-	output, err := json.Marshal(v)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	mutex.Unlock()
-	err = SendMessage(conn, output)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-}
-
 // connection
 func handleConn(conn net.Conn) {
 	addr := conn.RemoteAddr().String()
@@ -172,7 +138,7 @@ func handleConn(conn net.Conn) {
 	for i := 0; i < len(interlinks); i++ {
 
 		// Send block header
-		SendObject(conn, Blockchain.BlockAt(interlinks[i]).GetHeader())
+		network.SendObject(conn, Blockchain.BlockAt(interlinks[i]).GetHeader())
 		updatedBlockNumber = interlinks[i]
 
 		// [TODO] Send transactions txdata
@@ -219,7 +185,7 @@ func handleConn(conn net.Conn) {
 				// Check updated block
 				currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
 				for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
-					SendObject(conn, Blockchain.BlockAt(i).GetHeader())
+					network.SendObject(conn, Blockchain.BlockAt(i).GetHeader())
 					updatedBlockNumber = i
 				}
 			}
