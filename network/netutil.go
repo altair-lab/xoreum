@@ -6,15 +6,14 @@ import (
 	"log"
 	"encoding/json"
 	"sync"
+	"io"
+
+	"github.com/altair-lab/xoreum/core/types"
 )
 
 var mutex = &sync.Mutex{}
 
-type object interface {
-//	Unmarshal()
-}
-
-// Send message with size
+// Send message with buffer size
 func SendMessage(conn net.Conn, msg []byte) error {
 	lengthBuf := make([]byte, 4)
 	binary.LittleEndian.PutUint32(lengthBuf, uint32(len(msg)))
@@ -47,6 +46,22 @@ func SendObject(conn net.Conn, v interface{}) {
         }
 }
 
+// Send Transaction with Signature and txdata
+func SendTransaction(conn net.Conn, tx *types.Transaction) {
+	mutex.Lock()
+	output, err:= json.Marshal(tx)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	mutex.Unlock()
+	err = SendMessage(conn, output)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+}
+
 // Receive message size
 func RecvLength(conn net.Conn) (uint32, error) {
         lengthBuf := make([]byte, 4)
@@ -60,5 +75,24 @@ func RecvLength(conn net.Conn) (uint32, error) {
         return uint32(msgLength), err
 }
 
-// Unmarshal object message
-
+// Get header json
+func RecvHeaderJson(conn net.Conn) []byte {
+	length, err := RecvLength(conn)
+        if err != nil {
+        	if io.EOF == err {
+                	log.Printf("Connection is closed from server; %v", conn.RemoteAddr().String())
+                        return nil
+                }
+                log.Fatal(err)
+        }
+        buf := make([]byte, length)
+        _, err = conn.Read(buf)
+        if err != nil {
+        	if io.EOF == err {
+                	log.Printf("Connection is closed from server; %v", conn.RemoteAddr().String())
+                        return nil
+                }
+                log.Fatal(err)
+        }
+	return buf
+}

@@ -12,8 +12,6 @@ import (
 	"time"
 	"io"
 	"sync"
-	//"bufio"
-	//"strconv"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
@@ -90,7 +88,7 @@ func main() {
 			block := Miner.Mine(Txpool, uint64(0))
 
 			if block != nil {
-               		 	block.PrintTxs()
+               			block.PrintTxs()
        			} else {
                			fmt.Println("Mining Fail")
        			}
@@ -136,13 +134,17 @@ func handleConn(conn net.Conn) {
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()
 	log.Printf("INTERLINKS : %v\n", interlinks)
 	for i := 0; i < len(interlinks); i++ {
+		header := Blockchain.BlockAt(interlinks[i]).GetHeader()
+		txs := Blockchain.BlockAt(interlinks[i]).GetTxs()
 
 		// Send block header
-		network.SendObject(conn, Blockchain.BlockAt(interlinks[i]).GetHeader())
-		updatedBlockNumber = interlinks[i]
+		network.SendObject(conn, header)
 
 		// [TODO] Send transactions txdata
-		// SendObject(conn, Blockchain.BlockAt(interlinks[i]).GetTxs())
+		for j := 0; j < len(*txs); j++ {
+			network.SendTransaction(conn, (*txs)[j])
+		}
+		updatedBlockNumber = interlinks[i]
 	}
 
 	quit := make(chan bool)

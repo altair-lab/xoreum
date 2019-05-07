@@ -6,13 +6,9 @@
 package main
 
 import (
-	//"fmt"
 	"net"
 	"log"
-	"io"
 	"encoding/json"
-	//"strings"
-	//"time"
 
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/network"
@@ -29,27 +25,8 @@ func main() {
 	}
 
 	for {
-		// Get header json
-		length, err := network.RecvLength(conn)
-		if err != nil {
-			if io.EOF == err {
-				log.Printf("Connection is closed from server; %v", conn.RemoteAddr().String())
-				return
-			}
-			log.Fatal(err)
-		}
-		
-		buf := make([]byte, length)
-		_, err = conn.Read(buf)
-		if err != nil {
-			if io.EOF == err {
-				log.Printf("Connection is closed from server; %v", conn.RemoteAddr().String())
-				return
-			}
-			log.Fatal(err)
-		}
-
 		// Make header struct
+		buf := network.RecvHeaderJson(conn)
 		var header types.Header
 		json.Unmarshal([]byte(buf), &header)
 

@@ -128,6 +128,10 @@ func (b *Block) GetHeader() *Header {
 	return b.header
 }
 
+func (b *Block) GetTxs() *Transactions {
+	return &b.transactions
+}
+
 func (b *Block) PrintBlock() {
 	fmt.Println("====================")
 	fmt.Println("block number:", b.header.Number)
