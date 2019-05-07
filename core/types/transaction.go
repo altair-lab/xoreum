@@ -16,8 +16,8 @@ type Transaction struct {
 	hash common.Hash
 
 	// signature values of participants
-	Signature_R []*big.Int
-	Signature_S []*big.Int
+	Signature_R []*big.Int `json:"r"`
+	Signature_S []*big.Int `json:"s"`
 }
 
 // Transactions is a Transaction slice type for basic sorting
@@ -26,9 +26,9 @@ type Transactions []*Transaction
 // simple implementation
 type txdata struct {
 	// new version fields
-	Participants []*ecdsa.PublicKey
-	PostStates   []*state.Account
-	PrevTxHashes []*common.Hash
+	Participants []*ecdsa.PublicKey `json:"participants"`
+	PostStates   []*state.Account   `json:"poststates"`
+	PrevTxHashes []*common.Hash     `json:"prevtxhashes"`
 }
 
 func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account, prevTxHashes []*common.Hash) *Transaction {
