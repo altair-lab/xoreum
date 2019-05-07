@@ -46,19 +46,33 @@ func SendObject(conn net.Conn, v interface{}) {
         }
 }
 
-// Send Transaction with Signature and txdata
-func SendTransaction(conn net.Conn, tx *types.Transaction) {
-	mutex.Lock()
-	output, err:= json.Marshal(tx)
+// [TODO] Send Transaction with Signature and txdata
+func SendTransactions(conn net.Conn, txs *types.Transactions) {
+	txslen := make([]byte, 4)
+	binary.LittleEndian.PutUint32(txslen, uint32(len(*txs)))
+	log.Println("Txs length = %d", txslen)
+
+	// Send txs length
+	err := SendMessage(conn, txslen)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	mutex.Unlock()
-	err = SendMessage(conn, output)
-	if err != nil {
-		log.Fatal(err)
-		return
+
+	// Send txs
+	for i := 0; i < len(*txs); i++ {
+		mutex.Lock()
+		output, err:= json.Marshal((*txs)[i])
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		mutex.Unlock()
+		err = SendMessage(conn, output)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
 	}
 }
 
