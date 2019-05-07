@@ -26,21 +26,32 @@ func main() {
 
 	for {
 		// Make header struct
-		buf := network.RecvHeaderJson(conn)
+		buf := network.RecvObjectJson(conn)
 		var header types.Header
-		json.Unmarshal([]byte(buf), &header)
+		json.Unmarshal(buf, &header)
+		
+		// Get Txs length
+		txslen, _ := network.RecvLength(conn)
 
-		// [TODO] Get Txs json
-
-		// [TODO] Make Txs struct
+		// Make Tx struct
 		txs := types.Transactions{}
+		for i := uint32(0); i < txslen; i++ {
+			// Get txdata, R, S
+			data := network.RecvObjectJson(conn)
+			R := network.RecvObjectJson(conn)
+			S := network.RecvObjectJson(conn)
+
+			// Make tx
+			tx := types.UnmarshalJSON(data, R, S)
+			txs.Insert(tx)
+		}
 
 		// Make Block with header, txs
 		block := types.NewBlock(&header, txs)
 		block.Hash() // set block hash
 		block.PrintBlock()
 		block.PrintTxs()
-
+		
 		// [TODO] State validation (sign, nonce, total balance)
 	}
 }

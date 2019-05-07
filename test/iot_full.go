@@ -140,10 +140,9 @@ func handleConn(conn net.Conn) {
 		// Send block header
 		network.SendObject(conn, header)
 
-		// [TODO] Send transactions txdata
-		for j := 0; j < len(*txs); j++ {
-			network.SendTransaction(conn, (*txs)[j])
-		}
+		// Send transactions
+		network.SendTransactions(conn, txs)
+
 		updatedBlockNumber = interlinks[i]
 	}
 
