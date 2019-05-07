@@ -21,6 +21,7 @@ import (
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/core/state"
+	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/miner"
 )
 
@@ -58,21 +59,27 @@ func main() {
 	Miner = miner.Miner{Acc0.Address}
 
 	for i := 0; i < DEFAULT_BLOCK_NUMBER; i++ {
-		block := Miner.Mine(Txpool, uint64(0))
+		// Make test tx and add to txpool
+		success, err := Txpool.Add(types.MakeTestSignedTx(2))
+		if !success {
+			fmt.Println(err)
+		}
 
-		if block != nil {
-       			block.PrintTx()
-       		} else {
+		// Make block (mining)
+		block := Miner.Mine(Txpool, uint64(0))
+		if block == nil {
        			fmt.Println("Mining Fail")
        		}
 
-      		// Add to Blockchain
-		err := Blockchain.Insert(block)
+      		// Insert block to Blockchain
+		err = Blockchain.Insert(block)
        		if err != nil {
        			fmt.Println(err)
        		}
-
+	
+		// Print current block
 		Blockchain.CurrentBlock().PrintBlock()
+		Blockchain.CurrentBlock().PrintTxs()
 	}
 
 	// Keep mining every MINING_INTERVAL
@@ -84,7 +91,7 @@ func main() {
 			block := Miner.Mine(Txpool, uint64(0))
 
 			if block != nil {
-               		 	block.PrintTx()
+               		 	block.PrintTxs()
        			} else {
                			fmt.Println("Mining Fail")
        			}
