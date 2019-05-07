@@ -83,7 +83,6 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(MINING_INTERVAL * time.Second)
-
 			// Mining from txpool
 			block := Miner.Mine(Txpool, uint64(0))
 
@@ -102,7 +101,6 @@ func main() {
 			Blockchain.CurrentBlock().PrintBlock()
 		}
 	}()
-
 	// start TCP and serve TCP server
 	server, err := net.Listen("tcp", ":9000")
 	if err != nil {
@@ -170,7 +168,6 @@ func handleConn(conn net.Conn) {
 	// Check recvBuf every clock
 	go func() {
 		for {
-
 			// Get input data from clients every clock
 			n, err := conn.Read(recvBuf)
 

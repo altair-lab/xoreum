@@ -49,12 +49,13 @@ func (b *Block) Hash() common.Hash {
 	return v
 }
 
-func (b *Block) PrintTx() {
+func (b *Block) PrintTxs() {
 	for i := 0; i < len(b.transactions); i++ {
-		fmt.Println("====================")
+		/*fmt.Println("====================")
 		fmt.Println("Sender: ", b.transactions[i].Sender())
 		fmt.Println("Recipient: ", b.transactions[i].Recipient())
-		fmt.Println("Value: ", b.transactions[i].Value())
+		fmt.Println("Value: ", b.transactions[i].Value())*/
+		b.transactions[i].PrintTx()
 	}
 }
 

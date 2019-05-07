@@ -41,7 +41,6 @@ func main() {
 			}
 			log.Fatal(err)
 		}
-
 		buf := make([]byte, length)
 		_, err = conn.Read(buf)
 		if err != nil {

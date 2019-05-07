@@ -83,7 +83,6 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(MINING_INTERVAL * time.Second)
-
 			// Mining from txpool
 			block := Miner.Mine(Txpool, uint64(0))
 
@@ -102,7 +101,6 @@ func main() {
 			Blockchain.CurrentBlock().PrintBlock()
 		}
 	}()
-
 	// start TCP and serve TCP server
 	server, err := net.Listen("tcp", ":9000")
 	if err != nil {
@@ -168,7 +166,11 @@ func handleConn(conn net.Conn) {
 	// Check recvBuf every clock
 	go func() {
 		for {
+<<<<<<< HEAD
 
+=======
+			
+>>>>>>> master
 			// Get input data from clients every clock
 			n, err := conn.Read(recvBuf)
 
@@ -198,6 +200,7 @@ func handleConn(conn net.Conn) {
 			time.Sleep(BROADCAST_INTERVAL * time.Second)
 
 			select {
+<<<<<<< HEAD
 			case <-quit:
 				return
 			default:
@@ -217,6 +220,27 @@ func handleConn(conn net.Conn) {
 					}
 					updatedBlockNumber = i
 				}
+=======
+			case <- quit:
+				return
+			default:
+			// Check updated block
+			currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
+			for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
+				mutex.Lock()
+				output, err := json.Marshal(Blockchain.BlockAt(i).GetHeader())
+				if err != nil {
+					log.Fatal(err)
+				}
+				mutex.Unlock()
+				log.Printf("Block Length : %d\n", len(output))
+				err = SendMessage(conn, output)
+				if err != nil {
+					log.Fatal(err)
+				}
+				updatedBlockNumber = i
+			}
+>>>>>>> master
 			}
 		}
 	}()

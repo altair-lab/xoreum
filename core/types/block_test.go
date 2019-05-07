@@ -5,19 +5,17 @@ import (
 )
 
 func ExampleFunc() {
-	b1 := Block{
-		header: &Header{
-			Nonce:  321,
-			Number: 651,
-			Time:   11,
-		},
-	}
 
-	//fmt.Println(b1.Hash().ToBigInt())
-	//fmt.Println(common.Difficulty)
+	txs := make(Transactions, 0)
+	txs.Insert(MakeTestTx(2))
+	txs.Insert(MakeTestTx(3))
 
-	fmt.Println("block level:", b1.GetLevel())
+	b := NewBlock(&Header{
+		Nonce:  3421,
+		Number: 651,
+		Time:   11111124273,
+		TxHash: txs.Hash(),
+	}, txs)
 
-	// output:
-	// block level: 2
+	fmt.Println(b)
 }
