@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"encoding/json"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
@@ -44,6 +45,20 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	tx.Signature_R = make([]*big.Int, length)
 	tx.Signature_S = make([]*big.Int, length)
 
+	return &tx
+}
+
+func UnmarshalJSON(data_input []byte, R_input []byte, S_input []byte) *Transaction {
+	d := txdata{}
+	json.Unmarshal(data_input, &d)
+
+	length := len(d.Participants)
+	R := make([]*big.Int, length)
+	S := make([]*big.Int, length)
+	json.Unmarshal(R_input, &R)
+	json.Unmarshal(S_input, &S)
+
+	tx := Transaction{data: d, Signature_R: R, Signature_S: S}
 	return &tx
 }
 
