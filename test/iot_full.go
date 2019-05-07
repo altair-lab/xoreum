@@ -140,6 +140,22 @@ func SendMessage(conn net.Conn, msg []byte) error {
 	return nil
 }
 
+// Send object with handling mutex, err
+func SendObject(conn net.Conn, v interface{}) {
+	mutex.Lock()
+	output, err := json.Marshal(v)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	mutex.Unlock()
+	err = SendMessage(conn, output)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+}
+
 // connection
 func handleConn(conn net.Conn) {
 	addr := conn.RemoteAddr().String()
@@ -154,18 +170,13 @@ func handleConn(conn net.Conn) {
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()
 	log.Printf("INTERLINKS : %v\n", interlinks)
 	for i := 0; i < len(interlinks); i++ {
-		mutex.Lock()
-		output, err := json.Marshal(Blockchain.BlockAt(interlinks[i]).GetHeader())
-		if err != nil {
-			log.Fatal(err)
-		}
-		mutex.Unlock()
-		log.Printf("Block Length : %d\n", len(output))
-		err = SendMessage(conn, output)
-		if err != nil {
-			log.Fatal(err)
-		}
+
+		// Send block header
+		SendObject(conn, Blockchain.BlockAt(interlinks[i]).GetHeader())
 		updatedBlockNumber = interlinks[i]
+
+		// [TODO] Send transactions txdata
+		// SendObject(conn, Blockchain.BlockAt(interlinks[i]).GetTxs())
 	}
 
 	quit := make(chan bool)
@@ -173,7 +184,6 @@ func handleConn(conn net.Conn) {
 	// Check recvBuf every clock
 	go func() {
 		for {
-			
 			// Get input data from clients every clock
 			n, err := conn.Read(recvBuf)
 
@@ -203,25 +213,15 @@ func handleConn(conn net.Conn) {
 			time.Sleep(BROADCAST_INTERVAL * time.Second)
 
 			select {
-			case <- quit:
-				return
-			default:
-			// Check updated block
-			currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
-			for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
-				mutex.Lock()
-				output, err := json.Marshal(Blockchain.BlockAt(i).GetHeader())
-				if err != nil {
-					log.Fatal(err)
+				case <- quit:
+					return
+				default:
+				// Check updated block
+				currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
+				for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
+					SendObject(conn, Blockchain.BlockAt(i).GetHeader())
+					updatedBlockNumber = i
 				}
-				mutex.Unlock()
-				log.Printf("Block Length : %d\n", len(output))
-				err = SendMessage(conn, output)
-				if err != nil {
-					log.Fatal(err)
-				}
-				updatedBlockNumber = i
-			}
 			}
 		}
 	}()
