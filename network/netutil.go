@@ -48,21 +48,47 @@ func SendObject(conn net.Conn, v interface{}) {
 
 // [TODO] Send Transaction with Signature and txdata
 func SendTransactions(conn net.Conn, txs *types.Transactions) {
+	// Send txs length
 	txslen := make([]byte, 4)
 	binary.LittleEndian.PutUint32(txslen, uint32(len(*txs)))
-	log.Println("Txs length = %d", txslen)
-
-	// Send txs length
-	err := SendMessage(conn, txslen)
-	if err != nil {
-		log.Fatal(err)
+	if _, err := conn.Write(txslen); nil != err {
+		log.Printf("failed to send tx length; err: %v", err)
 		return
 	}
 
 	// Send txs
 	for i := 0; i < len(*txs); i++ {
+		// 1. Send txdata
 		mutex.Lock()
-		output, err:= json.Marshal((*txs)[i])
+		output, err:= json.Marshal((*txs)[i].Data())
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		mutex.Unlock()
+		err = SendMessage(conn, output)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		// 2. Send Signatures (R)
+		mutex.Lock()
+		output, err = json.Marshal((*txs)[i].Signature_R)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		mutex.Unlock()
+		err = SendMessage(conn, output)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		
+		// 3. Send Signature (S)
+		mutex.Lock()
+		output, err = json.Marshal((*txs)[i].Signature_S)
 		if err != nil {
 			log.Fatal(err)
 			return
@@ -89,8 +115,8 @@ func RecvLength(conn net.Conn) (uint32, error) {
         return uint32(msgLength), err
 }
 
-// Get header json
-func RecvHeaderJson(conn net.Conn) []byte {
+// Get object json
+func RecvObjectJson(conn net.Conn) []byte {
 	length, err := RecvLength(conn)
         if err != nil {
         	if io.EOF == err {
