@@ -79,6 +79,8 @@ func (tx *Transaction) Nonce() []uint64 {
 
 func (tx *Transaction) Participants() []*ecdsa.PublicKey { return tx.data.Participants }
 
+func (tx *Transaction) Data() *txdata { return &(tx.data) }
+
 // get hashed txdata's byte array
 func (data *txdata) GetHashedBytes() []byte {
 
