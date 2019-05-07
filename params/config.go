@@ -2,7 +2,6 @@ package params
 
 import (
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/crypto"
 )
@@ -18,7 +17,6 @@ func GetGenesisBlock() (b *types.Block) {
 		Coinbase:   common.Address{},
 		Root:       crypto.Keccak256Hash(common.ToBytes("AAAAA")),
 		TxHash:     crypto.Keccak256Hash(common.ToBytes("AAAAA")),
-		State:      state.State{},
 		Difficulty: 100,
 		Time:       0,
 		Nonce:      0,

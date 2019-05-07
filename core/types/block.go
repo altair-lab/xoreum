@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"math/big"
 	"sync/atomic"
-	
+
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
 )
 
@@ -15,16 +14,15 @@ const (
 )
 
 type Header struct {
-	ParentHash common.Hash             `parentHash` // previous block's hash
-	Coinbase   common.Address          `miner`
-	Root       common.Hash             `stateRoot`
-	TxHash     common.Hash             `transactionsRoot`
-	State      state.State             `state`
-	Number     uint64                  `number` // (Number == Height) A scalar value equal to the number of ancestor blocks. The genesis block has a number of zero
-	Time       uint64                  `timestamp`
-	Nonce      uint64                  `nonce`
-	InterLink  [InterlinkLength]uint64 `interlink`  // list of block's level
-	Difficulty uint64                  `difficulty` // no difficulty change, so set global Difficulty
+	ParentHash common.Hash             `json:"parentHash"` // previous block's hash
+	Coinbase   common.Address          `json:"miner"`
+	Root       common.Hash             `json:"stateRoot"`
+	TxHash     common.Hash             `json:"transactionsRoot"`
+	Number     uint64                  `json:"number"` // (Number == Height) A scalar value equal to the number of ancestor blocks. The genesis block has a number of zero
+	Time       uint64                  `json:"timestamp"`
+	Nonce      uint64                  `json:"nonce"`
+	InterLink  [InterlinkLength]uint64 `json:"interlink"`  // list of block's level
+	Difficulty uint64                  `json:"difficulty"` // no difficulty change, so set global Difficulty
 }
 
 type Block struct {
@@ -48,12 +46,13 @@ func (b *Block) Hash() common.Hash {
 	return v
 }
 
-func (b *Block) PrintTx() {
+func (b *Block) PrintTxs() {
 	for i := 0; i < len(b.transactions); i++ {
-		fmt.Println("====================")
+		/*fmt.Println("====================")
 		fmt.Println("Sender: ", b.transactions[i].Sender())
 		fmt.Println("Recipient: ", b.transactions[i].Recipient())
-		fmt.Println("Value: ", b.transactions[i].Value())
+		fmt.Println("Value: ", b.transactions[i].Value())*/
+		b.transactions[i].PrintTx()
 	}
 }
 
@@ -106,6 +105,25 @@ func (b *Block) GetUpdatedInterlink() [InterlinkLength]uint64 {
 	return updatedInterlink
 }
 
+func (b *Block) GetUniqueInterlink() []uint64 {
+	// include current block
+	list := unique(b.header.InterLink)
+	list = append(list, b.GetHeader().Number)
+	return list
+}
+
+func unique(intSlice [InterlinkLength]uint64) []uint64 {
+	keys := make(map[uint64]bool)
+	list := []uint64{}
+	for i := len(intSlice)-1; i >= 0; i-- {
+		if _, value := keys[intSlice[i]]; !value {
+			keys[intSlice[i]] = true
+			list = append(list, intSlice[i])
+		}
+	}
+	return list
+}
+
 func (b *Block) GetHeader() *Header {
 	return b.header
 }
@@ -127,14 +145,14 @@ func NewBlock(header *Header, txs []*Transaction) *Block {
 	}
 }
 
-func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Hash, txHash common.Hash, state state.State, difficulty uint64, time uint64, nonce uint64) *Header {
+func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Hash, txHash common.Hash, difficulty uint64, number uint64, time uint64, nonce uint64) *Header {
 	return &Header{
 		ParentHash: parentHash,
 		Coinbase:   miner,
 		Root:       stateRoot,
 		TxHash:     txHash,
-		State:      state,
 		Difficulty: difficulty,
+		Number:	    number,
 		Time:       time,
 		Nonce:      nonce,
 	}
