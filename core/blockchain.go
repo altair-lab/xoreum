@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync/atomic"
+	"time"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
@@ -120,9 +121,6 @@ func MakeTestBlockChain(chainLength uint64) *BlockChain {
 
 	bc := NewBlockChain()
 
-	//var empty_txs []*types.Transaction
-	//empty_txs = []*types.Transaction{}
-
 	// insert blocks into blockchain
 	for i := uint64(1); i <= chainLength; i++ {
 		txs := make(types.Transactions, 0)
@@ -134,6 +132,7 @@ func MakeTestBlockChain(chainLength uint64) *BlockChain {
 		b.GetHeader().Number = i
 		b.GetHeader().Nonce = 0
 		b.GetHeader().InterLink = bc.CurrentBlock().GetUpdatedInterlink()
+		b.GetHeader().Time = uint64(time.Now().UnixNano())
 
 		// simple PoW
 		for {

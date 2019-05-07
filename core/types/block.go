@@ -133,6 +133,7 @@ func (b *Block) PrintBlock() {
 	fmt.Println("       block hash:", b.Hash().ToHex())
 	fmt.Println("block level:", b.GetLevel())
 	fmt.Println("block nonce:", b.header.Nonce)
+	fmt.Println("block time:", b.header.Time)
 	fmt.Println("block interlink:", b.header.InterLink)
 	b.PrintTxs()
 }
