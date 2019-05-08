@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"fmt"
 	"math/big"
 	"encoding/json"
@@ -48,15 +49,25 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	return &tx
 }
 
-func UnmarshalJSON(data_input []byte, R_input []byte, S_input []byte) *Transaction {
+func UnmarshalJSON(txdata_json []byte, R_json []byte, S_json []byte) *Transaction {
+	// Get Participants Length
 	d := txdata{}
-	json.Unmarshal(data_input, &d)
-
+	json.Unmarshal(txdata_json, &d)
 	length := len(d.Participants)
+
+	// [BUGFIX] tx.txdata.Participants[i].Curve == <nil>
+	participants := make([]*(ecdsa.PublicKey), length)
+	for i := 0; i < length; i++ {
+		participants[i] = &ecdsa.PublicKey{Curve: &elliptic.CurveParams{}}
+	}
+	d = txdata{Participants: participants}
+
+	// Unmarshal
+	json.Unmarshal(txdata_json, &d)
 	R := make([]*big.Int, length)
 	S := make([]*big.Int, length)
-	json.Unmarshal(R_input, &R)
-	json.Unmarshal(S_input, &S)
+	json.Unmarshal(R_json, &R)
+	json.Unmarshal(S_json, &S)
 
 	tx := Transaction{data: d, Signature_R: R, Signature_S: S}
 	return &tx
