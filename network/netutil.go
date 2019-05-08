@@ -144,6 +144,7 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
                         return nil, err
                 }
                 log.Fatal(err)
+		return nil, err
         }
         buf := make([]byte, length)
         _, err = conn.Read(buf)
@@ -153,6 +154,53 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
                         return nil, err
                 }
                 log.Fatal(err)
+		return nil, err
         }
 	return buf, nil
+}
+
+// Get Transaction object json
+func RecvBlock(conn net.Conn) (*types.Block, error) {
+	// Make header struct
+	buf, err := RecvObjectJson(conn)
+	if err != nil {
+		return nil, err
+	}
+	var header types.Header
+	json.Unmarshal(buf, &header)
+
+	// Get Txs length
+	txslen, err := RecvLength(conn)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Make Tx struct
+	txs := types.Transactions{}
+	for i := uint32(0); i < txslen; i++ {
+		// Get txdata, R, S
+		data, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, err
+		}
+		
+		R, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, err
+		}
+		
+		S, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, err
+		}
+
+		// Unmarshal Tx
+		tx := types.UnmarshalJSON(data, R, S)
+		txs.Insert(tx)
+	}
+
+	// Make Block with header, txs
+	block := types.NewBlock(&header, txs)
+	block.Hash() // set block hash
+	return block, nil
 }

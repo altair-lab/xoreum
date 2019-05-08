@@ -138,7 +138,10 @@ func handleConn(conn net.Conn) {
 	log.Printf("INTERLINKS : %v\n", interlinks)
 	for i := 0; i < len(interlinks); i++ {
 		// Send block
-		network.SendBlock(conn, Blockchain.BlockAt(interlinks[i]))
+		err := network.SendBlock(conn, Blockchain.BlockAt(interlinks[i]))
+		if err != nil {
+			return
+		}
 		updatedBlockNumber = interlinks[i]
 	}
 
@@ -183,7 +186,10 @@ func handleConn(conn net.Conn) {
 				currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
 				for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
 					// Send block
-					network.SendBlock(conn, Blockchain.BlockAt(i))
+					err := network.SendBlock(conn, Blockchain.BlockAt(i))
+					if err != nil {
+						return
+					}
 					updatedBlockNumber = i
 				}
 			}
