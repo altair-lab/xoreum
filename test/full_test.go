@@ -3,7 +3,7 @@
   IoT-full Node : Send only interlink blocks from chain and keep update
 */
 
-package main 
+package test
 
 import (
 	"fmt"
@@ -40,7 +40,7 @@ var bcServer chan *core.BlockChain
 var mutex = &sync.Mutex{}
 
 
-func main() {
+func fullTest() {
 	bcServer = make(chan *core.BlockChain)
 
 	// create genesis block

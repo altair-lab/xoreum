@@ -3,7 +3,7 @@
   IoT Node   : Get interlink blocks from chain and validate => Set Genesis block = Currnt block
 */
 
-package main
+package test 
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ import (
 	"github.com/altair-lab/xoreum/core"
 )
 
-func main() {
+func lightTest() {
 	// create genesis block
 	Blockchain := core.NewBlockChain()
 	Blockchain.PrintBlockChain()
