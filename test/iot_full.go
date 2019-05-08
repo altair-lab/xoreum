@@ -55,11 +55,14 @@ func main() {
 	Txpool = core.NewTxPool(State, Blockchain)
 	Miner = miner.Miner{Acc0.Address}
 
+	// Mining default blocks (for test)
 	for i := 0; i < DEFAULT_BLOCK_NUMBER; i++ {
 		// Make test tx and add to txpool
-		success, err := Txpool.Add(types.MakeTestSignedTx(2))
-		if !success {
-			fmt.Println(err)
+		for j := 0; j < i; j++ {
+			success, err := Txpool.Add(types.MakeTestSignedTx(j+1))
+			if !success {
+				fmt.Println(err)
+			}
 		}
 
 		// Make block (mining)
@@ -69,7 +72,7 @@ func main() {
        		}
 
       		// Insert block to Blockchain
-		err = Blockchain.Insert(block)
+		err := Blockchain.Insert(block)
        		if err != nil {
        			fmt.Println(err)
        		}
@@ -134,15 +137,8 @@ func handleConn(conn net.Conn) {
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()
 	log.Printf("INTERLINKS : %v\n", interlinks)
 	for i := 0; i < len(interlinks); i++ {
-		header := Blockchain.BlockAt(interlinks[i]).GetHeader()
-		txs := Blockchain.BlockAt(interlinks[i]).GetTxs()
-
-		// Send block header
-		network.SendObject(conn, header)
-
-		// Send transactions
-		network.SendTransactions(conn, txs)
-
+		// Send block
+		network.SendBlock(conn, Blockchain.BlockAt(interlinks[i]))
 		updatedBlockNumber = interlinks[i]
 	}
 
@@ -186,12 +182,8 @@ func handleConn(conn net.Conn) {
 				// Check updated block
 				currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
 				for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
-					header := Blockchain.BlockAt(i).GetHeader()
-					txs := Blockchain.BlockAt(i).GetTxs()
-					// Send block header
-					network.SendObject(conn, header)
-					// Send transactions
-					network.SendTransactions(conn, txs)
+					// Send block
+					network.SendBlock(conn, Blockchain.BlockAt(i))
 					updatedBlockNumber = i
 				}
 			}

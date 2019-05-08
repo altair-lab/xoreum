@@ -31,29 +31,30 @@ func SendMessage(conn net.Conn, msg []byte) error {
 }
 
 // Send object with handling mutex, err
-func SendObject(conn net.Conn, v interface{}) {
+func SendObject(conn net.Conn, v interface{}) error {
         mutex.Lock()
         output, err := json.Marshal(v)
         if err != nil {
                 log.Fatal(err)
-                return
+                return err
         }
         mutex.Unlock()
         err = SendMessage(conn, output)
         if err != nil {
                 log.Fatal(err)
-                return
+                return err
         }
+	return nil
 }
 
 // [TODO] Send Transaction with Signature and txdata
-func SendTransactions(conn net.Conn, txs *types.Transactions) {
+func SendTransactions(conn net.Conn, txs *types.Transactions) error {
 	// Send txs length
 	txslen := make([]byte, 4)
 	binary.LittleEndian.PutUint32(txslen, uint32(len(*txs)))
 	if _, err := conn.Write(txslen); nil != err {
 		log.Printf("failed to send tx length; err: %v", err)
-		return
+		return err
 	}
 
 	// Send txs
@@ -63,13 +64,13 @@ func SendTransactions(conn net.Conn, txs *types.Transactions) {
 		output, err:= json.Marshal((*txs)[i].Data())
 		if err != nil {
 			log.Fatal(err)
-			return
+			return err
 		}
 		mutex.Unlock()
 		err = SendMessage(conn, output)
 		if err != nil {
 			log.Fatal(err)
-			return
+			return err
 		}
 
 		// 2. Send Signatures (R)
@@ -77,13 +78,13 @@ func SendTransactions(conn net.Conn, txs *types.Transactions) {
 		output, err = json.Marshal((*txs)[i].Signature_R)
 		if err != nil {
 			log.Fatal(err)
-			return
+			return err
 		}
 		mutex.Unlock()
 		err = SendMessage(conn, output)
 		if err != nil {
 			log.Fatal(err)
-			return
+			return err
 		}
 		
 		// 3. Send Signature (S)
@@ -91,15 +92,34 @@ func SendTransactions(conn net.Conn, txs *types.Transactions) {
 		output, err = json.Marshal((*txs)[i].Signature_S)
 		if err != nil {
 			log.Fatal(err)
-			return
+			return err
 		}
 		mutex.Unlock()
 		err = SendMessage(conn, output)
 		if err != nil {
 			log.Fatal(err)
-			return
+			return err
 		}
 	}
+	
+	return nil
+}
+
+// Send Block
+func SendBlock(conn net.Conn, block *types.Block) error {
+	header := block.GetHeader()
+	txs := block.GetTxs()
+	
+	err := SendObject(conn, header)
+	if err != nil {
+		return err
+	}
+	err = SendTransactions(conn, txs)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Receive message size
