@@ -8,10 +8,29 @@ import (
 	"sync"
 	"io"
 
+	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/crypto"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/core/miner"
 )
 
 var mutex = &sync.Mutex{}
+
+// Initialization for test
+func Initialization(bc *core.BlockChain) (*core.TxPool, miner.Miner) {
+	privatekey, _ := crypto.GenerateKey()
+	publickey := privatekey.PublicKey
+	address := crypto.Keccak256Address(common.ToBytes(publickey))
+	account := state.NewAccount(address, uint64(0), uint64(7000)) // account [Address:address, Nonce:0, Balance:7000]
+	state := state.NewState()
+	state.Add(account)
+	txpool := core.NewTxPool(state, bc)
+	miner := miner.Miner{account.Address}
+
+	return txpool, miner
+}
 
 // Send message with buffer size
 func SendMessage(conn net.Conn, msg []byte) error {

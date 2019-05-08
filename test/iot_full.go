@@ -13,11 +13,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/network"
-	"github.com/altair-lab/xoreum/crypto"
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/miner"
 )
@@ -28,32 +25,18 @@ const BROADCAST_INTERVAL = 5
 
 // [TODO] replaceChain (logest chain rule)
 var Blockchain *core.BlockChain
-var Acc0 *state.Account
-var State state.State
 var Txpool *core.TxPool
 var Miner miner.Miner
-
-// bcServer handles incoming concurrent Blocks
-var bcServer chan *core.BlockChain
 var mutex = &sync.Mutex{}
 
 
 func main() {
-	bcServer = make(chan *core.BlockChain)
-
 	// create genesis block
 	Blockchain = core.NewBlockChain()
 	Blockchain.PrintBlockChain()
 	
-	// set account, txpool, state, miner for mining
-	privatekey0, _ := crypto.GenerateKey()
-	publickey0 := privatekey0.PublicKey
-	address0 := crypto.Keccak256Address(common.ToBytes(publickey0))
-	Acc0 := state.NewAccount(address0, uint64(0), uint64(7000)) // acc0 [Address:0, Nonce:0, Balance:7000]
-	State = state.NewState()
-	State.Add(Acc0)
-	Txpool = core.NewTxPool(State, Blockchain)
-	Miner = miner.Miner{Acc0.Address}
+	// Initialization txpool, miner
+	Txpool, Miner = network.Initialization(Blockchain)
 
 	// Mining default blocks (for test)
 	for i := 0; i < DEFAULT_BLOCK_NUMBER; i++ {
