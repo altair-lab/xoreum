@@ -26,7 +26,10 @@ func main() {
 
 	for {
 		// Make header struct
-		buf := network.RecvObjectJson(conn)
+		buf, err := network.RecvObjectJson(conn)
+		if err != nil {
+			return
+		}
 		var header types.Header
 		json.Unmarshal(buf, &header)
 		
@@ -37,9 +40,18 @@ func main() {
 		txs := types.Transactions{}
 		for i := uint32(0); i < txslen; i++ {
 			// Get txdata, R, S
-			data := network.RecvObjectJson(conn)
-			R := network.RecvObjectJson(conn)
-			S := network.RecvObjectJson(conn)
+			data, err := network.RecvObjectJson(conn)
+			if err != nil {
+				return
+			}
+			R, err := network.RecvObjectJson(conn)
+			if err != nil {
+				return
+			}
+			S, err := network.RecvObjectJson(conn)
+			if err != nil {
+				return
+			}
 
 			// Make tx
 			tx := types.UnmarshalJSON(data, R, S)

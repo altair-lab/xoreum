@@ -186,7 +186,12 @@ func handleConn(conn net.Conn) {
 				// Check updated block
 				currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
 				for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
-					network.SendObject(conn, Blockchain.BlockAt(i).GetHeader())
+					header := Blockchain.BlockAt(i).GetHeader()
+					txs := Blockchain.BlockAt(i).GetTxs()
+					// Send block header
+					network.SendObject(conn, header)
+					// Send transactions
+					network.SendTransactions(conn, txs)
 					updatedBlockNumber = i
 				}
 			}

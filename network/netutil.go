@@ -116,12 +116,12 @@ func RecvLength(conn net.Conn) (uint32, error) {
 }
 
 // Get object json
-func RecvObjectJson(conn net.Conn) []byte {
+func RecvObjectJson(conn net.Conn) ([]byte, error) {
 	length, err := RecvLength(conn)
         if err != nil {
         	if io.EOF == err {
                 	log.Printf("Connection is closed from server; %v", conn.RemoteAddr().String())
-                        return nil
+                        return nil, err
                 }
                 log.Fatal(err)
         }
@@ -130,9 +130,9 @@ func RecvObjectJson(conn net.Conn) []byte {
         if err != nil {
         	if io.EOF == err {
                 	log.Printf("Connection is closed from server; %v", conn.RemoteAddr().String())
-                        return nil
+                        return nil, err
                 }
                 log.Fatal(err)
         }
-	return buf
+	return buf, nil
 }
