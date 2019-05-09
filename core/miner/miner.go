@@ -17,7 +17,6 @@ type Miner struct {
 func (miner *Miner) Start() {}
 func (miner *Miner) Stop()  {}
 
-
 func (miner Miner) Mine(pool *core.TxPool, difficulty uint64) *types.Block {
 	// [TODO] Originally you should get state in TxPool, not by parameter
 	// Get txs from txpool
@@ -37,7 +36,7 @@ func (miner Miner) Mine(pool *core.TxPool, difficulty uint64) *types.Block {
 	// Make header
 	// [TODO] get parent hash, stateroot hash
 	parentHash := pool.Chain().CurrentBlock().Hash()
-	number := pool.Chain().CurrentBlock().GetHeader().Number+1
+	number := pool.Chain().CurrentBlock().GetHeader().Number + 1
 	stateRoot := crypto.Keccak256Hash([]byte("stateRoot"))
 	header := types.NewHeader(parentHash, miner.Coinbase, stateRoot, txsHash, difficulty, number, uint64(time.Now().Unix()), uint64(0))
 	header.InterLink = pool.Chain().CurrentBlock().GetUpdatedInterlink() // Set Interlink

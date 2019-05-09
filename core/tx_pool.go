@@ -6,9 +6,9 @@ import (
 	"errors"
 
 	"github.com/altair-lab/xoreum/core/state"
-	"github.com/altair-lab/xoreum/common"
+	//"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/crypto"
+	//"github.com/altair-lab/xoreum/crypto"
 )
 
 // Reference : tx_pool.go#L43
@@ -35,7 +35,7 @@ var (
 // Reference : tx_pool.go#L205
 type TxPool struct {
 	//chain       BlockChain
-	queue	    map[common.Address]*txList // Address-txList map for validation
+	//queue	    map[common.Address]*txList // Address-txList map for validation
 	all         *txQueue // Queued transactions for time ordering (FIFO)
 	currentState	state.State // Current state in the blockchain head
 	chain		*BlockChain // Current chain
@@ -48,7 +48,7 @@ func NewTxPool(state state.State, chain *BlockChain) *TxPool {
 	// [TODO] Get state from chain.State, not by parameter.
 	pool := &TxPool{
 		//chain:		chain,
-		queue:		make(map[common.Address]*txList),
+		//queue:		make(map[common.Address]*txList),
 		all:		newTxQueue(),
 		currentState:	state,
 		chain:		chain,
@@ -94,6 +94,10 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction) error {
+	// [FIXME] We don't have Sender, Value, Nonce fields in Tx
+	//         How can we validate?
+	
+	/*
 	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
 	// Transactions can't be negative. This may never happen using RLP decoded
 	// transactions but may occur if you create a transaction using the RPC.
@@ -110,10 +114,10 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	if pool.currentState.GetNonce(from) > tx.Nonce() {
 		return ErrNonceTooLow
 	}
-	
+	*/
 	// Make sure the transaction is signed properly
-	validity := types.VerifyTxSignature(tx)
-	if !validity {
+	validity := tx.VerifySignature() 
+	if validity != nil {
 		return ErrInvalidSender
 	}
         
@@ -124,20 +128,23 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 // enqueue a single trasaction to pool.queue, pool.all
 func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
-	// [TODO] Get sender from signature
-	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
+	/*
+	// [FIXME] Enqueue to all participants ?
+	for _, pubKey := range tx.Participants() {
+		from := crypto.Keccak256Address(common.ToBytes(*pubKey))
 
-	if pool.queue[from] == nil {
-		pool.queue[from] = newTxList(false)
+		if pool.queue[from] == nil {
+			pool.queue[from] = newTxList(false)
+		}
+		inserted := pool.queue[from].Add(tx)
+		if !inserted {
+			// An older transaction exists, discard this
+			return false, ErrOverwrite
+		}
 	}
-	inserted := pool.queue[from].Add(tx)
-	if !inserted {
-		// An older transaction exists, discard this
-		return false, ErrOverwrite
-	}
-
+	*/
 	pool.all.Enqueue(tx)
-	return inserted, nil
+	return true, nil
 }
 
 func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
@@ -146,22 +153,24 @@ func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 		// empty queue
 		return nil, false
 	}
+	/*
+	// [FIXME] Dequeue to all participants ?
+	for _, pubKey := range tx.Participants() {
+		from := crypto.Keccak256Address(common.ToBytes(*pubKey)) // changed
 
-	// [TODO] Get sender from signature
-	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
+		if pool.queue[from] == nil {
+			// exist in txQueue, but not in txList
+			return tx, false
+		}
 
-	if pool.queue[from] == nil {
-		// exist in txQueue, but not in txList
-		return tx, false
+		deleted := pool.queue[from].Remove(tx)
+		if !deleted {
+			// exist in txQueue, but not in txList
+			return tx, false
+		}
 	}
-
-	deleted := pool.queue[from].Remove(tx)
-	if !deleted {
-		// exist in txQueue, but not in txList
-		return tx, false
-	}
-  
-	return tx, deleted
+	*/
+	return tx, true 
 }
 
 type txQueue struct {

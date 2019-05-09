@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync/atomic"
+	"time"
 
 	"github.com/altair-lab/xoreum/xordb"
 	"github.com/altair-lab/xoreum/xordb/memorydb"
@@ -127,16 +128,18 @@ func MakeTestBlockChain(chainLength uint64) *BlockChain {
 	db := memorydb.New()
 	bc := NewBlockChain(db)
 
-	var empty_txs []*types.Transaction
-	empty_txs = []*types.Transaction{}
-
 	// insert blocks into blockchain
 	for i := uint64(1); i <= chainLength; i++ {
-		b := types.NewBlock(&types.Header{}, empty_txs)
+		txs := make(types.Transactions, 0)
+		txs.Insert(types.MakeTestSignedTx(2))
+		txs.Insert(types.MakeTestSignedTx(3))
+
+		b := types.NewBlock(&types.Header{}, txs)
 		b.GetHeader().ParentHash = bc.CurrentBlock().Hash()
 		b.GetHeader().Number = i
 		b.GetHeader().Nonce = 0
 		b.GetHeader().InterLink = bc.CurrentBlock().GetUpdatedInterlink()
+		b.GetHeader().Time = uint64(time.Now().UnixNano())
 
 		// simple PoW
 		for {

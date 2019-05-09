@@ -49,12 +49,11 @@ func (b *Block) Hash() common.Hash {
 	return v
 }
 
-func (b *Block) PrintTx() {
+func (b *Block) PrintTxs() {
 	for i := 0; i < len(b.transactions); i++ {
 		fmt.Println("====================")
-		fmt.Println("Sender: ", b.transactions[i].Sender())
-		fmt.Println("Recipient: ", b.transactions[i].Recipient())
-		fmt.Println("Value: ", b.transactions[i].Value())
+		fmt.Println("tx ", i)
+		b.transactions[i].PrintTx()
 	}
 }
 
@@ -130,6 +129,10 @@ func (b *Block) GetHeader() *Header {
 	return b.header
 }
 
+func (b *Block) GetTxs() *Transactions {
+	return &b.transactions
+}
+
 func (b *Block) PrintBlock() {
 	fmt.Println("====================")
 	fmt.Println("block number:", b.header.Number)
@@ -137,7 +140,9 @@ func (b *Block) PrintBlock() {
 	fmt.Println("       block hash:", b.Hash().ToHex())
 	fmt.Println("block level:", b.GetLevel())
 	fmt.Println("block nonce:", b.header.Nonce)
+	fmt.Println("block time:", b.header.Time)
 	fmt.Println("block interlink:", b.header.InterLink)
+	b.PrintTxs()
 }
 
 func NewBlock(header *Header, txs []*Transaction) *Block {

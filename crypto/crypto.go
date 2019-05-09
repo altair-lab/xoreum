@@ -42,7 +42,7 @@ func Keccak256Address(data ...[]byte) (a common.Address) {
 	return a
 }
 
+// generate random private key
 func GenerateKey() (*ecdsa.PrivateKey, error) {
-	//return ecdsa.GenerateKey(S256(), rand.Reader)
 	return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 }
