@@ -73,6 +73,7 @@ func main() {
 		//store block via rawdb accessor api
 		fmt.Println("storing block", block.Number())
 		rawdb.StoreBlock(db, block)
+		block.PrintBlock()
 		fmt.Println("\n")
 
 		last_BN = i

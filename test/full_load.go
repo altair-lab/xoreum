@@ -23,7 +23,7 @@ func main() {
 	for i := uint64(1); i <= uint64(*last_BN); i++ {
 		//load block via accessor api
 		fmt.Println("loading block", i)
-		rawdb.LoadBlockByBN(db, i)
+		rawdb.LoadBlockByBN(db, i).PrintBlock()
 		fmt.Println("\n")
 	}
 
