@@ -2,8 +2,10 @@ package types
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"fmt"
 	"math/big"
+	"encoding/json"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
@@ -15,8 +17,8 @@ type Transaction struct {
 	hash common.Hash
 
 	// signature values of participants
-	Signature_R []*big.Int
-	Signature_S []*big.Int
+	Signature_R []*big.Int `json:"r"`
+	Signature_S []*big.Int `json:"s"`
 }
 
 // Transactions is a Transaction slice type for basic sorting
@@ -25,9 +27,9 @@ type Transactions []*Transaction
 // simple implementation
 type txdata struct {
 	// new version fields
-	Participants []*ecdsa.PublicKey
-	PostStates   []*state.Account
-	PrevTxHashes []*common.Hash
+	Participants []*ecdsa.PublicKey `json:"participants"`
+	PostStates   []*state.Account   `json:"poststates"`
+	PrevTxHashes []*common.Hash     `json:"prevtxhashes"`
 }
 
 func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account, prevTxHashes []*common.Hash) *Transaction {
@@ -47,7 +49,31 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	return &tx
 }
 
-func (tx *Transaction) Nonce() []uint64 {
+func UnmarshalJSON(txdata_json []byte, R_json []byte, S_json []byte) *Transaction {
+	// Get Participants Length
+	d := txdata{}
+	json.Unmarshal(txdata_json, &d)
+	length := len(d.Participants)
+
+	// [BUGFIX] tx.txdata.Participants[i].Curve == <nil>
+	participants := make([]*(ecdsa.PublicKey), length)
+	for i := 0; i < length; i++ {
+		participants[i] = &ecdsa.PublicKey{Curve: &elliptic.CurveParams{}}
+	}
+	d = txdata{Participants: participants}
+
+	// Unmarshal
+	json.Unmarshal(txdata_json, &d)
+	R := make([]*big.Int, length)
+	S := make([]*big.Int, length)
+	json.Unmarshal(R_json, &R)
+	json.Unmarshal(S_json, &S)
+
+	tx := Transaction{data: d, Signature_R: R, Signature_S: S}
+	return &tx
+}
+
+func (tx *Transaction) Nonce() []uint64 { 
 	//[FIXME] Get nonce from state? or account nonce field?
 	nonces := make([]uint64, 0)
 	for _, acc := range tx.data.PostStates {
@@ -63,6 +89,8 @@ func (tx *Transaction) Nonce() []uint64 {
 //func (tx *Transaction) Recipient() ecdsa.PublicKey { return *tx.data.Recipient }
 
 func (tx *Transaction) Participants() []*ecdsa.PublicKey { return tx.data.Participants }
+
+func (tx *Transaction) Data() *txdata { return &(tx.data) }
 
 // get hashed txdata's byte array
 func (data *txdata) GetHashedBytes() []byte {
