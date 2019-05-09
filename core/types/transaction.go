@@ -47,13 +47,13 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	return &tx
 }
 
-func (tx *Transaction) Nonce() []uint64 { 
+func (tx *Transaction) Nonce() []uint64 {
 	//[FIXME] Get nonce from state? or account nonce field?
 	nonces := make([]uint64, 0)
 	for _, acc := range tx.data.PostStates {
 		nonces = append(nonces, acc.Nonce)
 	}
-	return nonces 
+	return nonces
 }
 
 //func (tx *Transaction) Value() uint64 { return tx.data.Amount }
@@ -109,8 +109,11 @@ func (tx *Transaction) PrintTx() {
 	for i := 0; i < len(tx.data.Participants); i++ {
 		fmt.Println("participant ", i)
 		fmt.Println("public key: ", tx.data.Participants[i])
-		fmt.Println("post state: ", tx.data.PostStates[i])
-		fmt.Println("previous tx hash: ", tx.data.PrevTxHashes[i])
+		//fmt.Println("post state: ", tx.data.PostStates[i])
+		fmt.Print("post state -> ")
+		tx.data.PostStates[i].PrintAccount()
+		fmt.Println("previous tx hash: ", tx.data.PrevTxHashes[i].ToHex())
+		fmt.Println()
 	}
 }
 
