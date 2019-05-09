@@ -7,7 +7,6 @@ import (
 	"math/big"
 
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/log"
 	"github.com/altair-lab/xoreum/rlp"
@@ -32,7 +31,7 @@ func WriteHash(db xordb.Writer, hash common.Hash, number uint64) {
 		log.Crit("Failed to store number to hash mapping", "err", err)
 		fmt.Println("hash not written")
 	}
-	fmt.Println("key:", common.Bytes2Hex(headerHashKey(number)))
+	fmt.Println("hash key:", common.Bytes2Hex(headerHashKey(number)))
 	fmt.Println("hash value: ", hash.ToHex())
 }
 
@@ -87,6 +86,7 @@ func ReadHeader(db xordb.Reader, hash common.Hash, number uint64) *types.Header 
 // WriteHeader stores a block header into the database and also stores the hash-
 // to-number mapping.
 func WriteHeader(db xordb.Writer, header *types.Header) {
+	fmt.Println("writing header")
 	// Write the hash -> number mapping
 	var (
 		hash    = header.Hash()
@@ -106,13 +106,16 @@ func WriteHeader(db xordb.Writer, header *types.Header) {
 
 	key = headerKey(number, hash)
 	fmt.Println("header key:", common.Bytes2Hex(key))
-	fmt.Println("rlp data:", common.Bytes2Hex(data))
+	fmt.Println("	======before encode======")
+	header.PrintHeader()
+	fmt.Println("	======after encode======")
+	fmt.Println("	rlp data:", common.Bytes2Hex(data))
 
 	if err := db.Put(key, data); err != nil {
 		fmt.Println("header write fail")
 		log.Crit("Failed to store header", "err", err)
 	}
-
+	fmt.Println("")
 }
 
 // DeleteHeader removes all block header data associated with a hash.
@@ -122,18 +125,20 @@ func DeleteHeader(db xordb.Writer, hash common.Hash, number uint64) {
 	}
 }
 
-// // ReadBodyData retrieves the block body (transactions and uncles) in RLP encoding.
-// func ReadBodyData(db xordb.Reader, hash common.Hash, number uint64) rlp.RawValue {
-// 	data, _ := db.Get(blockBodyKey(number, hash))
-// 	return data
-// }
+// ReadBodyData retrieves the block body (transactions and uncles) in RLP encoding.
+func ReadBodyData(db xordb.Reader, hash common.Hash, number uint64) rlp.RawValue {
+	data, _ := db.Get(blockBodyKey(number, hash))
+	return data
+}
 
-// // WriteBodyData stores block body into the database.
-// func WriteBodyData(db xordb.Writer, hash common.Hash, number uint64, rlp rlp.RawValue) {
-// 	if err := db.Put(blockBodyKey(number, hash), rlp); err != nil {
-// 		log.Crit("Failed to store block body", "err", err)
-// 	}
-// }
+// WriteBodyData stores block body into the database.
+func WriteBodyData(db xordb.Writer, hash common.Hash, number uint64, rlp rlp.RawValue) {
+	fmt.Println("body key:", common.Bytes2Hex(blockBodyKey(number, hash)))
+	fmt.Println("rlp data:", common.Bytes2Hex(rlp))
+	if err := db.Put(blockBodyKey(number, hash), rlp); err != nil {
+		log.Crit("Failed to store block body", "err", err)
+	}
+}
 
 // // HasBody verifies the existence of a block body corresponding to the hash.
 // func HasBody(db xordb.Reader, hash common.Hash, number uint64) bool {
@@ -143,28 +148,29 @@ func DeleteHeader(db xordb.Writer, hash common.Hash, number uint64) {
 // 	return true
 // }
 
-// // ReadBody retrieves the block body corresponding to the hash.
-// func ReadBody(db xordb.Reader, hash common.Hash, number uint64) *types.Body {
-// 	data := ReadBodyData(db, hash, number)
-// 	if len(data) == 0 {
-// 		return nil
-// 	}
-// 	body := new(types.Body)
-// 	if err := rlp.Decode(bytes.NewReader(data), body); err != nil {
-// 		log.Error("Invalid block body RLP", "hash", hash, "err", err)
-// 		return nil
-// 	}
-// 	return body
-// }
+// ReadBody retrieves the block body corresponding to the hash.
+func ReadBody(db xordb.Reader, hash common.Hash, number uint64) *types.Body {
+	data := ReadBodyData(db, hash, number)
+	if len(data) == 0 {
+		return nil
+	}
+	body := new(types.Body)
+	if err := rlp.Decode(bytes.NewReader(data), body); err != nil {
+		log.Error("Invalid block body RLP", "hash", hash, "err", err)
+		return nil
+	}
+	return body
+}
 
 // WriteBody stores a block body into the database.
-// func WriteBody(db xordb.Writer, hash common.Hash, number uint64, txs types.Transactions) {
-// 	data, err := rlp.EncodeToBytes(txs)
-// 	if err != nil {
-// 		log.Crit("Failed to RLP encode body", "err", err)
-// 	}
-// 	WriteBodyData(db, hash, number, data)
-// }
+func WriteBody(db xordb.Writer, hash common.Hash, number uint64, body *types.Body) {
+	fmt.Println("writing body")
+	data, err := rlp.EncodeToBytes(body)
+	if err != nil {
+		log.Crit("Failed to RLP encode body", "err", err)
+	}
+	WriteBodyData(db, hash, number, data)
+}
 
 // // DeleteBody removes all block body data associated with a hash.
 // func DeleteBody(db xordb.Writer, hash common.Hash, number uint64) {
@@ -221,10 +227,18 @@ func LoadBlockByBN(db xordb.Reader, number uint64) *types.Block {
 		fmt.Println("header empty")
 		return nil
 	}
-	tx, _, _, _ := ReadTransaction(db, hash)
-	txs := []*types.Transaction{tx}
-	fmt.Println("body tx:", txs)
-	return types.NewBlock(header, txs)
+
+	body := ReadBody(db, hash, number)
+
+	txs := body.Transactions
+
+	fmt.Println("body txs:", txs)
+
+	b := types.NewBlock(header, txs)
+
+	b.PrintTxs()
+
+	return b
 }
 
 // LoadHeaderByBN retrieves an entire header corresponding to the number
@@ -272,26 +286,11 @@ func LoadBlock(db xordb.Reader, hash common.Hash, number uint64) *types.Block {
 	return types.NewBlock(header, txs)
 }
 
-// LoadBlockChain retrieves the whoe block chain
-// increasing block index by 1 for now
-func LoadBlockChain(db xordb.Database) *core.BlockChain {
-	blockchain := core.NewBlockChain(db)
-	lastHash := ReadLastHeaderHash(db)
-	lastBN := ReadHeaderNumber(db, lastHash)
-	fmt.Println(*lastBN)
-	for i := uint64(0); i <= uint64(*lastBN); i++ {
-		block := LoadBlockByBN(db, i)
-		blockchain.Insert(block)
-	}
-
-	return blockchain
-}
-
 // StoreBlock serializes a block into the database, header and body separately.
 func StoreBlock(db xordb.Writer, block *types.Block) {
 	WriteHash(db, block.Hash(), block.Number())
 	WriteHeader(db, block.Header())
-	// WriteBody(db, block.Hash(), block.Number(), block.Transactions())
+	WriteBody(db, block.Hash(), block.Number(), block.Body())
 }
 
 // DeleteBlock removes all block data associated with a hash.
