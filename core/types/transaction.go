@@ -8,6 +8,7 @@ import (
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
+	"github.com/altair-lab/xoreum/rlp"
 )
 
 type Transaction struct {
@@ -47,13 +48,13 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	return &tx
 }
 
-func (tx *Transaction) Nonce() []uint64 { 
+func (tx *Transaction) Nonce() []uint64 {
 	//[FIXME] Get nonce from state? or account nonce field?
 	nonces := make([]uint64, 0)
 	for _, acc := range tx.data.PostStates {
 		nonces = append(nonces, acc.Nonce)
 	}
-	return nonces 
+	return nonces
 }
 
 //func (tx *Transaction) Value() uint64 { return tx.data.Amount }
@@ -172,4 +173,13 @@ func MakeTestSignedTx(participantsNum int) *Transaction {
 	}
 
 	return tx
+}
+
+// Len returns the length of s.
+func (s Transactions) Len() int { return len(s) }
+
+// GetRlp implements Rlpable and returns the i'th element of s in rlp.
+func (s Transactions) GetRlp(i int) []byte {
+	enc, _ := rlp.EncodeToBytes(s[i])
+	return enc
 }
