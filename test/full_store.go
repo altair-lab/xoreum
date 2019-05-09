@@ -18,6 +18,7 @@ import (
 	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/core/state"
+	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
 )
@@ -55,27 +56,38 @@ func main() {
 	Txpool = core.NewTxPool(State, Blockchain)
 	Miner = miner.Miner{Acc0.Address}
 	last_BN := uint64(0)
-	for i := uint64(1); i < uint64(DEFAULT_BLOCK_NUMBER+1); i++ {
-		block := Miner.Mine(Txpool, uint64(0))
 
-		if block != nil {
-			block.PrintTx()
-		} else {
+	for i := uint64(1); i < uint64(DEFAULT_BLOCK_NUMBER+1); i++ {
+		success, err := Txpool.Add(types.MakeTestSignedTx(2))
+		if !success {
+			fmt.Println(err)
+		}
+
+		// Make block (mining)
+		block := Miner.Mine(Txpool, uint64(0))
+		if block == nil {
 			fmt.Println("Mining Fail")
 		}
 
 		// Add to Blockchain
-		err := Blockchain.Insert(block)
-		if err != nil {
-			fmt.Println(err)
+		err2 := Blockchain.Insert(block)
+		if err2 != nil {
+
+			fmt.Println("[ERROR]", err2)
+
+		} else {
+			//store block via rawdb accessor api
+			fmt.Println("[STORE]", block.Number())
+			rawdb.StoreBlock(db, block)
+			block.PrintBlock()
+			fmt.Println("\n")
+
+			last_BN = block.Number()
+			last_hash := rawdb.ReadHash(db, last_BN)
+			rawdb.WriteLastHeaderHash(db, last_hash)
+			fmt.Println("last:", last_BN)
 		}
 
-		//store block via rawdb accessor api
-		fmt.Println("storing block", block.Number())
-		rawdb.StoreBlock(db, block)
-		fmt.Println("\n")
-
-		last_BN = i
 	}
 
 	// Keep mining every MINING_INTERVAL
@@ -83,12 +95,9 @@ func main() {
 		for {
 			time.Sleep(MINING_INTERVAL * time.Second)
 
-			// Mining from txpool
+			// Make block (mining)
 			block := Miner.Mine(Txpool, uint64(0))
-
-			if block != nil {
-				block.PrintTx()
-			} else {
+			if block == nil {
 				fmt.Println("Mining Fail")
 			}
 
@@ -96,16 +105,19 @@ func main() {
 			err := Blockchain.Insert(block)
 			if err != nil {
 				fmt.Println(err)
+
+			} else {
+				//store block via rawdb accessor api
+				fmt.Println("[STORE]", block.Number())
+				rawdb.StoreBlock(db, block)
+				block.PrintBlock()
+				fmt.Println("\n")
+
+				last_BN = block.Number()
+				last_hash := rawdb.ReadHash(db, last_BN)
+				rawdb.WriteLastHeaderHash(db, last_hash)
+				fmt.Println("last:", last_BN)
 			}
-
-			fmt.Println("storing block", block.Number())
-			rawdb.StoreBlock(db, block)
-			fmt.Println("\n")
-
-			last_BN = block.Number()
-			last_hash := rawdb.ReadHash(db, last_BN)
-			rawdb.WriteLastHeaderHash(db, last_hash)
-			fmt.Println("last:", last_BN)
 		}
 	}()
 
