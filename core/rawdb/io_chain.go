@@ -221,9 +221,9 @@ func LoadBlockByBN(db xordb.Reader, number uint64) *types.Block {
 		fmt.Println("header empty")
 		return nil
 	}
-	tx, _, _, _ := ReadTransaction(db, hash)
-	txs := []*types.Transaction{tx}
-	fmt.Println("body tx:", txs)
+	// tx, _, _, _ := ReadTransaction(db, hash)
+	txs := []*types.Transaction{}
+	// fmt.Println("body tx:", txs)
 	return types.NewBlock(header, txs)
 }
 
