@@ -3,13 +3,14 @@ package types
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"encoding/json"
 	"fmt"
 	"math/big"
-	"encoding/json"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
+	"github.com/altair-lab/xoreum/rlp"
 )
 
 type Transaction struct {
@@ -73,7 +74,7 @@ func UnmarshalJSON(txdata_json []byte, R_json []byte, S_json []byte) *Transactio
 	return &tx
 }
 
-func (tx *Transaction) Nonce() []uint64 { 
+func (tx *Transaction) Nonce() []uint64 {
 	//[FIXME] Get nonce from state? or account nonce field?
 	nonces := make([]uint64, 0)
 	for _, acc := range tx.data.PostStates {
@@ -203,4 +204,13 @@ func MakeTestSignedTx(participantsNum int) *Transaction {
 	}
 
 	return tx
+}
+
+// Len returns the length of s.
+func (s Transactions) Len() int { return len(s) }
+
+// GetRlp implements Rlpable and returns the i'th element of s in rlp.
+func (s Transactions) GetRlp(i int) []byte {
+	enc, _ := rlp.EncodeToBytes(s[i])
+	return enc
 }

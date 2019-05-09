@@ -2,11 +2,19 @@ package types
 
 import (
 	"fmt"
+	"io"
 	"math/big"
 	"sync/atomic"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/crypto"
+	"github.com/altair-lab/xoreum/rlp"
+	"golang.org/x/crypto/sha3"
+)
+
+var (
+	EmptyRootHash  = DeriveSha(Transactions{})
+	EmptyUncleHash = rlpHash([]*Header(nil))
 )
 
 const (
@@ -26,6 +34,7 @@ type Header struct {
 }
 
 type Body struct {
+	Transactions []*Transaction
 }
 
 type Block struct {
@@ -33,6 +42,8 @@ type Block struct {
 	transactions Transactions
 	hash         atomic.Value
 	level        uint64 // used in interlink
+
+	size atomic.Value
 }
 
 func (h *Header) Hash() common.Hash {
@@ -85,7 +96,7 @@ func (b *Block) GetLevel() uint64 {
 	return b.level
 }
 
-// return interlink that contains this block too
+// GetUpdatedInterlink returns interlink that contains this block too
 // to compare with next block's interlink
 // should be current_block.GetUpdatedInterlink() == next_block.header.Interlink
 // Also, this function can be used when you fill newly mined block's interlink
@@ -137,7 +148,7 @@ func (b *Block) PrintBlock() {
 	fmt.Println("====================")
 	fmt.Println("block number:", b.header.Number)
 	fmt.Println("block parent hash:", b.header.ParentHash.ToHex())
-	fmt.Println("       block hash:", b.Hash().ToHex())
+	fmt.Println("block hash:", b.Hash().ToHex())
 	fmt.Println("block level:", b.GetLevel())
 	fmt.Println("block nonce:", b.header.Nonce)
 	fmt.Println("block time:", b.header.Time)
@@ -145,7 +156,28 @@ func (b *Block) PrintBlock() {
 	b.PrintTxs()
 }
 
+func (h *Header) PrintHeader() {
+	fmt.Println("	[HEADER]")
+	fmt.Println("	hash:", h.Hash().ToHex())
+	fmt.Println("	parent hash:", h.ParentHash.ToHex())
+	fmt.Println("	number:", h.Number)
+	fmt.Println("	interlink:", h.InterLink)
+}
+
 func NewBlock(header *Header, txs []*Transaction) *Block {
+	// b := &Block{header: CopyHeader(header)}
+	// if len(txs) == 0 {
+	// 	b.header.TxHash = EmptyRootHash
+	// } else {
+	// 	b.header.TxHash = DeriveSha(Transactions(txs))
+	// 	b.transactions = make(Transactions, len(txs))
+	// 	copy(b.transactions, txs)
+
+	// }
+	// return &Block{
+	// 	header:       CopyHeader(header),
+	// 	transactions: txs,
+	// }
 	return &Block{
 		header:       header,
 		transactions: txs,
@@ -176,8 +208,63 @@ func CopyHeader(header *Header) *Header {
 		Nonce:      header.Nonce,
 	}
 }
+
+// Size returns the true RLP encoded storage size of the block, either by encoding
+// and returning it, or returning a previsouly cached value.
+func (b *Block) Size() common.StorageSize {
+	if size := b.size.Load(); size != nil {
+		return size.(common.StorageSize)
+	}
+	c := writeCounter(0)
+	rlp.Encode(&c, b)
+	b.size.Store(common.StorageSize(c))
+	return common.StorageSize(c)
+}
+
+type writeCounter common.StorageSize
+
+func (c *writeCounter) Write(b []byte) (int, error) {
+	*c += writeCounter(len(b))
+	return len(b), nil
+}
+
+func rlpHash(x interface{}) (h common.Hash) {
+	hw := sha3.NewLegacyKeccak256()
+	rlp.Encode(hw, x)
+	hw.Sum(h[:0])
+	return h
+}
+
+// "external" block encoding. used for eth protocol, etc.
+type extblock struct {
+	Header *Header
+	Txs    []*Transaction
+}
+
+// DecodeRLP decodes the Ethereum
+func (b *Block) DecodeRLP(s *rlp.Stream) error {
+	var eb extblock
+	_, size, _ := s.Kind()
+	if err := s.Decode(&eb); err != nil {
+		return err
+	}
+	b.header, b.transactions = eb.Header, eb.Txs
+	b.size.Store(common.StorageSize(rlp.ListSize(size)))
+	return nil
+}
+
+// EncodeRLP serializes b into the Ethereum RLP block format.
+func (b *Block) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, extblock{
+		Header: b.header,
+		Txs:    b.transactions,
+	})
+}
+
 func (b *Block) Number() uint64 { return (b.header.Number) }
 
 func (b *Block) Header() *Header { return (b.header) }
+
+func (b *Block) Body() *Body { return &Body{b.transactions} }
 
 func (b *Block) Transactions() Transactions { return b.transactions }
