@@ -2,9 +2,9 @@ package state
 
 import (
 	"fmt"
+
 	"github.com/altair-lab/xoreum/common"
 )
-
 
 type State map[common.Address]*Account
 
@@ -50,4 +50,8 @@ func newAccount(address common.Address, nonce uint64, balance uint64) *Account {
 
 func (acc *Account) Print() {
 	fmt.Printf("Address: %x   Nonce: %d   Balance: %d\n", acc.Address, acc.Nonce, acc.Balance)
+}
+
+func (acc *Account) PrintAccount() {
+	fmt.Println("address:", acc.Address.ToHex(), "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
 }

@@ -48,10 +48,8 @@ func (b *Block) Hash() common.Hash {
 
 func (b *Block) PrintTxs() {
 	for i := 0; i < len(b.transactions); i++ {
-		/*fmt.Println("====================")
-		fmt.Println("Sender: ", b.transactions[i].Sender())
-		fmt.Println("Recipient: ", b.transactions[i].Recipient())
-		fmt.Println("Value: ", b.transactions[i].Value())*/
+		fmt.Println("====================")
+		fmt.Println("tx ", i)
 		b.transactions[i].PrintTx()
 	}
 }
@@ -115,7 +113,7 @@ func (b *Block) GetUniqueInterlink() []uint64 {
 func unique(intSlice [InterlinkLength]uint64) []uint64 {
 	keys := make(map[uint64]bool)
 	list := []uint64{}
-	for i := len(intSlice)-1; i >= 0; i-- {
+	for i := len(intSlice) - 1; i >= 0; i-- {
 		if _, value := keys[intSlice[i]]; !value {
 			keys[intSlice[i]] = true
 			list = append(list, intSlice[i])
@@ -139,7 +137,9 @@ func (b *Block) PrintBlock() {
 	fmt.Println("       block hash:", b.Hash().ToHex())
 	fmt.Println("block level:", b.GetLevel())
 	fmt.Println("block nonce:", b.header.Nonce)
+	fmt.Println("block time:", b.header.Time)
 	fmt.Println("block interlink:", b.header.InterLink)
+	b.PrintTxs()
 }
 
 func NewBlock(header *Header, txs []*Transaction) *Block {
@@ -156,7 +156,7 @@ func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Ha
 		Root:       stateRoot,
 		TxHash:     txHash,
 		Difficulty: difficulty,
-		Number:	    number,
+		Number:     number,
 		Time:       time,
 		Nonce:      nonce,
 	}
