@@ -3,20 +3,21 @@
   IoT-full Node : Send only interlink blocks from chain and keep update
 */
 
-package main 
+package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
-	"time"
-	"io"
 	"sync"
+	"time"
 
 	"github.com/altair-lab/xoreum/core"
-	"github.com/altair-lab/xoreum/network"
-	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/miner"
+	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/network"
+	"github.com/altair-lab/xoreum/xordb/memorydb"
 )
 
 const MINING_INTERVAL = 10
@@ -29,12 +30,13 @@ var Txpool *core.TxPool
 var Miner miner.Miner
 var mutex = &sync.Mutex{}
 
-
 func main() {
 	// create genesis block
-	Blockchain = core.NewBlockChain()
+	db := memorydb.New()
+
+	Blockchain = core.NewBlockChain(db)
 	Blockchain.PrintBlockChain()
-	
+
 	// Initialization txpool, miner
 	Txpool, Miner = network.Initialization(Blockchain)
 
@@ -42,7 +44,7 @@ func main() {
 	for i := 0; i < DEFAULT_BLOCK_NUMBER; i++ {
 		// Make test tx and add to txpool
 		for j := 0; j < i; j++ {
-			success, err := Txpool.Add(types.MakeTestSignedTx(j+1))
+			success, err := Txpool.Add(types.MakeTestSignedTx(j + 1))
 			if !success {
 				fmt.Println(err)
 			}
@@ -51,15 +53,15 @@ func main() {
 		// Make block (mining)
 		block := Miner.Mine(Txpool, uint64(0))
 		if block == nil {
-       			fmt.Println("Mining Fail")
-       		}
+			fmt.Println("Mining Fail")
+		}
 
-      		// Insert block to Blockchain
+		// Insert block to Blockchain
 		err := Blockchain.Insert(block)
-       		if err != nil {
-       			fmt.Println(err)
-       		}
-	
+		if err != nil {
+			fmt.Println(err)
+		}
+
 		// Print current block
 		Blockchain.CurrentBlock().PrintBlock()
 		Blockchain.CurrentBlock().PrintTxs()
@@ -69,26 +71,26 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(MINING_INTERVAL * time.Second)
-			
+
 			// Mining from txpool
 			block := Miner.Mine(Txpool, uint64(0))
 
 			if block != nil {
-               			block.PrintTxs()
-       			} else {
-               			fmt.Println("Mining Fail")
-       			}
+				block.PrintTxs()
+			} else {
+				fmt.Println("Mining Fail")
+			}
 
-       			// Add to Blockchain
+			// Add to Blockchain
 			err := Blockchain.Insert(block)
-       			if err != nil {
-               			fmt.Println(err)
-       			}
+			if err != nil {
+				fmt.Println(err)
+			}
 
 			Blockchain.CurrentBlock().PrintBlock()
 		}
 	}()
-	
+
 	// start TCP and serve TCP server
 	server, err := net.Listen("tcp", ":9000")
 	if err != nil {
@@ -162,9 +164,9 @@ func handleConn(conn net.Conn) {
 			time.Sleep(BROADCAST_INTERVAL * time.Second)
 
 			select {
-				case <- quit:
-					return
-				default:
+			case <-quit:
+				return
+			default:
 				// Check updated block
 				currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
 				for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
