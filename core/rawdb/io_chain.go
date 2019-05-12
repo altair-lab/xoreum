@@ -12,6 +12,7 @@ import (
 	"github.com/altair-lab/xoreum/log"
 	"github.com/altair-lab/xoreum/rlp"
 	"github.com/altair-lab/xoreum/xordb"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // ReadHash retrieves the hash assigned to a block number.
@@ -172,21 +173,22 @@ func WriteBody(db xordb.Writer, hash common.Hash, number uint64, body *types.Bod
 	enc := gob.NewEncoder(&data)
 	dec := gob.NewDecoder(&data)
 
-	fmt.Println(body.Transactions)
 	err := enc.Encode(body)
 	if err != nil {
 		fmt.Println("error while encoding")
 	}
 
-	fmt.Println("encoded:", data.Bytes())
-
+	fmt.Println("encoded:")
+	spew.Dump(body.Transactions)
 	var saved types.Body
 	err = dec.Decode(&saved)
 	if err != nil {
 		log.Error("decode error:", err)
 	}
-	fmt.Println(saved.Transactions)
-	saved.PrintBody()
+
+	fmt.Println("decoded:")
+
+	spew.Dump(saved.Transactions)
 	WriteBodyData(db, hash, number, data.Bytes())
 }
 
