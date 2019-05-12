@@ -136,12 +136,12 @@ func (txs *Transactions) Insert(tx *Transaction) {
 
 func (tx *Transaction) PrintTx() {
 	for i := 0; i < len(tx.data.Participants); i++ {
-		fmt.Println("participant ", i)
-		fmt.Println("public key: ", tx.data.Participants[i])
+		fmt.Println("	participant ", i)
+		fmt.Println("	public key: ", tx.data.Participants[i])
 		//fmt.Println("post state: ", tx.data.PostStates[i])
-		fmt.Print("post state -> ")
+		fmt.Print("	post state -> ")
 		tx.data.PostStates[i].PrintAccount()
-		fmt.Println("previous tx hash: ", tx.data.PrevTxHashes[i].ToHex())
+		fmt.Println("	previous tx hash: ", tx.data.PrevTxHashes[i].ToHex())
 		fmt.Println()
 	}
 }

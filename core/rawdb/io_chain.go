@@ -3,6 +3,7 @@ package rawdb
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/gob"
 	"fmt"
 	"math/big"
 
@@ -126,16 +127,17 @@ func DeleteHeader(db xordb.Writer, hash common.Hash, number uint64) {
 }
 
 // ReadBodyData retrieves the block body (transactions and uncles) in RLP encoding.
-func ReadBodyData(db xordb.Reader, hash common.Hash, number uint64) rlp.RawValue {
+func ReadBodyData(db xordb.Reader, hash common.Hash, number uint64) []byte {
 	data, _ := db.Get(blockBodyKey(number, hash))
 	return data
 }
 
 // WriteBodyData stores block body into the database.
-func WriteBodyData(db xordb.Writer, hash common.Hash, number uint64, rlp rlp.RawValue) {
+func WriteBodyData(db xordb.Writer, hash common.Hash, number uint64, data []byte) {
 	fmt.Println("body key:", common.Bytes2Hex(blockBodyKey(number, hash)))
-	fmt.Println("rlp data:", common.Bytes2Hex(rlp))
-	if err := db.Put(blockBodyKey(number, hash), rlp); err != nil {
+	fmt.Println("encoded data:", data)
+	if err := db.Put(blockBodyKey(number, hash), data); err != nil {
+		fmt.Println("store fail")
 		log.Crit("Failed to store block body", "err", err)
 	}
 }
@@ -165,11 +167,27 @@ func ReadBody(db xordb.Reader, hash common.Hash, number uint64) *types.Body {
 // WriteBody stores a block body into the database.
 func WriteBody(db xordb.Writer, hash common.Hash, number uint64, body *types.Body) {
 	fmt.Println("writing body")
-	data, err := rlp.EncodeToBytes(body)
+
+	var data bytes.Buffer
+	enc := gob.NewEncoder(&data)
+	dec := gob.NewDecoder(&data)
+
+	fmt.Println(body.Transactions)
+	err := enc.Encode(body)
 	if err != nil {
-		log.Crit("Failed to RLP encode body", "err", err)
+		fmt.Println("error while encoding")
 	}
-	WriteBodyData(db, hash, number, data)
+
+	fmt.Println("encoded:", data.Bytes())
+
+	var saved types.Body
+	err = dec.Decode(&saved)
+	if err != nil {
+		log.Error("decode error:", err)
+	}
+	fmt.Println(saved.Transactions)
+	saved.PrintBody()
+	WriteBodyData(db, hash, number, data.Bytes())
 }
 
 // // DeleteBody removes all block body data associated with a hash.

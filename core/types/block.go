@@ -155,6 +155,15 @@ func (b *Block) PrintBlock() {
 	fmt.Println("block interlink:", b.header.InterLink)
 	b.PrintTxs()
 }
+func (b *Body) PrintBody() {
+	fmt.Println("	[BODY]")
+	fmt.Println("	txs:")
+	for i := 0; i < len(b.Transactions); i++ {
+		fmt.Println("	====================")
+		fmt.Println("	tx ", i)
+		b.Transactions[i].PrintTx()
+	}
+}
 
 func (h *Header) PrintHeader() {
 	fmt.Println("	[HEADER]")

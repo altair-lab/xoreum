@@ -18,6 +18,7 @@ import (
 	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/core/state"
+	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
 )
@@ -56,10 +57,12 @@ func main() {
 	Miner = miner.Miner{Acc0.Address}
 	last_BN := uint64(0)
 	for i := uint64(1); i < uint64(DEFAULT_BLOCK_NUMBER+1); i++ {
+		Txpool.Add(types.MakeTestSignedTx(2))
+
 		block := Miner.Mine(Txpool, uint64(0))
 
 		if block != nil {
-			block.PrintTxs()
+			// block.PrintTxs()
 		} else {
 			fmt.Println("Mining Fail")
 		}
