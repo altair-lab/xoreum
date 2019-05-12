@@ -95,12 +95,15 @@ func Encode(w io.Writer, val interface{}) error {
 // EncodeToBytes returns the RLP encoding of val.
 // Please see the documentation of Encode for the encoding rules.
 func EncodeToBytes(val interface{}) ([]byte, error) {
+	fmt.Println("E2B")
 	eb := encbufPool.Get().(*encbuf)
 	defer encbufPool.Put(eb)
 	eb.reset()
 	if err := eb.encode(val); err != nil {
+		fmt.Println("error while E2B")
 		return nil, err
 	}
+	fmt.Println("E2B fin")
 	return eb.toBytes(), nil
 }
 
@@ -180,8 +183,18 @@ func (w *encbuf) Write(b []byte) (int, error) {
 
 func (w *encbuf) encode(val interface{}) error {
 	rval := reflect.ValueOf(val)
+	fmt.Println("encoding value", val)
+	fmt.Println("reflect value", rval)
+
 	ti, err := cachedTypeInfo(rval.Type(), tags{})
+	fmt.Println("type info", rval)
 	if err != nil {
+
+		return err
+	}
+	fmt.Println("encode success")
+	if err := ti.writer(rval, w); err != nil {
+		fmt.Println("haha!!", err)
 		return err
 	}
 	return ti.writer(rval, w)
@@ -346,34 +359,49 @@ func makeWriter(typ reflect.Type, ts tags) (writer, error) {
 	kind := typ.Kind()
 	switch {
 	case typ == rawValueType:
+		fmt.Println("[w]rawval")
 		return writeRawValue, nil
 	case typ.Implements(encoderInterface):
+		fmt.Println("[w]encoder interface")
 		return writeEncoder, nil
 	case kind != reflect.Ptr && reflect.PtrTo(typ).Implements(encoderInterface):
+		fmt.Println("[w]encoder noptr")
 		return writeEncoderNoPtr, nil
 	case kind == reflect.Interface:
+		fmt.Println("[w]interface")
 		return writeInterface, nil
 	case typ.AssignableTo(reflect.PtrTo(bigInt)):
+		fmt.Println("[w]bigintptr")
 		return writeBigIntPtr, nil
 	case typ.AssignableTo(bigInt):
+		fmt.Println("[w]bigint")
 		return writeBigIntNoPtr, nil
 	case isUint(kind):
+		fmt.Println("[w]uint")
 		return writeUint, nil
 	case kind == reflect.Bool:
+		fmt.Println("[w]bool")
 		return writeBool, nil
 	case kind == reflect.String:
+		fmt.Println("[w]string")
 		return writeString, nil
 	case kind == reflect.Slice && isByte(typ.Elem()):
+		fmt.Println("[w]slice")
 		return writeBytes, nil
 	case kind == reflect.Array && isByte(typ.Elem()):
+		fmt.Println("[w]byte array")
 		return writeByteArray, nil
 	case kind == reflect.Slice || kind == reflect.Array:
+		fmt.Println("[w]slice")
 		return makeSliceWriter(typ, ts)
 	case kind == reflect.Struct:
+		fmt.Println("[w]struct")
 		return makeStructWriter(typ)
 	case kind == reflect.Ptr:
+		fmt.Println("[w]ptr")
 		return makePtrWriter(typ)
 	default:
+		fmt.Println("[w]not RLP-serializable")
 		return nil, fmt.Errorf("rlp: type %v is not RLP-serializable", typ)
 	}
 }

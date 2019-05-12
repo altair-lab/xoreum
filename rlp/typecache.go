@@ -57,6 +57,8 @@ type decoder func(*Stream, reflect.Value) error
 type writer func(reflect.Value, *encbuf) error
 
 func cachedTypeInfo(typ reflect.Type, tags tags) (*typeinfo, error) {
+	fmt.Println("	type", typ)
+	fmt.Println("	tags", tags)
 	typeCacheMutex.RLock()
 	info := typeCache[typekey{typ, tags}]
 	typeCacheMutex.RUnlock()
@@ -70,6 +72,8 @@ func cachedTypeInfo(typ reflect.Type, tags tags) (*typeinfo, error) {
 }
 
 func cachedTypeInfo1(typ reflect.Type, tags tags) (*typeinfo, error) {
+	fmt.Println("	1 type", typ)
+	fmt.Println("	1 tags", tags)
 	key := typekey{typ, tags}
 	info := typeCache[key]
 	if info != nil {

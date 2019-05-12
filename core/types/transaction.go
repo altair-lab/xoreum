@@ -5,7 +5,9 @@ import (
 	"crypto/elliptic"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/big"
+	"sync/atomic"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
@@ -16,7 +18,7 @@ import (
 type Transaction struct {
 	data txdata
 	hash common.Hash
-
+	size atomic.Value
 	// signature values of participants
 	Signature_R []*big.Int `json:"r"`
 	Signature_S []*big.Int `json:"s"`
@@ -28,7 +30,7 @@ type Transactions []*Transaction
 // simple implementation
 type txdata struct {
 	// new version fields
-	Participants []*ecdsa.PublicKey `json:"participants"`
+	Participants []*ecdsa.PublicKey `json:"participants"` // [TODO] publickey - curveparams - bitsize is type int
 	PostStates   []*state.Account   `json:"poststates"`
 	PrevTxHashes []*common.Hash     `json:"prevtxhashes"`
 }
@@ -135,13 +137,14 @@ func (txs *Transactions) Insert(tx *Transaction) {
 }
 
 func (tx *Transaction) PrintTx() {
+	fmt.Println("	[t]hash: ", tx.Hash().ToHex())
 	for i := 0; i < len(tx.data.Participants); i++ {
-		fmt.Println("participant ", i)
-		fmt.Println("public key: ", tx.data.Participants[i])
+		fmt.Println("	[t]participant ", i)
+		fmt.Println("	[t]public key: ", tx.data.Participants[i])
 		//fmt.Println("post state: ", tx.data.PostStates[i])
-		fmt.Print("post state -> ")
+		fmt.Print("	[t]post state -> ")
 		tx.data.PostStates[i].PrintAccount()
-		fmt.Println("previous tx hash: ", tx.data.PrevTxHashes[i].ToHex())
+		fmt.Println("	[t]previous tx hash: ", tx.data.PrevTxHashes[i].ToHex())
 		fmt.Println()
 	}
 }
@@ -213,4 +216,22 @@ func (s Transactions) Len() int { return len(s) }
 func (s Transactions) GetRlp(i int) []byte {
 	enc, _ := rlp.EncodeToBytes(s[i])
 	return enc
+}
+
+// [TOFIX]
+
+// EncodeRLP implements rlp.Encoder
+func (tx *Transaction) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, &tx.data)
+}
+
+// DecodeRLP implements rlp.Decoder
+func (tx *Transaction) DecodeRLP(s *rlp.Stream) error {
+	_, size, _ := s.Kind()
+	err := s.Decode(&tx.data)
+	if err == nil {
+		tx.size.Store(common.StorageSize(rlp.ListSize(size)))
+	}
+
+	return err
 }

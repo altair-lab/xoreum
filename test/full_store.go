@@ -18,6 +18,7 @@ import (
 	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/core/state"
+	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
 )
@@ -38,6 +39,7 @@ var bcServer chan *core.BlockChain
 var mutex = &sync.Mutex{}
 
 func main() {
+
 	bcServer = make(chan *core.BlockChain)
 
 	db, _ := leveldb.New("chaindata", 0, 0, "")
@@ -56,16 +58,24 @@ func main() {
 	Miner = miner.Miner{Acc0.Address}
 	last_BN := uint64(0)
 	for i := uint64(1); i < uint64(DEFAULT_BLOCK_NUMBER+1); i++ {
+		success, err := Txpool.Add(types.MakeTestSignedTx(2))
+		if !success {
+			fmt.Println(err)
+		}
+		success, err = Txpool.Add(types.MakeTestSignedTx(2))
+		if !success {
+			fmt.Println(err)
+		}
 		block := Miner.Mine(Txpool, uint64(0))
 
 		if block != nil {
-			block.PrintTxs()
+
 		} else {
 			fmt.Println("Mining Fail")
 		}
 
 		// Add to Blockchain
-		err := Blockchain.Insert(block)
+		err = Blockchain.Insert(block)
 		if err != nil {
 			fmt.Println(err)
 		}

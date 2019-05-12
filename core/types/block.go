@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"io"
 	"math/big"
 	"sync/atomic"
 
@@ -62,8 +61,6 @@ func (b *Block) Hash() common.Hash {
 
 func (b *Block) PrintTxs() {
 	for i := 0; i < len(b.transactions); i++ {
-		fmt.Println("====================")
-		fmt.Println("tx ", i)
 		b.transactions[i].PrintTx()
 	}
 }
@@ -164,6 +161,17 @@ func (h *Header) PrintHeader() {
 	fmt.Println("	interlink:", h.InterLink)
 }
 
+func (b *Body) PrintBody() {
+	fmt.Println("	[BODY]")
+	txs := b.Transactions
+	fmt.Println("	[t]txs:", txs)
+	for i := 0; i < len(txs); i++ {
+		fmt.Println("	[t]====================")
+		fmt.Println("	[t]tx ", i)
+		txs[i].PrintTx()
+	}
+}
+
 func NewBlock(header *Header, txs []*Transaction) *Block {
 	// b := &Block{header: CopyHeader(header)}
 	// if len(txs) == 0 {
@@ -196,17 +204,10 @@ func NewHeader(parentHash common.Hash, miner common.Address, stateRoot common.Ha
 		Nonce:      nonce,
 	}
 }
-func CopyHeader(header *Header) *Header {
-	return &Header{
-		ParentHash: header.ParentHash,
-		Coinbase:   header.Coinbase,
-		Root:       header.Root,
-		TxHash:     header.TxHash,
-		Difficulty: header.Difficulty,
-		Number:     header.Number,
-		Time:       header.Time,
-		Nonce:      header.Nonce,
-	}
+
+func CopyHeader(h *Header) *Header {
+	cpy := *h
+	return &cpy
 }
 
 // Size returns the true RLP encoded storage size of the block, either by encoding
@@ -235,31 +236,31 @@ func rlpHash(x interface{}) (h common.Hash) {
 	return h
 }
 
-// "external" block encoding. used for eth protocol, etc.
-type extblock struct {
-	Header *Header
-	Txs    []*Transaction
-}
+// // "external" block encoding. used for eth protocol, etc.
+// type extblock struct {
+// 	Header *Header
+// 	Txs    []*Transaction
+// }
 
-// DecodeRLP decodes the Ethereum
-func (b *Block) DecodeRLP(s *rlp.Stream) error {
-	var eb extblock
-	_, size, _ := s.Kind()
-	if err := s.Decode(&eb); err != nil {
-		return err
-	}
-	b.header, b.transactions = eb.Header, eb.Txs
-	b.size.Store(common.StorageSize(rlp.ListSize(size)))
-	return nil
-}
+// // DecodeRLP decodes the Ethereum
+// func (b *Block) DecodeRLP(s *rlp.Stream) error {
+// 	var eb extblock
+// 	_, size, _ := s.Kind()
+// 	if err := s.Decode(&eb); err != nil {
+// 		return err
+// 	}
+// 	b.header, b.transactions = eb.Header, eb.Txs
+// 	b.size.Store(common.StorageSize(rlp.ListSize(size)))
+// 	return nil
+// }
 
-// EncodeRLP serializes b into the Ethereum RLP block format.
-func (b *Block) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, extblock{
-		Header: b.header,
-		Txs:    b.transactions,
-	})
-}
+// // EncodeRLP serializes b into the Ethereum RLP block format.
+// func (b *Block) EncodeRLP(w io.Writer) error {
+// 	return rlp.Encode(w, extblock{
+// 		Header: b.header,
+// 		Txs:    b.transactions,
+// 	})
+// }
 
 func (b *Block) Number() uint64 { return (b.header.Number) }
 
