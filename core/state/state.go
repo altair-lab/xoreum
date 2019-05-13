@@ -1,17 +1,17 @@
 package state
 
 import (
+	"crypto/ecdsa"
 	"fmt"
-
-	"github.com/altair-lab/xoreum/common"
 )
 
-type State map[common.Address]*Account
+type State map[ecdsa.PublicKey]*Account
 
 type Account struct {
-	Address common.Address
-	Nonce   uint64
-	Balance uint64
+	//Address common.Address
+	PublicKey *ecdsa.PublicKey
+	Nonce     uint64
+	Balance   uint64
 }
 
 func NewState() State {
@@ -19,7 +19,7 @@ func NewState() State {
 }
 
 func (s State) Add(acc *Account) {
-	s[acc.Address] = acc
+	s[*acc.PublicKey] = acc
 }
 
 func (s State) Print() {
@@ -28,30 +28,30 @@ func (s State) Print() {
 	}
 }
 
-func (s State) GetBalance(address common.Address) uint64 {
-	return s[address].Balance
+func (s State) GetBalance(pubkey *ecdsa.PublicKey) uint64 {
+	return s[*pubkey].Balance
 }
 
-func (s State) GetNonce(address common.Address) uint64 {
-	return s[address].Nonce
+func (s State) GetNonce(pubkey *ecdsa.PublicKey) uint64 {
+	return s[*pubkey].Nonce
 }
 
-func NewAccount(address common.Address, nonce uint64, balance uint64) *Account {
-	return newAccount(address, nonce, balance)
+func NewAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {
+	return newAccount(pubkey, nonce, balance)
 }
 
-func newAccount(address common.Address, nonce uint64, balance uint64) *Account {
+func newAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {
 	return &Account{
-		Address: address,
-		Nonce:   nonce,
-		Balance: balance,
+		PublicKey: pubkey,
+		Nonce:     nonce,
+		Balance:   balance,
 	}
 }
 
 func (acc *Account) Print() {
-	fmt.Printf("Address: %x   Nonce: %d   Balance: %d\n", acc.Address, acc.Nonce, acc.Balance)
+	fmt.Printf("PublicKey: %x   Nonce: %d   Balance: %d\n", acc.PublicKey, acc.Nonce, acc.Balance)
 }
 
 func (acc *Account) PrintAccount() {
-	fmt.Println("address:", acc.Address.ToHex(), "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
+	fmt.Println("publickey:", acc.PublicKey, "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
 }
