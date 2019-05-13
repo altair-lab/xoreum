@@ -11,6 +11,7 @@ import (
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/params"
 )
 
@@ -36,6 +37,7 @@ type BlockChain struct {
 	//validator Validator
 
 	blocks []types.Block // temporary block list. blocks will be saved in db
+	s state.State // temporary state. it will be saved in db
 }
 
 func NewBlockChain(db xordb.Database) *BlockChain {
@@ -64,6 +66,7 @@ func (bc *BlockChain) Insert(block *types.Block) error {
 		// pass all validation
 		// insert that block into blockchain
 		bc.insert(block)
+		bc.applyTransaction(bc.s, block.GetTxs())
 		return nil
 	}
 }
@@ -97,6 +100,16 @@ func (bc *BlockChain) validateBlock(block *types.Block) error {
 
 	// pass all validation. return no err
 	return nil
+}
+
+// Apply transaction to state
+func (bc *BlockChain) applyTransaction(s state.State, txs *types.Transactions) {
+        for _, tx := range *txs {
+                for i, key := range tx.Participants() {
+                        // Apply post state
+                        s[*key] = tx.PostStates()[i]
+                }
+        }
 }
 
 // actually insert block
