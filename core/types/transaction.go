@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -11,6 +12,15 @@ import (
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/rlp"
+)
+
+var (
+	// incorrect block's number (current_block_number + 1 != insert_block's_number)
+	ErrDiffFieldLength = errors.New("tx has different field array length")
+
+	ErrInvalidPostStates = errors.New("tx's PostStates's Account is not same with tx's Participants")
+
+	ErrInvalidPrevTxHashes = errors.New("Account in tx's PrevTxHashes is not match with Participants")
 )
 
 type Transaction struct {
@@ -162,7 +172,7 @@ func MakeTestTx(participantsNum int) *Transaction {
 		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
 
 		// assume that every participants has 100 ether
-		parStates = append(parStates, state.NewAccount(crypto.Keccak256Address(common.ToBytes(priv.PublicKey)), 0, 100))
+		parStates = append(parStates, state.NewAccount(&priv.PublicKey, 0, 100))
 
 		// null prev tx hashes
 		prevTxHashes = append(prevTxHashes, &common.Hash{})
@@ -189,7 +199,7 @@ func MakeTestSignedTx(participantsNum int) *Transaction {
 		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
 
 		// assume that every participants has 100 ether
-		parStates = append(parStates, state.NewAccount(crypto.Keccak256Address(common.ToBytes(priv.PublicKey)), 0, 100))
+		parStates = append(parStates, state.NewAccount(&priv.PublicKey, 0, 100))
 
 		// null prev tx hashes
 		prevTxHashes = append(prevTxHashes, &common.Hash{})
@@ -213,4 +223,24 @@ func (s Transactions) Len() int { return len(s) }
 func (s Transactions) GetRlp(i int) []byte {
 	enc, _ := rlp.EncodeToBytes(s[i])
 	return enc
+}
+
+func (tx *Transaction) ValidateTx() error {
+
+	// 1. check Participants, PostStates, PrevTxHashes's lengths are same
+	if !(len(tx.data.Participants) == len(tx.data.PostStates) && len(tx.data.PostStates) == len(tx.data.PrevTxHashes)) {
+		return ErrDiffFieldLength
+	}
+
+	// 2. check PostStates' Account == Participants' Account (check pub key)
+	for i := 0; i < len(tx.data.Participants); i++ {
+		if *tx.data.PostStates[i].PublicKey != *tx.data.Participants[i] {
+			return ErrInvalidPostStates
+		}
+	}
+
+	// 3. check PrevTxHashes has Participants state (TODO) -> ErrInvalidPrevTxHashes
+
+	// 4. check signature
+	return tx.VerifySignature()
 }
