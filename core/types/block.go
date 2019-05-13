@@ -270,6 +270,7 @@ func (b *Block) Body() *Body { return &Body{b.transactions} }
 
 func (b *Block) Transactions() Transactions { return b.transactions }
 
+// block validation function for iot node
 func (b *Block) ValidateBlock() error {
 	// 1. check block_hash < difficulty
 	if b.GetHeader().Hash().ToBigInt().Cmp(common.Difficulty) != -1 {

@@ -1,11 +1,15 @@
 package core
 
 import (
+	"crypto/ecdsa"
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"math/big"
 	"sync/atomic"
 	"time"
 
+	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb"
 	"github.com/altair-lab/xoreum/xordb/memorydb"
 
@@ -125,15 +129,22 @@ func (bc *BlockChain) PrintBlockChain() {
 // make blockchain for test. insert simple blocks
 func MakeTestBlockChain(chainLength uint64) *BlockChain {
 
-<<<<<<< HEAD
 	db := memorydb.New()
 	bc := NewBlockChain(db)
-=======
-	bc := NewBlockChain()
->>>>>>> 595df2710690c8fe73e6af891a7bbb7882fdd51a
+
+	pubkeys := []*ecdsa.PublicKey{}
+	for i := 0; i < 1000; i++ {
+		priv, _ := crypto.GenerateKey()
+		pubkeys = append(pubkeys, &priv.PublicKey)
+		fmt.Println(pubkeys[i])
+	}
 
 	// insert blocks into blockchain
 	for i := uint64(1); i <= chainLength; i++ {
+
+		randNum, _ := rand.Int(rand.Reader, big.NewInt(100))
+		fmt.Println(randNum)
+
 		txs := make(types.Transactions, 0)
 		txs.Insert(types.MakeTestSignedTx(2))
 		txs.Insert(types.MakeTestSignedTx(3))

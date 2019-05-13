@@ -225,6 +225,7 @@ func (s Transactions) GetRlp(i int) []byte {
 	return enc
 }
 
+// tx validation function for iot node
 func (tx *Transaction) ValidateTx() error {
 
 	// 1. check Participants, PostStates, PrevTxHashes's lengths are same
