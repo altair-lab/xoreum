@@ -125,8 +125,12 @@ func (bc *BlockChain) PrintBlockChain() {
 // make blockchain for test. insert simple blocks
 func MakeTestBlockChain(chainLength uint64) *BlockChain {
 
+<<<<<<< HEAD
 	db := memorydb.New()
 	bc := NewBlockChain(db)
+=======
+	bc := NewBlockChain()
+>>>>>>> 595df2710690c8fe73e6af891a7bbb7882fdd51a
 
 	// insert blocks into blockchain
 	for i := uint64(1); i <= chainLength; i++ {

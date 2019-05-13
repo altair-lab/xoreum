@@ -55,3 +55,7 @@ func (acc *Account) Print() {
 func (acc *Account) PrintAccount() {
 	fmt.Println("publickey:", acc.PublicKey, "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
 }
+
+func (acc *Account) PrintAccount() {
+	fmt.Println("address:", acc.Address.ToHex(), "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
+}
