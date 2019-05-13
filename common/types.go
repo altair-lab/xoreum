@@ -112,7 +112,10 @@ func CopyBytes(b []byte) (copiedBytes []byte) {
 
 // Num2Bytes returns a byte array representation of a uint64 value
 func Num2Bytes(num uint64) []byte {
-	h := fmt.Sprintf("%x", num)
-	bytes, _ := hex.DecodeString(h)
+	h := fmt.Sprintf("%02x", num)
+	bytes, err := hex.DecodeString(h)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return bytes
 }
