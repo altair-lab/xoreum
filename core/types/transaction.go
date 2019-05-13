@@ -158,7 +158,7 @@ func MakeTestTx(participantsNum int) *Transaction {
 		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
 
 		// assume that every participants has 100 ether
-		parStates = append(parStates, state.NewAccount(crypto.Keccak256Address(common.ToBytes(priv.PublicKey)), 0, 100))
+		parStates = append(parStates, state.NewAccount(&priv.PublicKey, 0, 100))
 
 		// null prev tx hashes
 		prevTxHashes = append(prevTxHashes, &common.Hash{})
@@ -185,7 +185,7 @@ func MakeTestSignedTx(participantsNum int) *Transaction {
 		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
 
 		// assume that every participants has 100 ether
-		parStates = append(parStates, state.NewAccount(crypto.Keccak256Address(common.ToBytes(priv.PublicKey)), 0, 100))
+		parStates = append(parStates, state.NewAccount(&priv.PublicKey, 0, 100))
 
 		// null prev tx hashes
 		prevTxHashes = append(prevTxHashes, &common.Hash{})
