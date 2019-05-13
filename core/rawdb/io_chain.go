@@ -2,7 +2,10 @@ package rawdb
 
 import (
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"math/big"
 
@@ -16,10 +19,8 @@ import (
 // ReadHash retrieves the hash assigned to a block number.
 func ReadHash(db xordb.Reader, number uint64) common.Hash {
 	data, _ := db.Get(headerHashKey(number))
-	fmt.Println("key:", common.Bytes2Hex(headerHashKey(number)))
-	fmt.Println("hash value:", common.Bytes2Hex(data))
 	if len(data) == 0 {
-		fmt.Println("no", number)
+		fmt.Println("no block by number", number)
 		return common.Hash{}
 	}
 	return common.BytesToHash(data)
@@ -29,10 +30,7 @@ func ReadHash(db xordb.Reader, number uint64) common.Hash {
 func WriteHash(db xordb.Writer, hash common.Hash, number uint64) {
 	if err := db.Put(headerHashKey(number), hash.Bytes()); err != nil {
 		log.Crit("Failed to store number to hash mapping", "err", err)
-		fmt.Println("hash not written")
 	}
-	fmt.Println("hash key:", common.Bytes2Hex(headerHashKey(number)))
-	fmt.Println("hash value: ", hash.ToHex())
 }
 
 // DeleteHash removes the number to hash mapping.
@@ -52,12 +50,9 @@ func ReadHeaderNumber(db xordb.Reader, hash common.Hash) *uint64 {
 	return &number
 }
 
-// ReadHeaderData retrieves a block header string
+// ReadHeaderData retrieves a block header data in rlp encoding
 func ReadHeaderData(db xordb.Reader, hash common.Hash, number uint64) rlp.RawValue {
-	fmt.Println("header key:", common.Bytes2Hex(headerKey(number, hash)))
 	data, _ := db.Get(headerKey(number, hash))
-
-	fmt.Println("rlp data:", common.Bytes2Hex(data))
 	return data
 }
 
@@ -86,7 +81,6 @@ func ReadHeader(db xordb.Reader, hash common.Hash, number uint64) *types.Header 
 // WriteHeader stores a block header into the database and also stores the hash-
 // to-number mapping.
 func WriteHeader(db xordb.Writer, header *types.Header) {
-	fmt.Println("writing header")
 	// Write the hash -> number mapping
 	var (
 		hash    = header.Hash()
@@ -100,22 +94,15 @@ func WriteHeader(db xordb.Writer, header *types.Header) {
 	// Write the encoded header
 	data, err := rlp.EncodeToBytes(header)
 	if err != nil {
-		fmt.Println("header write fail")
 		log.Crit("Failed to RLP encode header", "err", err)
 	}
 
 	key = headerKey(number, hash)
-	fmt.Println("header key:", common.Bytes2Hex(key))
-	fmt.Println("	======before encode======")
-	header.PrintHeader()
-	fmt.Println("	======after encode======")
-	fmt.Println("	rlp data:", common.Bytes2Hex(data))
 
 	if err := db.Put(key, data); err != nil {
-		fmt.Println("header write fail")
 		log.Crit("Failed to store header", "err", err)
 	}
-	fmt.Println("")
+
 }
 
 // DeleteHeader removes all block header data associated with a hash.
@@ -125,28 +112,27 @@ func DeleteHeader(db xordb.Writer, hash common.Hash, number uint64) {
 	}
 }
 
-// ReadBodyData retrieves the block body (transactions and uncles) in RLP encoding.
-func ReadBodyData(db xordb.Reader, hash common.Hash, number uint64) rlp.RawValue {
+// ReadBodyData retrieves the block body in json encoding
+func ReadBodyData(db xordb.Reader, hash common.Hash, number uint64) []byte {
 	data, _ := db.Get(blockBodyKey(number, hash))
+
 	return data
 }
 
-// WriteBodyData stores block body into the database.
-func WriteBodyData(db xordb.Writer, hash common.Hash, number uint64, rlp rlp.RawValue) {
-	fmt.Println("body key:", common.Bytes2Hex(blockBodyKey(number, hash)))
-	fmt.Println("rlp data:", common.Bytes2Hex(rlp))
-	if err := db.Put(blockBodyKey(number, hash), rlp); err != nil {
+// WriteBodyData stores block body into the database in json encoding
+func WriteBodyData(db xordb.Writer, hash common.Hash, number uint64, data []byte) {
+	if err := db.Put(blockBodyKey(number, hash), data); err != nil {
 		log.Crit("Failed to store block body", "err", err)
 	}
 }
 
-// // HasBody verifies the existence of a block body corresponding to the hash.
-// func HasBody(db xordb.Reader, hash common.Hash, number uint64) bool {
-// 	if has, err := db.Has(blockBodyKey(number, hash)); !has || err != nil {
-// 		return false
-// 	}
-// 	return true
-// }
+// HasBody verifies the existence of a block body corresponding to the hash.
+func HasBody(db xordb.Reader, hash common.Hash, number uint64) bool {
+	if has, err := db.Has(blockBodyKey(number, hash)); !has || err != nil {
+		return false
+	}
+	return true
+}
 
 // ReadBody retrieves the block body corresponding to the hash.
 func ReadBody(db xordb.Reader, hash common.Hash, number uint64) *types.Body {
@@ -154,30 +140,42 @@ func ReadBody(db xordb.Reader, hash common.Hash, number uint64) *types.Body {
 	if len(data) == 0 {
 		return nil
 	}
+
 	body := new(types.Body)
-	if err := rlp.Decode(bytes.NewReader(data), body); err != nil {
-		log.Error("Invalid block body RLP", "hash", hash, "err", err)
-		return nil
+	json.Unmarshal(data, &body)
+	txs := body.Transactions
+
+	for i := 0; i < len(txs); i++ {
+
+		txdata := txs[i].Data
+		participants := make([]*(ecdsa.PublicKey), len(txdata.Participants))
+		for i := 0; i < len(txdata.Participants); i++ {
+			txdata.Participants[i] = &ecdsa.PublicKey{Curve: &elliptic.CurveParams{}}
+		}
+		txdata = types.Txdata{Participants: participants}
 	}
+	json.Unmarshal(data, &body)
 	return body
 }
 
+// func ReadTransaction()
+
 // WriteBody stores a block body into the database.
 func WriteBody(db xordb.Writer, hash common.Hash, number uint64, body *types.Body) {
-	fmt.Println("writing body")
-	data, err := rlp.EncodeToBytes(body)
+	data, err := json.Marshal(body)
 	if err != nil {
-		log.Crit("Failed to RLP encode body", "err", err)
+		fmt.Println("error while encoding", err)
 	}
 	WriteBodyData(db, hash, number, data)
+
 }
 
-// // DeleteBody removes all block body data associated with a hash.
-// func DeleteBody(db xordb.Writer, hash common.Hash, number uint64) {
-// 	if err := db.Delete(blockBodyKey(number, hash)); err != nil {
-// 		log.Crit("Failed to delete block body", "err", err)
-// 	}
-// }
+// DeleteBody removes all block body data associated with a hash.
+func DeleteBody(db xordb.Writer, hash common.Hash, number uint64) {
+	if err := db.Delete(blockBodyKey(number, hash)); err != nil {
+		log.Crit("Failed to delete block body", "err", err)
+	}
+}
 
 // ReadTdData retrieves a block's total difficulty corresponding to the hash.
 func ReadTdData(db xordb.Reader, hash common.Hash, number uint64) rlp.RawValue {
@@ -220,70 +218,48 @@ func DeleteTd(db xordb.Writer, hash common.Hash, number uint64) {
 // LoadBlockByBN retrieves an entire block corresponding to the number
 func LoadBlockByBN(db xordb.Reader, number uint64) *types.Block {
 	hash := ReadHash(db, number)
-
 	header := ReadHeader(db, hash, number)
-
 	if header == nil {
-		fmt.Println("header empty")
 		return nil
 	}
-
 	body := ReadBody(db, hash, number)
-
 	txs := body.Transactions
-
-	fmt.Println("body txs:", txs)
-
 	b := types.NewBlock(header, txs)
-
-	b.PrintTxs()
-
 	return b
 }
 
 // LoadHeaderByBN retrieves an entire header corresponding to the number
 func LoadHeaderByBN(db xordb.Reader, number uint64) *types.Header {
 	hash := ReadHash(db, number)
-
 	header := ReadHeader(db, hash, number)
-
 	if header == nil {
 		fmt.Println("header empty")
 		return nil
 	}
-
 	return types.CopyHeader(header)
 }
 
 // LoadHeader retrieves an entire header corresponding to the hash & number
 func LoadHeader(db xordb.Reader, hash common.Hash, number uint64) *types.Header {
 	header := ReadHeader(db, hash, number)
-
 	if header == nil {
 		fmt.Println("header empty")
 		return nil
 	}
-
 	return types.CopyHeader(header)
 }
 
 // LoadBlock retrieves an entire block corresponding to the hash & number
 func LoadBlock(db xordb.Reader, hash common.Hash, number uint64) *types.Block {
 	header := ReadHeader(db, hash, number)
-
 	if header == nil {
 		fmt.Println("header nil")
 		return nil
 	}
-	//tx, blockHash, *blockNumber, uint64(txIndex)
-	tx, _, _, _ := ReadTransaction(db, hash)
-	if tx == nil {
-		fmt.Println("tx nil")
-		return nil
-	}
-
-	txs := []*types.Transaction{tx}
-	return types.NewBlock(header, txs)
+	body := ReadBody(db, hash, number)
+	txs := body.Transactions
+	b := types.NewBlock(header, txs)
+	return b
 }
 
 // StoreBlock serializes a block into the database, header and body separately.
@@ -301,7 +277,7 @@ func DeleteBlock(db xordb.Writer, hash common.Hash, number uint64) {
 	DeleteTd(db, hash, number)
 }
 
-// ReadLastHeaderHash retrieves the hash of the current canonical head header.
+// ReadLastHeaderHash retrieves the hash of the last header.
 func ReadLastHeaderHash(db xordb.Reader) common.Hash {
 	data, _ := db.Get(lastHeaderKey)
 	if len(data) == 0 {
@@ -310,25 +286,25 @@ func ReadLastHeaderHash(db xordb.Reader) common.Hash {
 	return common.BytesToHash(data)
 }
 
-// WriteLastHeaderHash stores the hash of the current canonical head header.
+// WriteLastHeaderHash stores the hash of the last header.
 func WriteLastHeaderHash(db xordb.Writer, hash common.Hash) {
 	if err := db.Put(lastHeaderKey, hash.Bytes()); err != nil {
 		log.Crit("Failed to store last header's hash", "err", err)
 	}
 }
 
-// // ReadHeadBlockHash retrieves the hash of the current canonical head block.
-// func ReadHeadBlockHash(db xordb.Reader) common.Hash {
-// 	data, _ := db.Get(headBlockKey)
-// 	if len(data) == 0 {
-// 		return common.Hash{}
-// 	}
-// 	return common.BytesToHash(data)
-// }
+// ReadHeadBlockHash retrieves the hash of the last block.
+func ReadHeadBlockHash(db xordb.Reader) common.Hash {
+	data, _ := db.Get(lastBlockKey)
+	if len(data) == 0 {
+		return common.Hash{}
+	}
+	return common.BytesToHash(data)
+}
 
-// // WriteHeadBlockHash stores the head block's hash.
-// func WriteHeadBlockHash(db xordb.Writer, hash common.Hash) {
-// 	if err := db.Put(headBlockKey, hash.Bytes()); err != nil {
-// 		log.Crit("Failed to store last block's hash", "err", err)
-// 	}
-// }
+// WriteHeadBlockHash stores the last block's hash.
+func WriteHeadBlockHash(db xordb.Writer, hash common.Hash) {
+	if err := db.Put(lastBlockKey, hash.Bytes()); err != nil {
+		log.Crit("Failed to store last block's hash", "err", err)
+	}
+}
