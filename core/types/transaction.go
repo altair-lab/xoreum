@@ -50,27 +50,23 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	return &tx
 }
 
-func UnmarshalJSON(txdata_json []byte, R_json []byte, S_json []byte) *Transaction {
+func UnmarshalJSON(txbuf []byte) *Transaction {
 	// Get Participants Length
-	d := Txdata{}
-	json.Unmarshal(txdata_json, &d)
-	length := len(d.Participants)
+	d := Transaction{}
+	json.Unmarshal(txbuf, &d)
+	length := len(d.Data.Participants)
 
 	// [BUGFIX] tx.txdata.Participants[i].Curve == <nil>
 	participants := make([]*(ecdsa.PublicKey), length)
 	for i := 0; i < length; i++ {
 		participants[i] = &ecdsa.PublicKey{Curve: &elliptic.CurveParams{}}
 	}
-	d = Txdata{Participants: participants}
+	txdata := Txdata{Participants: participants}
+	tx := Transaction{Data: txdata}
 
 	// Unmarshal
-	json.Unmarshal(txdata_json, &d)
-	R := make([]*big.Int, length)
-	S := make([]*big.Int, length)
-	json.Unmarshal(R_json, &R)
-	json.Unmarshal(S_json, &S)
+	json.Unmarshal(txbuf, &tx)
 
-	tx := Transaction{Data: d, Signature_R: R, Signature_S: S}
 	return &tx
 }
 
@@ -90,8 +86,6 @@ func (tx *Transaction) Nonce() []uint64 {
 //func (tx *Transaction) Recipient() ecdsa.PublicKey { return *tx.Data.Recipient }
 
 func (tx *Transaction) Participants() []*ecdsa.PublicKey { return tx.Data.Participants }
-
-func (tx *Transaction) GetData() *Txdata { return &(tx.Data) }
 
 // get hashed txdata's byte array
 func (data *Txdata) GetHashedBytes() []byte {
@@ -136,12 +130,12 @@ func (txs *Transactions) Insert(tx *Transaction) {
 
 func (tx *Transaction) PrintTx() {
 	for i := 0; i < len(tx.Data.Participants); i++ {
-		fmt.Println("	participant ", i)
-		fmt.Println("	public key: ", tx.Data.Participants[i])
+		fmt.Println("participant ", i)
+		fmt.Println("public key: ", tx.Data.Participants[i])
 		//fmt.Println("post state: ", tx.Data.PostStates[i])
-		fmt.Print("	post state -> ")
+		fmt.Print("post state -> ")
 		tx.Data.PostStates[i].PrintAccount()
-		fmt.Println("	previous tx hash: ", tx.Data.PrevTxHashes[i].ToHex())
+		fmt.Println("previous tx hash: ", tx.Data.PrevTxHashes[i].ToHex())
 		fmt.Println()
 	}
 }
