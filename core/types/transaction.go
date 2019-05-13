@@ -14,7 +14,7 @@ import (
 )
 
 type Transaction struct {
-	data txdata
+	Data txdata `json:"txdata"`
 	hash common.Hash
 
 	// signature values of participants
@@ -40,7 +40,7 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 		PrevTxHashes: prevTxHashes,
 	}
 
-	tx := Transaction{data: d}
+	tx := Transaction{Data: d}
 
 	// dynamic allocation
 	length := len(participants)
@@ -50,34 +50,30 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	return &tx
 }
 
-func UnmarshalJSON(txdata_json []byte, R_json []byte, S_json []byte) *Transaction {
+func UnmarshalJSON(txbuf []byte) *Transaction {
 	// Get Participants Length
-	d := txdata{}
-	json.Unmarshal(txdata_json, &d)
-	length := len(d.Participants)
-
+	d := Transaction{}
+	json.Unmarshal(txbuf, &d)
+	length := len(d.Data.Participants)
+	
 	// [BUGFIX] tx.txdata.Participants[i].Curve == <nil>
 	participants := make([]*(ecdsa.PublicKey), length)
 	for i := 0; i < length; i++ {
 		participants[i] = &ecdsa.PublicKey{Curve: &elliptic.CurveParams{}}
 	}
-	d = txdata{Participants: participants}
+	txdata := txdata{Participants: participants}
+	tx := Transaction{Data: txdata}
 
 	// Unmarshal
-	json.Unmarshal(txdata_json, &d)
-	R := make([]*big.Int, length)
-	S := make([]*big.Int, length)
-	json.Unmarshal(R_json, &R)
-	json.Unmarshal(S_json, &S)
+	json.Unmarshal(txbuf, &tx)
 
-	tx := Transaction{data: d, Signature_R: R, Signature_S: S}
 	return &tx
 }
 
 func (tx *Transaction) Nonce() []uint64 {
 	//[FIXME] Get nonce from state? or account nonce field?
 	nonces := make([]uint64, 0)
-	for _, acc := range tx.data.PostStates {
+	for _, acc := range tx.Data.PostStates {
 		nonces = append(nonces, acc.Nonce)
 	}
 	return nonces
@@ -89,9 +85,7 @@ func (tx *Transaction) Nonce() []uint64 {
 
 //func (tx *Transaction) Recipient() ecdsa.PublicKey { return *tx.data.Recipient }
 
-func (tx *Transaction) Participants() []*ecdsa.PublicKey { return tx.data.Participants }
-
-func (tx *Transaction) Data() *txdata { return &(tx.data) }
+func (tx *Transaction) Participants() []*ecdsa.PublicKey { return tx.Data.Participants }
 
 // get hashed txdata's byte array
 func (data *txdata) GetHashedBytes() []byte {
@@ -111,7 +105,7 @@ func (tx *Transaction) Hash() common.Hash {
 	//return crypto.Keccak256Hash(common.ToBytes(*tx))
 
 	// new method
-	return crypto.Keccak256Hash(tx.data.GetHashedBytes())
+	return crypto.Keccak256Hash(tx.Data.GetHashedBytes())
 }
 
 // hashing all transactions in txs (temporary)
@@ -123,7 +117,7 @@ func (txs Transactions) Hash() common.Hash {
 	// new method
 	bytelist := []byte{}
 	for i := 0; i < len(txs); i++ {
-		bytelist = append(bytelist, txs[i].data.GetHashedBytes()...)
+		bytelist = append(bytelist, txs[i].Data.GetHashedBytes()...)
 	}
 
 	return crypto.Keccak256Hash(bytelist)
@@ -135,13 +129,13 @@ func (txs *Transactions) Insert(tx *Transaction) {
 }
 
 func (tx *Transaction) PrintTx() {
-	for i := 0; i < len(tx.data.Participants); i++ {
+	for i := 0; i < len(tx.Data.Participants); i++ {
 		fmt.Println("participant ", i)
-		fmt.Println("public key: ", tx.data.Participants[i])
-		//fmt.Println("post state: ", tx.data.PostStates[i])
+		fmt.Println("public key: ", tx.Data.Participants[i])
+		//fmt.Println("post state: ", tx.Data.PostStates[i])
 		fmt.Print("post state -> ")
-		tx.data.PostStates[i].PrintAccount()
-		fmt.Println("previous tx hash: ", tx.data.PrevTxHashes[i].ToHex())
+		tx.Data.PostStates[i].PrintAccount()
+		fmt.Println("previous tx hash: ", tx.Data.PrevTxHashes[i].ToHex())
 		fmt.Println()
 	}
 }
