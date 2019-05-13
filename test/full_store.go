@@ -82,7 +82,7 @@ func main() {
 		last_BN = i
 		last_hash := rawdb.ReadHash(db, last_BN)
 		rawdb.WriteLastHeaderHash(db, last_hash)
-		fmt.Println("last:", last_BN)
+
 	}
 
 	// Keep mining every MINING_INTERVAL
@@ -112,7 +112,7 @@ func main() {
 			last_BN = block.Number()
 			last_hash := rawdb.ReadHash(db, last_BN)
 			rawdb.WriteLastHeaderHash(db, last_hash)
-			fmt.Println("last:", last_BN)
+
 		}
 	}()
 
