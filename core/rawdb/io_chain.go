@@ -158,8 +158,6 @@ func ReadBody(db xordb.Reader, hash common.Hash, number uint64) *types.Body {
 	return body
 }
 
-// func ReadTransaction()
-
 // WriteBody stores a block body into the database.
 func WriteBody(db xordb.Writer, hash common.Hash, number uint64, body *types.Body) {
 	data, err := json.Marshal(body)
@@ -167,7 +165,6 @@ func WriteBody(db xordb.Writer, hash common.Hash, number uint64, body *types.Bod
 		fmt.Println("error while encoding", err)
 	}
 	WriteBodyData(db, hash, number, data)
-
 }
 
 // DeleteBody removes all block body data associated with a hash.
@@ -267,6 +264,7 @@ func StoreBlock(db xordb.Writer, block *types.Block) {
 	WriteHash(db, block.Hash(), block.Number())
 	WriteHeader(db, block.Header())
 	WriteBody(db, block.Hash(), block.Number(), block.Body())
+	WriteTxLookupEntries(db, block)
 }
 
 // DeleteBlock removes all block data associated with a hash.
