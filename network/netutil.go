@@ -66,7 +66,7 @@ func SendObject(conn net.Conn, v interface{}) error {
 	return nil
 }
 
-// [TODO] Send Transaction with Signature and txdata
+// Send Transaction with Signature and txdata
 func SendTransactions(conn net.Conn, txs *types.Transactions) error {
 	// Send txs length
 	txslen := make([]byte, 4)
@@ -78,37 +78,9 @@ func SendTransactions(conn net.Conn, txs *types.Transactions) error {
 
 	// Send txs
 	for i := 0; i < len(*txs); i++ {
-		// 1. Send txdata
+		// Send transaction
 		mutex.Lock()
-		output, err:= json.Marshal((*txs)[i].Data())
-		if err != nil {
-			log.Fatal(err)
-			return err
-		}
-		mutex.Unlock()
-		err = SendMessage(conn, output)
-		if err != nil {
-			log.Fatal(err)
-			return err
-		}
-
-		// 2. Send Signatures (R)
-		mutex.Lock()
-		output, err = json.Marshal((*txs)[i].Signature_R)
-		if err != nil {
-			log.Fatal(err)
-			return err
-		}
-		mutex.Unlock()
-		err = SendMessage(conn, output)
-		if err != nil {
-			log.Fatal(err)
-			return err
-		}
-		
-		// 3. Send Signature (S)
-		mutex.Lock()
-		output, err = json.Marshal((*txs)[i].Signature_S)
+		output, err := json.Marshal((*txs)[i])
 		if err != nil {
 			log.Fatal(err)
 			return err
@@ -120,7 +92,7 @@ func SendTransactions(conn net.Conn, txs *types.Transactions) error {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -128,7 +100,7 @@ func SendTransactions(conn net.Conn, txs *types.Transactions) error {
 func SendBlock(conn net.Conn, block *types.Block) error {
 	header := block.GetHeader()
 	txs := block.GetTxs()
-	
+
 	err := SendObject(conn, header)
 	if err != nil {
 		return err
@@ -197,6 +169,7 @@ func RecvBlock(conn net.Conn) (*types.Block, error) {
 	// Make Tx struct
 	txs := types.Transactions{}
 	for i := uint32(0); i < txslen; i++ {
+		/*
 		// Get txdata, R, S
 		data, err := RecvObjectJson(conn)
 		if err != nil {
@@ -212,9 +185,17 @@ func RecvBlock(conn net.Conn) (*types.Block, error) {
 		if err != nil {
 			return nil, err
 		}
+		*/
+
+		// Get transaction
+		txbuf, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, err
+		}
 
 		// Unmarshal Tx
-		tx := types.UnmarshalJSON(data, R, S)
+		//tx := types.UnmarshalJSON(data, R, S)
+		tx := types.UnmarshalJSON(txbuf)
 		txs.Insert(tx)
 	}
 
