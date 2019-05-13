@@ -136,7 +136,6 @@ func MakeTestBlockChain(chainLength uint64) *BlockChain {
 	for i := 0; i < 1000; i++ {
 		priv, _ := crypto.GenerateKey()
 		pubkeys = append(pubkeys, &priv.PublicKey)
-		fmt.Println(pubkeys[i])
 	}
 
 	// insert blocks into blockchain
