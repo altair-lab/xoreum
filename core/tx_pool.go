@@ -84,7 +84,7 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction) error {
-	for i, key := range tx.Participants() {
+	for _, key := range tx.Participants() {
                 // [FIXME]
 		//prevState := loadTransaction(tx.PrevTxhashes()[i]).GetPostState(key)
 		prevState := &state.Account{}
