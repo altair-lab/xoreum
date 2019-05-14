@@ -7,15 +7,23 @@ import (
 func ExampleFunc() {
 
 	txs := make(Transactions, 0)
-	txs.Insert(MakeTestTx(2))
-	txs.Insert(MakeTestTx(3))
+	txs.Insert(MakeTestSignedTx(2))
+	txs.Insert(MakeTestSignedTx(3))
 
 	b := NewBlock(&Header{
-		Nonce:  3421,
+		Nonce:  34211111,
 		Number: 651,
 		Time:   11111124273,
 		TxHash: txs.Hash(),
 	}, txs)
 
 	fmt.Println(b)
+
+	fmt.Println(b.GetLevel())
+
+	fmt.Println(b.ValidateBlock())
+
+	b.PrintBlock()
+
+	// output: nil
 }
