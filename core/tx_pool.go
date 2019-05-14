@@ -6,9 +6,7 @@ import (
 	"errors"
 
 	"github.com/altair-lab/xoreum/core/state"
-	//"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
-	//"github.com/altair-lab/xoreum/crypto"
 )
 
 // Reference : tx_pool.go#L43
@@ -31,9 +29,6 @@ type TxPool struct {
 	all         *txQueue // Queued transactions for time ordering (FIFO)
 	currentState	state.State // Current state in the blockchain head
 	chain		*BlockChain // Current chain
-	
-	// [TODO] pending map[common.Address]*txList // All currently processable transactions
-	// [TODO] pendingState : Pending state tracking virtual nonces
 }
 
 func NewTxPool(chain *BlockChain) *TxPool {
@@ -83,6 +78,7 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction) error {
+	/*
 	for _, key := range tx.Participants() {
                 // [FIXME]
 		//prevState := loadTransaction(tx.PrevTxhashes()[i]).GetPostState(key)
@@ -114,7 +110,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	if validity != nil {
 		return ErrInvalidSender
 	}
-        
+        */
 	// nothing
 	return nil 
 }
