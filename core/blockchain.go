@@ -1,17 +1,13 @@
 package core
 
 import (
-	"crypto/ecdsa"
-	"crypto/rand"
 	"errors"
 	"fmt"
-	"math/big"
 	"sync/atomic"
+
 	//"time"
 
-	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb"
-	"github.com/altair-lab/xoreum/xordb/memorydb"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
@@ -41,7 +37,7 @@ type BlockChain struct {
 	//validator Validator
 
 	blocks []types.Block // temporary block list. blocks will be saved in db
-	s state.State // temporary state. it will be saved in db
+	s      state.State   // temporary state. it will be saved in db
 }
 
 func NewBlockChain(db xordb.Database) *BlockChain {
@@ -109,12 +105,12 @@ func (bc *BlockChain) validateBlock(block *types.Block) error {
 
 // Apply transaction to state
 func (bc *BlockChain) applyTransaction(s state.State, txs *types.Transactions) {
-        for _, tx := range *txs {
-                for i, key := range tx.Participants() {
-                        // Apply post state
-                        s[*key] = tx.PostStates()[i]
-                }
-        }
+	for _, tx := range *txs {
+		for i, key := range tx.Participants() {
+			// Apply post state
+			s[*key] = tx.PostStates()[i]
+		}
+	}
 }
 
 // actually insert block
@@ -144,6 +140,7 @@ func (bc *BlockChain) PrintBlockChain() {
 	fmt.Println("=== End of Chain ===")
 }
 
+/*
 // make blockchain for test. insert simple blocks
 func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 
@@ -151,11 +148,11 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 	bc := NewBlockChain(db)
 	allTxs := make(map[common.Hash]*types.Transaction) // all txs in this test blockchain
 	userCurTx := make(map[int64]*common.Hash)          // map to fill PrevTxHashes of tx
-  
-  // initialize
-  Txpool := NewTxPool(bc)
-  Miner := miner{common.Address{0}} 
-  
+
+	// initialize
+	Txpool := NewTxPool(bc)
+	Miner := miner{common.Address{0}}
+
 	// initialize random users
 	privkeys := []*ecdsa.PrivateKey{}
 	accounts := []*state.Account{}
@@ -235,13 +232,13 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				h := tx.GetHash()
 				userCurTx[r1] = &h
 				userCurTx[r2] = &h
-        
-        // Add to txpool
-        success, err := Txpool.Add(tx)
-        if !success {
-          fmt.Println(err)
-        }
-        
+
+				// Add to txpool
+				success, err := Txpool.Add(tx)
+				if !success {
+					fmt.Println(err)
+				}
+
 				// save all tx in allTxs
 				allTxs[tx.GetHash()] = tx
 
@@ -302,12 +299,12 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				userCurTx[r1] = &h
 				userCurTx[r2] = &h
 				userCurTx[r3] = &h
-        
-        // Add to txpool
-        success, err := Txpool.Add(tx)
-        if !success {
-          fmt.Println(err)
-        }
+
+				// Add to txpool
+				success, err := Txpool.Add(tx)
+				if !success {
+					fmt.Println(err)
+				}
 
 				// save all tx in allTxs
 				allTxs[tx.GetHash()] = tx
@@ -316,8 +313,8 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 		}
 
 		// make random block
-    b := Miner.Mine(Txpool, uint64(0))
-    /*
+		b := Miner.Mine(Txpool, uint64(0))
+
 		b := types.NewBlock(&types.Header{}, txs)
 		b.GetHeader().ParentHash = bc.CurrentBlock().Hash()
 		b.GetHeader().Number = i
@@ -335,16 +332,17 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				break
 			}
 		}
-  */
-    if b == nil {
-      fmt.Println("Mining Fail")
-    }
-    
-    // Insert block to chain
-    err := bc.Insert(b)
-    if err != nil {
-      fmt.Println(err)
-    }
-}
+
+		if b == nil {
+			fmt.Println("Mining Fail")
+		}
+
+		// Insert block to chain
+		err := bc.Insert(b)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 	return bc
 }
+*/
