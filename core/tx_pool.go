@@ -6,9 +6,7 @@ import (
 	"errors"
 
 	"github.com/altair-lab/xoreum/core/state"
-	//"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
-	//"github.com/altair-lab/xoreum/crypto"
 )
 
 // Reference : tx_pool.go#L43
@@ -16,41 +14,27 @@ var (
 	// ErrInvalidSender is returned if the transaction contains an invalid signature.
 	ErrInvalidSender = errors.New("invalid sender")
 
-	// ErrNonceTooLow is returned if the nonce of a transaction is lower than the
-	// one present in the local chain
-	ErrNonceTooLow = errors.New("nonce too low")
+	// Prev nonce + 1 != Post nonce
+	ErrIncorrectNonce = errors.New("incorrect nonce")
 
-	// ErrInsufficientFunds is returned if the total cost of executing a transaction
-	// is higher than the balance of the user's account.
-	ErrInsufficientFunds = errors.New("insufficient balance")
+	// Prev/Post balance sum is different
+	ErrIncorrectBalance = errors.New("incorrect balance")
 
-	// ErrNegativeValue is a sanity error to ensure noone is able to specify a
-	// transaction with a negative value.
-	ErrNegativeValue = errors.New("negative value")
-
-	// ErrOverwrite is returned if a transaction is attempted to be written with already existing nonce
-	ErrOverwrite = errors.New("already existing nonce")
+	// Incorrect Prev state
+	ErrIncorrectPrevState = errors.New("incorrect prev state")
 )
 
 // Reference : tx_pool.go#L205
 type TxPool struct {
-	//chain       BlockChain
-	//queue	    map[common.Address]*txList // Address-txList map for validation
 	all         *txQueue // Queued transactions for time ordering (FIFO)
 	currentState	state.State // Current state in the blockchain head
 	chain		*BlockChain // Current chain
-	
-	// [TODO] pending map[common.Address]*txList // All currently processable transactions
-	// [TODO] pendingState : Pending state tracking virtual nonces
 }
 
-func NewTxPool(state state.State, chain *BlockChain) *TxPool {
-	// [TODO] Get state from chain.State, not by parameter.
+func NewTxPool(chain *BlockChain) *TxPool {
 	pool := &TxPool{
-		//chain:		chain,
-		//queue:		make(map[common.Address]*txList),
 		all:		newTxQueue(),
-		currentState:	state,
+		currentState:	chain.GetState(),
 		chain:		chain,
 	}
 
@@ -94,55 +78,45 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction) error {
-	// [FIXME] We don't have Sender, Value, Nonce fields in Tx
-	//         How can we validate?
-	
 	/*
-	from := crypto.Keccak256Address(common.ToBytes(tx.Sender())) // changed
-	// Transactions can't be negative. This may never happen using RLP decoded
-	// transactions but may occur if you create a transaction using the RPC.
-	if tx.Value() < 0 {
-		return ErrNegativeValue
-	}
+	for _, key := range tx.Participants() {
+                // [FIXME]
+		//prevState := loadTransaction(tx.PrevTxhashes()[i]).GetPostState(key)
+		prevState := &state.Account{}
 
-	// Transactor should have enough funds to cover the costs
-	// cost == V + GP * GL
-	if pool.currentState.GetBalance(from) < tx.Value() {
-		return ErrInsufficientFunds
-	}
-	
-	if pool.currentState.GetNonce(from) > tx.Nonce() {
-		return ErrNonceTooLow
-	}
-	*/
+                // Check incorrect prev state
+                if pool.currentState.GetBalance(key) != prevState.Balance {
+                        return ErrIncorrectPrevState
+                }
+                if pool.currentState.GetNonce(key) != prevState.Nonce {
+                        return ErrIncorrectPrevState
+                }
+
+                // Check Nonce
+                if tx.GetPostState(key).Nonce != prevState.Nonce + 1 {
+                        return ErrIncorrectNonce
+                }
+        }
+
+        // Check Balance Sum
+	postBalanceSum := tx.GetPostBalanceSum()
+	prevBalanceSum := tx.GetPrevBalanceSum()
+        if postBalanceSum != prevBalanceSum {
+                return ErrIncorrectBalance
+        }
+
 	// Make sure the transaction is signed properly
 	validity := tx.VerifySignature() 
 	if validity != nil {
 		return ErrInvalidSender
 	}
-        
+        */
 	// nothing
 	return nil 
 }
 
 // enqueue a single trasaction to pool.queue, pool.all
 func (pool *TxPool) enqueueTx(tx *types.Transaction) (bool, error) {
-	// Try to insert the transaction into the future queue
-	/*
-	// [FIXME] Enqueue to all participants ?
-	for _, pubKey := range tx.Participants() {
-		from := crypto.Keccak256Address(common.ToBytes(*pubKey))
-
-		if pool.queue[from] == nil {
-			pool.queue[from] = newTxList(false)
-		}
-		inserted := pool.queue[from].Add(tx)
-		if !inserted {
-			// An older transaction exists, discard this
-			return false, ErrOverwrite
-		}
-	}
-	*/
 	pool.all.Enqueue(tx)
 	return true, nil
 }
@@ -153,23 +127,6 @@ func (pool *TxPool) DequeueTx() (*types.Transaction, bool){
 		// empty queue
 		return nil, false
 	}
-	/*
-	// [FIXME] Dequeue to all participants ?
-	for _, pubKey := range tx.Participants() {
-		from := crypto.Keccak256Address(common.ToBytes(*pubKey)) // changed
-
-		if pool.queue[from] == nil {
-			// exist in txQueue, but not in txList
-			return tx, false
-		}
-
-		deleted := pool.queue[from].Remove(tx)
-		if !deleted {
-			// exist in txQueue, but not in txList
-			return tx, false
-		}
-	}
-	*/
 	return tx, true 
 }
 

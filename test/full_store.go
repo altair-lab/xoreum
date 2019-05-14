@@ -77,7 +77,6 @@ func main() {
 		fmt.Println("storing block", block.Number())
 		rawdb.StoreBlock(db, block)
 		block.PrintBlock()
-		fmt.Println("\n")
 
 		last_BN = i
 		last_hash := rawdb.ReadHash(db, last_BN)
@@ -107,7 +106,6 @@ func main() {
 
 			fmt.Println("storing block", block.Number())
 			rawdb.StoreBlock(db, block)
-			fmt.Println("\n")
 
 			last_BN = block.Number()
 			last_hash := rawdb.ReadHash(db, last_BN)

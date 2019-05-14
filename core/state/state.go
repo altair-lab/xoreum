@@ -30,10 +30,15 @@ func (s State) Print() {
 
 func (s State) GetBalance(pubkey *ecdsa.PublicKey) uint64 {
 	return s[*pubkey].Balance
-}
 
 func (s State) GetNonce(pubkey *ecdsa.PublicKey) uint64 {
 	return s[*pubkey].Nonce
+}
+
+func (s State) NewAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {
+	acc := newAccount(pubkey, nonce, balance)
+	s.Add(acc)
+	return acc
 }
 
 func NewAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {

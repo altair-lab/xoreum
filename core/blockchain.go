@@ -16,6 +16,7 @@ import (
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/params"
 )
 
@@ -43,6 +44,7 @@ type BlockChain struct {
 	//validator Validator
 
 	blocks []types.Block // temporary block list. blocks will be saved in db
+	s state.State // temporary state. it will be saved in db
 }
 
 func NewBlockChain(db xordb.Database) *BlockChain {
@@ -54,6 +56,7 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+	bc.s = state.NewState()
 
 	return bc
 }
@@ -71,6 +74,7 @@ func (bc *BlockChain) Insert(block *types.Block) error {
 		// pass all validation
 		// insert that block into blockchain
 		bc.insert(block)
+		bc.applyTransaction(bc.s, block.GetTxs())
 		return nil
 	}
 }
@@ -106,6 +110,16 @@ func (bc *BlockChain) validateBlock(block *types.Block) error {
 	return nil
 }
 
+// Apply transaction to state
+func (bc *BlockChain) applyTransaction(s state.State, txs *types.Transactions) {
+        for _, tx := range *txs {
+                for i, key := range tx.Participants() {
+                        // Apply post state
+                        s[*key] = tx.PostStates()[i]
+                }
+        }
+}
+
 // actually insert block
 func (bc *BlockChain) insert(block *types.Block) {
 	bc.blocks = append(bc.blocks, *block)
@@ -118,6 +132,10 @@ func (bc *BlockChain) CurrentBlock() *types.Block {
 
 func (bc *BlockChain) BlockAt(index uint64) *types.Block {
 	return &bc.blocks[index]
+}
+
+func (bc *BlockChain) GetState() state.State {
+	return bc.s
 }
 
 func (bc *BlockChain) PrintBlockChain() {
@@ -136,14 +154,18 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 	bc := NewBlockChain(db)
 	allTxs := make(map[common.Hash]*types.Transaction) // all txs in this test blockchain
 	userCurTx := make(map[int64]*common.Hash)          // map to fill PrevTxHashes of tx
-
+  
+  // initialize
+  Txpool := core.NewTxPool(bc)
+  Miner := miner.Miner{state.Address{0}}
+  
 	// initialize random users
 	privkeys := []*ecdsa.PrivateKey{}
 	accounts := []*state.Account{}
 	for i := uint64(0); i < partNum; i++ {
 		priv, _ := crypto.GenerateKey()
 		privkeys = append(privkeys, priv)
-		acc := state.NewAccount(&priv.PublicKey, 0, 100) // everyone has 100 won initially
+		acc := bc.GetState().NewAccount(&priv.PublicKey, 0, 100) // everyone has 100 won initially
 		accounts = append(accounts, acc)
 		userCurTx[int64(i)] = &common.Hash{} // initialize: nil Tx
 	}
@@ -216,10 +238,13 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				h := tx.Hash()
 				userCurTx[r1] = &h
 				userCurTx[r2] = &h
-
-				// insert random tx into txs
-				txs.Insert(tx)
-
+        
+        // Add to txpool
+        success, err := Txpool.Add(tx)
+        if !success {
+          fmt.Println(err)
+        }
+        
 				// save all tx in allTxs
 				allTxs[tx.Hash()] = tx
 
@@ -280,9 +305,12 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				userCurTx[r1] = &h
 				userCurTx[r2] = &h
 				userCurTx[r3] = &h
-
-				// insert random tx into txs
-				txs.Insert(tx)
+        
+        // Add to txpool
+        success, err := Txpool.Add(tx)
+        if !success {
+          fmt.Println(err)
+        }
 
 				// save all tx in allTxs
 				allTxs[tx.Hash()] = tx
@@ -291,6 +319,8 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 		}
 
 		// make random block
+    b := Miner.Mine(Txpool, uint64(0))
+    /*
 		b := types.NewBlock(&types.Header{}, txs)
 		b.GetHeader().ParentHash = bc.CurrentBlock().Hash()
 		b.GetHeader().Number = i
@@ -309,6 +339,16 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 			}
 		}
 	}
+  */
+    if b == nil {
+      fmt.Println("Mining Fail")
+    }
+    
+    // Insert block to chain
+    err := bc.Insert(b)
+    if err != nil {
+      fmt.Println(err)
+    }
 
 	return bc
 }
