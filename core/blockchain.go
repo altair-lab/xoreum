@@ -143,7 +143,7 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 	for i := uint64(0); i < partNum; i++ {
 		priv, _ := crypto.GenerateKey()
 		privkeys = append(privkeys, priv)
-		acc := state.NewAccount(&priv.PublicKey, 0, 100)
+		acc := state.NewAccount(&priv.PublicKey, 0, 100) // everyone has 100 won initially
 		accounts = append(accounts, acc)
 		userCurTx[int64(i)] = &common.Hash{} // initialize: nil Tx
 	}
@@ -181,6 +181,22 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				r1 := R1.Int64()
 				r2 := R2.Int64() + int64(partNum/2)
 
+				// make post state
+				// 1. copy current state
+				ps1 := state.NewAccount(accounts[r1].PublicKey, accounts[r1].Nonce, accounts[r1].Balance)
+				ps2 := state.NewAccount(accounts[r2].PublicKey, accounts[r2].Nonce, accounts[r2].Balance)
+				// 2. increase nonce
+				ps1.Nonce++
+				ps2.Nonce++
+				// 3. move random amount of balanace
+				Amount, _ := rand.Int(rand.Reader, big.NewInt(int64(ps2.Balance/2)))
+				amount := Amount.Uint64()
+				ps1.Balance += amount
+				ps2.Balance -= amount
+				// 4. update current account state
+				accounts[r1] = ps1
+				accounts[r2] = ps2
+
 				// fill fields for tx
 				parPublicKeys = append(parPublicKeys, accounts[r1].PublicKey)
 				parPublicKeys = append(parPublicKeys, accounts[r2].PublicKey)
@@ -217,6 +233,28 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				r1 := R1.Int64()
 				r2 := R2.Int64() + int64(partNum/3)
 				r3 := R3.Int64() + int64(partNum/3) + int64(partNum/3)
+
+				// make post state
+				// 1. copy current state
+				ps1 := state.NewAccount(accounts[r1].PublicKey, accounts[r1].Nonce, accounts[r1].Balance)
+				ps2 := state.NewAccount(accounts[r2].PublicKey, accounts[r2].Nonce, accounts[r2].Balance)
+				ps3 := state.NewAccount(accounts[r3].PublicKey, accounts[r3].Nonce, accounts[r3].Balance)
+				// 2. increase nonce
+				ps1.Nonce++
+				ps2.Nonce++
+				ps3.Nonce++
+				// 3. move random amount of balanace
+				Amount1, _ := rand.Int(rand.Reader, big.NewInt(int64(ps1.Balance/4)))
+				amount1 := Amount1.Uint64()
+				Amount2, _ := rand.Int(rand.Reader, big.NewInt(int64(ps2.Balance/4)))
+				amount2 := Amount2.Uint64()
+				ps1.Balance -= amount1
+				ps2.Balance -= amount2
+				ps3.Balance += (amount1 + amount2)
+				// 4. update current account state
+				accounts[r1] = ps1
+				accounts[r2] = ps2
+				accounts[r3] = ps3
 
 				// fill fields for tx
 				parPublicKeys = append(parPublicKeys, accounts[r1].PublicKey)
