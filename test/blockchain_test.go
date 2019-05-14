@@ -229,5 +229,5 @@ func ExampleFunc3() {
 	testbc.PrintBlockChain()
 	testbc.GetState().Print()
 
-	// output: 1
+	// output: 4
 }
