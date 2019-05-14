@@ -36,8 +36,10 @@ func (s State) GetNonce(pubkey *ecdsa.PublicKey) uint64 {
 	return s[*pubkey].Nonce
 }
 
-func NewAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {
-	return newAccount(pubkey, nonce, balance)
+func (s State) NewAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {
+	acc := newAccount(pubkey, nonce, balance)
+	s.Add(acc)
+	return acc
 }
 
 func newAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {

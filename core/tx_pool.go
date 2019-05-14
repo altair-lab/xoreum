@@ -36,11 +36,10 @@ type TxPool struct {
 	// [TODO] pendingState : Pending state tracking virtual nonces
 }
 
-func NewTxPool(state state.State, chain *BlockChain) *TxPool {
-	// [TODO] Get state from chain.State, not by parameter.
+func NewTxPool(chain *BlockChain) *TxPool {
 	pool := &TxPool{
 		all:		newTxQueue(),
-		currentState:	state,
+		currentState:	chain.GetState(),
 		chain:		chain,
 	}
 

@@ -175,7 +175,7 @@ func (tx *Transaction) PrintTx() {
 }
 
 // make random tx for test
-func MakeTestTx(participantsNum int) *Transaction {
+func MakeTestTx(participantsNum int, s state.State) *Transaction {
 	// make participants
 	parNum := participantsNum
 	parPrivateKeys := []*ecdsa.PrivateKey{}
@@ -190,7 +190,7 @@ func MakeTestTx(participantsNum int) *Transaction {
 		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
 
 		// assume that every participants has 100 ether
-		parStates = append(parStates, state.NewAccount(&priv.PublicKey, 0, 100))
+		parStates = append(parStates, s.NewAccount(&priv.PublicKey, 0, 100))
 
 		// null prev tx hashes
 		prevTxHashes = append(prevTxHashes, &common.Hash{})
@@ -202,7 +202,7 @@ func MakeTestTx(participantsNum int) *Transaction {
 }
 
 // make random signed tx for test
-func MakeTestSignedTx(participantsNum int) *Transaction {
+func MakeTestSignedTx(participantsNum int, s state.State) *Transaction {
 	// make participants
 	parNum := participantsNum
 	parPrivateKeys := []*ecdsa.PrivateKey{}
@@ -217,7 +217,7 @@ func MakeTestSignedTx(participantsNum int) *Transaction {
 		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
 
 		// assume that every participants has 100 ether
-		parStates = append(parStates, state.NewAccount(&priv.PublicKey, 0, 100))
+		parStates = append(parStates, s.NewAccount(&priv.PublicKey, 0, 100))
 
 		// null prev tx hashes
 		prevTxHashes = append(prevTxHashes, &common.Hash{})

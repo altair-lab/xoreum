@@ -49,6 +49,7 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+	bc.s = state.NewState()
 
 	return bc
 }
@@ -126,6 +127,10 @@ func (bc *BlockChain) BlockAt(index uint64) *types.Block {
 	return &bc.blocks[index]
 }
 
+func (bc *BlockChain) GetState() state.State {
+	return bc.s
+}
+
 func (bc *BlockChain) PrintBlockChain() {
 	fmt.Println("=== Print Blocks ===")
 	for i := 0; i < len(bc.blocks); i++ {
@@ -144,8 +149,8 @@ func MakeTestBlockChain(chainLength uint64) *BlockChain {
 	// insert blocks into blockchain
 	for i := uint64(1); i <= chainLength; i++ {
 		txs := make(types.Transactions, 0)
-		txs.Insert(types.MakeTestSignedTx(2))
-		txs.Insert(types.MakeTestSignedTx(3))
+		txs.Insert(types.MakeTestSignedTx(2, bc.GetState()))
+		txs.Insert(types.MakeTestSignedTx(3, bc.GetState()))
 
 		b := types.NewBlock(&types.Header{}, txs)
 		b.GetHeader().ParentHash = bc.CurrentBlock().Hash()
