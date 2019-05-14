@@ -11,6 +11,7 @@ import (
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/params"
 )
 
@@ -36,6 +37,7 @@ type BlockChain struct {
 	//validator Validator
 
 	blocks []types.Block // temporary block list. blocks will be saved in db
+	s state.State // temporary state. it will be saved in db
 }
 
 func NewBlockChain(db xordb.Database) *BlockChain {
@@ -47,6 +49,7 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+	bc.s = state.NewState()
 
 	return bc
 }
@@ -64,6 +67,7 @@ func (bc *BlockChain) Insert(block *types.Block) error {
 		// pass all validation
 		// insert that block into blockchain
 		bc.insert(block)
+		bc.applyTransaction(bc.s, block.GetTxs())
 		return nil
 	}
 }
@@ -99,6 +103,16 @@ func (bc *BlockChain) validateBlock(block *types.Block) error {
 	return nil
 }
 
+// Apply transaction to state
+func (bc *BlockChain) applyTransaction(s state.State, txs *types.Transactions) {
+        for _, tx := range *txs {
+                for i, key := range tx.Participants() {
+                        // Apply post state
+                        s[*key] = tx.PostStates()[i]
+                }
+        }
+}
+
 // actually insert block
 func (bc *BlockChain) insert(block *types.Block) {
 	bc.blocks = append(bc.blocks, *block)
@@ -111,6 +125,10 @@ func (bc *BlockChain) CurrentBlock() *types.Block {
 
 func (bc *BlockChain) BlockAt(index uint64) *types.Block {
 	return &bc.blocks[index]
+}
+
+func (bc *BlockChain) GetState() state.State {
+	return bc.s
 }
 
 func (bc *BlockChain) PrintBlockChain() {
@@ -131,8 +149,8 @@ func MakeTestBlockChain(chainLength uint64) *BlockChain {
 	// insert blocks into blockchain
 	for i := uint64(1); i <= chainLength; i++ {
 		txs := make(types.Transactions, 0)
-		txs.Insert(types.MakeTestSignedTx(2))
-		txs.Insert(types.MakeTestSignedTx(3))
+		txs.Insert(types.MakeTestSignedTx(2, bc.GetState()))
+		txs.Insert(types.MakeTestSignedTx(3, bc.GetState()))
 
 		b := types.NewBlock(&types.Header{}, txs)
 		b.GetHeader().ParentHash = bc.CurrentBlock().Hash()

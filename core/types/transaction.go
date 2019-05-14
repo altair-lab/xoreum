@@ -59,10 +59,13 @@ func UnmarshalJSON(txbuf []byte) *Transaction {
 
 	// [BUGFIX] tx.txdata.Participants[i].Curve == <nil>
 	participants := make([]*(ecdsa.PublicKey), length)
+	postStates := make([]*(state.Account), length)
+
 	for i := 0; i < length; i++ {
 		participants[i] = &ecdsa.PublicKey{Curve: &elliptic.CurveParams{}}
+		postStates[i] = &state.Account{PublicKey: participants[i]}
 	}
-	txdata := Txdata{Participants: participants}
+	txdata := Txdata{Participants: participants, PostStates: postStates}
 	tx := Transaction{Data: txdata}
 
 	// Unmarshal
@@ -80,6 +83,36 @@ func (tx *Transaction) Nonce() []uint64 {
 	return nonces
 }
 
+// Get specific user's post state using public key
+func (tx *Transaction) GetPostState(key *ecdsa.PublicKey) *state.Account {
+        for i, k := range tx.Data.Participants {
+                  if *k == *key {
+                          return tx.Data.PostStates[i]
+                  }
+        }
+        // No such participant
+        return nil
+}
+
+func (tx *Transaction) GetPostBalanceSum() uint64 {
+          sum := uint64(0)
+          for _, s := range tx.Data.PostStates {
+                    sum += s.Balance
+          }
+          return sum
+}
+
+func (tx *Transaction) GetPrevBalanceSum() uint64 {
+          sum := uint64(0)
+          for i, _ := range tx.Data.Participants {
+                    //[FIXME]
+		    //prevState := loadTransaction(tx.Data.PrevTxHashes[i]).GetPostState()
+		    prevState := &state.Account{Balance: uint64(i)}
+		    sum += prevState.Balance
+          }
+          return sum
+}
+
 //func (tx *Transaction) Value() uint64 { return tx.Data.Amount }
 
 //func (tx *Transaction) Sender() ecdsa.PublicKey { return *tx.Data.Sender } // Temporal function until signature is implemented
@@ -87,6 +120,8 @@ func (tx *Transaction) Nonce() []uint64 {
 //func (tx *Transaction) Recipient() ecdsa.PublicKey { return *tx.Data.Recipient }
 
 func (tx *Transaction) Participants() []*ecdsa.PublicKey { return tx.Data.Participants }
+func (tx *Transaction) PostStates() []*state.Account { return tx.Data.PostStates }
+func (tx *Transaction) PrevTxHashes() []*common.Hash { return tx.Data.PrevTxHashes }
 
 // get hashed txdata's byte array
 func (data *Txdata) GetHashedBytes() []byte {
@@ -143,7 +178,7 @@ func (tx *Transaction) PrintTx() {
 }
 
 // make random tx for test
-func MakeTestTx(participantsNum int) *Transaction {
+func MakeTestTx(participantsNum int, s state.State) *Transaction {
 	// make participants
 	parNum := participantsNum
 	parPrivateKeys := []*ecdsa.PrivateKey{}
@@ -158,7 +193,7 @@ func MakeTestTx(participantsNum int) *Transaction {
 		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
 
 		// assume that every participants has 100 ether
-		parStates = append(parStates, state.NewAccount(&priv.PublicKey, 0, 100))
+		parStates = append(parStates, s.NewAccount(&priv.PublicKey, 0, 100))
 
 		// null prev tx hashes
 		prevTxHashes = append(prevTxHashes, &common.Hash{})
@@ -170,7 +205,7 @@ func MakeTestTx(participantsNum int) *Transaction {
 }
 
 // make random signed tx for test
-func MakeTestSignedTx(participantsNum int) *Transaction {
+func MakeTestSignedTx(participantsNum int, s state.State) *Transaction {
 	// make participants
 	parNum := participantsNum
 	parPrivateKeys := []*ecdsa.PrivateKey{}
@@ -185,7 +220,7 @@ func MakeTestSignedTx(participantsNum int) *Transaction {
 		parPublicKeys = append(parPublicKeys, &priv.PublicKey)
 
 		// assume that every participants has 100 ether
-		parStates = append(parStates, state.NewAccount(&priv.PublicKey, 0, 100))
+		parStates = append(parStates, s.NewAccount(&priv.PublicKey, 0, 100))
 
 		// null prev tx hashes
 		prevTxHashes = append(prevTxHashes, &common.Hash{})

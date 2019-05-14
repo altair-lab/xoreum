@@ -44,7 +44,7 @@ func main() {
 	for i := 0; i < DEFAULT_BLOCK_NUMBER; i++ {
 		// Make test tx and add to txpool
 		for j := 0; j < i; j++ {
-			success, err := Txpool.Add(types.MakeTestSignedTx(j + 1))
+			success, err := Txpool.Add(types.MakeTestSignedTx(j + 1, Blockchain.GetState()))
 			if !success {
 				fmt.Println(err)
 			}
