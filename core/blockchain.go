@@ -1,15 +1,20 @@
 package core
 
 import (
+	"crypto/ecdsa"
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"math/big"
 	"sync/atomic"
 	"time"
 
+	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb"
 	"github.com/altair-lab/xoreum/xordb/memorydb"
 
 	"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/params"
@@ -30,6 +35,8 @@ type BlockChain struct {
 	//ChainID *big.Int // chainId identifies the current chain and is used for replay protection
 
 	db xordb.Database
+
+	s state.State // temporary field before import db APIs
 
 	genesisBlock *types.Block
 	currentBlock atomic.Value
@@ -141,17 +148,179 @@ func (bc *BlockChain) PrintBlockChain() {
 }
 
 // make blockchain for test. insert simple blocks
-func MakeTestBlockChain(chainLength uint64) *BlockChain {
+func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 
 	db := memorydb.New()
 	bc := NewBlockChain(db)
+	allTxs := make(map[common.Hash]*types.Transaction) // all txs in this test blockchain
+	userCurTx := make(map[int64]*common.Hash)          // map to fill PrevTxHashes of tx
+  
+  // initialize
+  Txpool := core.NewTxPool(bc)
+  Miner := miner.Miner{state.Address{0}}
+  
+	// initialize random users
+	privkeys := []*ecdsa.PrivateKey{}
+	accounts := []*state.Account{}
+	for i := uint64(0); i < partNum; i++ {
+		priv, _ := crypto.GenerateKey()
+		privkeys = append(privkeys, priv)
+		acc := bc.GetState().NewAccount(&priv.PublicKey, 0, 100) // everyone has 100 won initially
+		accounts = append(accounts, acc)
+		userCurTx[int64(i)] = &common.Hash{} // initialize: nil Tx
+	}
 
-	// insert blocks into blockchain
+	// make and insert blocks into blockchain
 	for i := uint64(1); i <= chainLength; i++ {
-		txs := make(types.Transactions, 0)
-		txs.Insert(types.MakeTestSignedTx(2, bc.GetState()))
-		txs.Insert(types.MakeTestSignedTx(3, bc.GetState()))
 
+		// make random transactions
+
+		// make empty Transactions
+		txs := make(types.Transactions, 0)
+
+		// make and insert random tx into txs
+		txnum := 2 // max tx num per block
+		for i := 0; i < txnum; i++ {
+			randNumber, _ := rand.Int(rand.Reader, big.NewInt(3)) // 0 ~ 2
+			randNum := randNumber.Int64()                         // convert big.int to int
+			if randNum == 0 {
+				// do not insert tx
+				continue
+			}
+
+			// fields for random tx
+			parPublicKeys := []*ecdsa.PublicKey{}
+			parStates := []*state.Account{}
+			prevTxHashes := []*common.Hash{}
+
+			// make random tx and add it into txs
+			if randNum == 1 {
+				// tx's participants number: 2
+
+				// pick 2 random numbers
+				R1, _ := rand.Int(rand.Reader, big.NewInt(int64(partNum/2)))
+				R2, _ := rand.Int(rand.Reader, big.NewInt(int64(partNum/2)))
+				r1 := R1.Int64()
+				r2 := R2.Int64() + int64(partNum/2)
+
+				// make post state
+				// 1. copy current state
+				ps1 := state.NewAccount(accounts[r1].PublicKey, accounts[r1].Nonce, accounts[r1].Balance)
+				ps2 := state.NewAccount(accounts[r2].PublicKey, accounts[r2].Nonce, accounts[r2].Balance)
+				// 2. increase nonce
+				ps1.Nonce++
+				ps2.Nonce++
+				// 3. move random amount of balanace
+				Amount, _ := rand.Int(rand.Reader, big.NewInt(int64(ps2.Balance/2)))
+				amount := Amount.Uint64()
+				ps1.Balance += amount
+				ps2.Balance -= amount
+				// 4. update current account state
+				accounts[r1] = ps1
+				accounts[r2] = ps2
+
+				// fill fields for tx
+				parPublicKeys = append(parPublicKeys, accounts[r1].PublicKey)
+				parPublicKeys = append(parPublicKeys, accounts[r2].PublicKey)
+				parStates = append(parStates, accounts[r1])
+				parStates = append(parStates, accounts[r2])
+				prevTxHashes = append(prevTxHashes, userCurTx[r1])
+				prevTxHashes = append(prevTxHashes, userCurTx[r2])
+
+				// make tx
+				tx := types.NewTransaction(parPublicKeys, parStates, prevTxHashes)
+
+				// sign tx to make valid tx
+				tx.Sign(privkeys[r1])
+				tx.Sign(privkeys[r2])
+
+				// update userCurTx
+				h := tx.Hash()
+				userCurTx[r1] = &h
+				userCurTx[r2] = &h
+        
+        // Add to txpool
+        success, err := Txpool.Add(tx)
+        if !success {
+          fmt.Println(err)
+        }
+        
+				// save all tx in allTxs
+				allTxs[tx.Hash()] = tx
+
+			} else {
+				// tx's participants number: 3
+
+				// pick 3 random numbers
+				R1, _ := rand.Int(rand.Reader, big.NewInt(int64(partNum/3)))
+				R2, _ := rand.Int(rand.Reader, big.NewInt(int64(partNum/3)))
+				R3, _ := rand.Int(rand.Reader, big.NewInt(int64(partNum/3)))
+				r1 := R1.Int64()
+				r2 := R2.Int64() + int64(partNum/3)
+				r3 := R3.Int64() + int64(partNum/3) + int64(partNum/3)
+
+				// make post state
+				// 1. copy current state
+				ps1 := state.NewAccount(accounts[r1].PublicKey, accounts[r1].Nonce, accounts[r1].Balance)
+				ps2 := state.NewAccount(accounts[r2].PublicKey, accounts[r2].Nonce, accounts[r2].Balance)
+				ps3 := state.NewAccount(accounts[r3].PublicKey, accounts[r3].Nonce, accounts[r3].Balance)
+				// 2. increase nonce
+				ps1.Nonce++
+				ps2.Nonce++
+				ps3.Nonce++
+				// 3. move random amount of balanace
+				Amount1, _ := rand.Int(rand.Reader, big.NewInt(int64(ps1.Balance/4)))
+				amount1 := Amount1.Uint64()
+				Amount2, _ := rand.Int(rand.Reader, big.NewInt(int64(ps2.Balance/4)))
+				amount2 := Amount2.Uint64()
+				ps1.Balance -= amount1
+				ps2.Balance -= amount2
+				ps3.Balance += (amount1 + amount2)
+				// 4. update current account state
+				accounts[r1] = ps1
+				accounts[r2] = ps2
+				accounts[r3] = ps3
+
+				// fill fields for tx
+				parPublicKeys = append(parPublicKeys, accounts[r1].PublicKey)
+				parPublicKeys = append(parPublicKeys, accounts[r2].PublicKey)
+				parPublicKeys = append(parPublicKeys, accounts[r3].PublicKey)
+				parStates = append(parStates, accounts[r1])
+				parStates = append(parStates, accounts[r2])
+				parStates = append(parStates, accounts[r3])
+				prevTxHashes = append(prevTxHashes, userCurTx[r1])
+				prevTxHashes = append(prevTxHashes, userCurTx[r2])
+				prevTxHashes = append(prevTxHashes, userCurTx[r3])
+
+				// make tx
+				tx := types.NewTransaction(parPublicKeys, parStates, prevTxHashes)
+
+				// sign tx to make valid tx
+				tx.Sign(privkeys[r1])
+				tx.Sign(privkeys[r2])
+				tx.Sign(privkeys[r3])
+
+				// update userCurTx
+				h := tx.Hash()
+				userCurTx[r1] = &h
+				userCurTx[r2] = &h
+				userCurTx[r3] = &h
+        
+        // Add to txpool
+        success, err := Txpool.Add(tx)
+        if !success {
+          fmt.Println(err)
+        }
+
+				// save all tx in allTxs
+				allTxs[tx.Hash()] = tx
+			}
+
+		}
+
+		// make random block
+    b := Miner.Mine(Txpool, uint64(0))
+    /*
 		b := types.NewBlock(&types.Header{}, txs)
 		b.GetHeader().ParentHash = bc.CurrentBlock().Hash()
 		b.GetHeader().Number = i
@@ -170,6 +339,16 @@ func MakeTestBlockChain(chainLength uint64) *BlockChain {
 			}
 		}
 	}
+  */
+    if b == nil {
+      fmt.Println("Mining Fail")
+    }
+    
+    // Insert block to chain
+    err := bc.Insert(b)
+    if err != nil {
+      fmt.Println(err)
+    }
 
 	return bc
 }

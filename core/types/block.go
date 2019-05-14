@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -277,3 +278,22 @@ func (b *Block) Header() *Header { return (b.header) }
 func (b *Block) Body() *Body { return &Body{b.transactions} }
 
 func (b *Block) Transactions() Transactions { return b.transactions }
+
+// block validation function for iot node
+func (b *Block) ValidateBlock() error {
+	// 1. check block_hash < difficulty
+	if b.GetHeader().Hash().ToBigInt().Cmp(common.Difficulty) != -1 {
+		return errors.New("block's hash is higher than difficulty")
+	}
+
+	// 2. check block's txs validity
+	for i := 0; i < len(b.transactions); i++ {
+		err := b.transactions[i].ValidateTx()
+		if err != nil {
+			return err
+		}
+	}
+
+	// this is valid block. return no error
+	return nil
+}

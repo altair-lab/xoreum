@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -11,6 +12,15 @@ import (
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/rlp"
+)
+
+var (
+	// incorrect block's number (current_block_number + 1 != insert_block's_number)
+	ErrDiffFieldLength = errors.New("tx has different field array length")
+
+	ErrInvalidPostStates = errors.New("tx's PostStates's Account is not same with tx's Participants")
+
+	ErrInvalidPrevTxHashes = errors.New("Account in tx's PrevTxHashes is not match with Participants")
 )
 
 type Transaction struct {
@@ -165,6 +175,7 @@ func (txs *Transactions) Insert(tx *Transaction) {
 }
 
 func (tx *Transaction) PrintTx() {
+	fmt.Println("tx hash:", tx.Hash().ToHex())
 	for i := 0; i < len(tx.Data.Participants); i++ {
 		fmt.Println("participant ", i)
 		fmt.Println("tx hash ", tx.Hash)
@@ -244,4 +255,25 @@ func (s Transactions) Len() int { return len(s) }
 func (s Transactions) GetRlp(i int) []byte {
 	enc, _ := rlp.EncodeToBytes(s[i])
 	return enc
+}
+
+// tx validation function for iot node
+func (tx *Transaction) ValidateTx() error {
+
+	// 1. check Participants, PostStates, PrevTxHashes's lengths are same
+	if !(len(tx.Data.Participants) == len(tx.Data.PostStates) && len(tx.Data.PostStates) == len(tx.Data.PrevTxHashes)) {
+		return ErrDiffFieldLength
+	}
+
+	// 2. check PostStates' Account == Participants' Account (check pub key)
+	for i := 0; i < len(tx.Data.Participants); i++ {
+		if *tx.Data.PostStates[i].PublicKey != *tx.Data.Participants[i] {
+			return ErrInvalidPostStates
+		}
+	}
+
+	// 3. check PrevTxHashes has Participants state (TODO) -> ErrInvalidPrevTxHashes
+
+	// 4. check signature
+	return tx.VerifySignature()
 }
