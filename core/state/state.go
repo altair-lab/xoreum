@@ -23,9 +23,12 @@ func (s State) Add(acc *Account) {
 }
 
 func (s State) Print() {
+	sum := uint64(0)
 	for _, v := range s {
-		v.Print()
+		v.PrintAccount()
+		sum += v.Balance
 	}
+	fmt.Println("balance sum:", sum)
 }
 
 func (s State) GetBalance(pubkey *ecdsa.PublicKey) uint64 {
