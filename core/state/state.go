@@ -42,6 +42,10 @@ func (s State) NewAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64)
 	return acc
 }
 
+func NewAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {
+	return newAccount(pubkey, nonce, balance)
+}
+
 func newAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {
 	return &Account{
 		PublicKey: pubkey,
