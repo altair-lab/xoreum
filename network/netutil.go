@@ -168,24 +168,6 @@ func RecvBlock(conn net.Conn) (*types.Block, error) {
 	// Make Tx struct
 	txs := types.Transactions{}
 	for i := uint32(0); i < txslen; i++ {
-		/*
-		// Get txdata, R, S
-		data, err := RecvObjectJson(conn)
-		if err != nil {
-			return nil, err
-		}
-		
-		R, err := RecvObjectJson(conn)
-		if err != nil {
-			return nil, err
-		}
-		
-		S, err := RecvObjectJson(conn)
-		if err != nil {
-			return nil, err
-		}
-		*/
-
 		// Get transaction
 		txbuf, err := RecvObjectJson(conn)
 		if err != nil {
