@@ -23,12 +23,19 @@ func main() {
 	for i := uint64(1); i <= uint64(*last_BN); i++ {
 		//load block via accessor api
 		fmt.Println("loading block", i)
-		rawdb.LoadBlockByBN(db, i).PrintBlock()
-		fmt.Println("\n")
+		loaded := rawdb.LoadBlockByBN(db, i)
+		txHash := loaded.Transactions()[0].Hash
+		//tx, blockHash, *blockNumber, uint64(txIndex)
+		tx, _, blockNumber, txIndex := rawdb.ReadTransaction(db, txHash)
+		loaded.PrintBlock()
+		fmt.Println("===========")
+		if tx == nil {
+			fmt.Println("nil ptr")
+		} else {
+			fmt.Println("tx in block", blockNumber)
+			fmt.Println(txIndex, "th transaction")
+			// tx.PrintTx()
+		}
+		fmt.Println("===========")
 	}
-
-	// ldb, _ := leveldb.New("chaindata", 0, 0, "")
-
-	// blockchain := rawdb.LoadBlockChain(ldb)
-	// blockchain.PrintBlockChain()
 }

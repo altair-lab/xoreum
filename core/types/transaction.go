@@ -14,8 +14,8 @@ import (
 )
 
 type Transaction struct {
-	Data Txdata `json:"d"`
-	hash common.Hash
+	Data Txdata      `json:"d"`
+	Hash common.Hash `json:"h"`
 
 	// signature values of participants
 	Signature_R []*big.Int `json:"r"`
@@ -46,6 +46,7 @@ func NewTransaction(participants []*ecdsa.PublicKey, postStates []*state.Account
 	length := len(participants)
 	tx.Signature_R = make([]*big.Int, length)
 	tx.Signature_S = make([]*big.Int, length)
+	tx.Hash = tx.GetHash()
 
 	return &tx
 }
@@ -133,7 +134,7 @@ func (data *Txdata) GetHashedBytes() []byte {
 }
 
 // hashing txdata of tx
-func (tx *Transaction) Hash() common.Hash {
+func (tx *Transaction) GetHash() common.Hash {
 	//return crypto.Keccak256Hash(common.ToBytes(*tx))
 
 	// new method
@@ -163,6 +164,7 @@ func (txs *Transactions) Insert(tx *Transaction) {
 func (tx *Transaction) PrintTx() {
 	for i := 0; i < len(tx.Data.Participants); i++ {
 		fmt.Println("participant ", i)
+		fmt.Println("tx hash ", tx.Hash)
 		fmt.Println("public key: ", tx.Data.Participants[i])
 		//fmt.Println("post state: ", tx.Data.PostStates[i])
 		fmt.Print("post state -> ")
