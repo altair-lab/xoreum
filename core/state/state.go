@@ -30,6 +30,7 @@ func (s State) Print() {
 
 func (s State) GetBalance(pubkey *ecdsa.PublicKey) uint64 {
 	return s[*pubkey].Balance
+}
 
 func (s State) GetNonce(pubkey *ecdsa.PublicKey) uint64 {
 	return s[*pubkey].Nonce

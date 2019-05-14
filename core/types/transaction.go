@@ -175,7 +175,7 @@ func (txs *Transactions) Insert(tx *Transaction) {
 }
 
 func (tx *Transaction) PrintTx() {
-	fmt.Println("tx hash:", tx.Hash().ToHex())
+	fmt.Println("tx hash:", tx.Hash.ToHex())
 	for i := 0; i < len(tx.Data.Participants); i++ {
 		fmt.Println("participant ", i)
 		fmt.Println("tx hash ", tx.Hash)

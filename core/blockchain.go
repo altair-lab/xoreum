@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"sync/atomic"
-	"time"
+	//"time"
 
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb"
@@ -16,7 +16,6 @@ import (
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/params"
 )
 
@@ -35,8 +34,6 @@ type BlockChain struct {
 	//ChainID *big.Int // chainId identifies the current chain and is used for replay protection
 
 	db xordb.Database
-
-	s state.State // temporary field before import db APIs
 
 	genesisBlock *types.Block
 	currentBlock atomic.Value
@@ -156,8 +153,8 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 	userCurTx := make(map[int64]*common.Hash)          // map to fill PrevTxHashes of tx
   
   // initialize
-  Txpool := core.NewTxPool(bc)
-  Miner := miner.Miner{state.Address{0}}
+  Txpool := NewTxPool(bc)
+  Miner := miner{common.Address{0}} 
   
 	// initialize random users
 	privkeys := []*ecdsa.PrivateKey{}
@@ -235,7 +232,7 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				tx.Sign(privkeys[r2])
 
 				// update userCurTx
-				h := tx.Hash()
+				h := tx.GetHash()
 				userCurTx[r1] = &h
 				userCurTx[r2] = &h
         
@@ -246,7 +243,7 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
         }
         
 				// save all tx in allTxs
-				allTxs[tx.Hash()] = tx
+				allTxs[tx.GetHash()] = tx
 
 			} else {
 				// tx's participants number: 3
@@ -301,7 +298,7 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				tx.Sign(privkeys[r3])
 
 				// update userCurTx
-				h := tx.Hash()
+				h := tx.GetHash()
 				userCurTx[r1] = &h
 				userCurTx[r2] = &h
 				userCurTx[r3] = &h
@@ -313,7 +310,7 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
         }
 
 				// save all tx in allTxs
-				allTxs[tx.Hash()] = tx
+				allTxs[tx.GetHash()] = tx
 			}
 
 		}
@@ -338,7 +335,6 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
 				break
 			}
 		}
-	}
   */
     if b == nil {
       fmt.Println("Mining Fail")
@@ -349,6 +345,6 @@ func MakeTestBlockChain(chainLength uint64, partNum uint64) *BlockChain {
     if err != nil {
       fmt.Println(err)
     }
-
+}
 	return bc
 }
