@@ -21,7 +21,7 @@ type BitcoinTx struct {
 }
 
 type BitcoinTxInput struct {
-	PrevOut *BitcoinTxData `json:"prev_out"`
+	BitcoinTxData `json:"prev_out"`
 }
 
 type BitcoinTxData struct {
@@ -42,8 +42,7 @@ func (btx *BitcoinTx) PrintTx() {
 	fmt.Println("--- Print Tx Inputs ---")
 	for i := 0; i < len(btx.Inputs); i++ {
 		fmt.Println("input[", i, "]")
-		//btx.Inputs[i].PrintTxData()
-		btx.Inputs[i].PrevOut.PrintTxData()
+		btx.Inputs[i].PrintTxData()
 	}
 
 	fmt.Println("--- Print Tx Outputs ---")
