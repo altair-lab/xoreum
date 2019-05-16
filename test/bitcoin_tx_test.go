@@ -16,14 +16,17 @@ type BitcoinBlock struct {
 }
 
 type BitcoinTx struct {
-	Inputs  []*BitcoinTxData `json:"inputs"`
-	Outputs []*BitcoinTxData `json:"out"`
+	Inputs  []*BitcoinTxInput `json:"inputs"`
+	Outputs []*BitcoinTxData  `json:"out"`
+}
+
+type BitcoinTxInput struct {
+	PrevOut *BitcoinTxData `json:"prev_out"`
 }
 
 type BitcoinTxData struct {
-	Sequence *big.Int `json:"sequence"`
-	Addr     string   `json:"addr"`
-	Value    *big.Int `json:"value"`
+	Addr  string   `json:"addr"`
+	Value *big.Int `json:"value"`
 }
 
 func (b *BitcoinBlock) PrintBlock() {
@@ -39,7 +42,8 @@ func (btx *BitcoinTx) PrintTx() {
 	fmt.Println("--- Print Tx Inputs ---")
 	for i := 0; i < len(btx.Inputs); i++ {
 		fmt.Println("input[", i, "]")
-		btx.Inputs[i].PrintTxData()
+		//btx.Inputs[i].PrintTxData()
+		btx.Inputs[i].PrevOut.PrintTxData()
 	}
 
 	fmt.Println("--- Print Tx Outputs ---")
@@ -50,7 +54,6 @@ func (btx *BitcoinTx) PrintTx() {
 }
 
 func (btxd *BitcoinTxData) PrintTxData() {
-	fmt.Println("Sequence:", btxd.Sequence)
 	fmt.Println("Addr:", btxd.Addr)
 	fmt.Println("Value:", btxd.Value)
 }
