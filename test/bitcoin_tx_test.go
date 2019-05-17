@@ -11,8 +11,9 @@ import (
 )
 
 type BitcoinBlock struct {
-	Hash string       `json:"hash"`
-	Txs  []*BitcoinTx `json:"tx"`
+	Hash   string       `json:"hash"`
+	Height *big.Int     `json:"height"`
+	Txs    []*BitcoinTx `json:"tx"`
 }
 
 type BitcoinTx struct {
@@ -31,6 +32,8 @@ type BitcoinTxData struct {
 }
 
 func (b *BitcoinBlock) PrintBlock() {
+	fmt.Println("block hash:", b.Hash)
+	fmt.Println("block height:", b.Height)
 	fmt.Println("=== Print Block Txs ===")
 	for i := 0; i < len(b.Txs); i++ {
 		fmt.Println("\n## transaction", i)
