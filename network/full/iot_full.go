@@ -27,7 +27,7 @@ var mutex = &sync.Mutex{}
 func main() {
 	// create genesis block
 	//db := memorydb.New()
-	Blockchain = network.MakeTestBlockChain(3, 5)
+	Blockchain = network.MakeTestBlockChain(10, 5)
 	Blockchain.PrintBlockChain()
 /*
 	// Keep mining every MINING_INTERVAL
