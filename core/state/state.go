@@ -64,3 +64,7 @@ func (acc *Account) Print() {
 func (acc *Account) PrintAccount() {
 	fmt.Println("publickey:", acc.PublicKey, "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
 }
+
+func (acc *Account) Copy() *Account {
+	return NewAccount(acc.PublicKey, acc.Nonce, acc.Balance)
+}
