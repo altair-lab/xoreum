@@ -16,20 +16,36 @@ func main() {
 	// create genesis block
 	// Blockchain := core.NewBlockChain()
 
-	// Print synchronized json data
 	conn, err := net.Dial("tcp","localhost:9000")
 	if nil != err {
-		log.Fatalf("failed to connect to server")
+		log.Fatal("failed to connect to server")
+	}
+	
+	// Get interlinks length
+	interlinkslen, err := network.RecvLength(conn)
+	if nil != err {
+		log.Fatal(err)
 	}
 
-	for {
+	for i := uint32(0); i < interlinkslen; i++ {
+		// Receive interlink block
 		block, err := network.RecvBlock(conn)
 		if err != nil {
 			return
 		}
-
-		block.PrintBlock()
 		
-		// [TODO] State validation (sign, nonce, total balance)
+		// Block validation (sign, nonce, total balance)
+		err = block.ValidateBlock()
+		if err != nil{
+			log.Fatal(err)
+			return
+		}
+
+		// Print block
+		block.PrintBlock()
 	}
+
+	log.Println("INTERLINK SYNCHRONIZATION FINISHED!")
+
+	// [TODO] Make blockchain with current block (= genesis block)
 }

@@ -6,7 +6,6 @@
 package main
 
 import (
-	//"fmt"
 	"io"
 	"log"
 	"net"
@@ -14,10 +13,7 @@ import (
 	"time"
 
 	"github.com/altair-lab/xoreum/core"
-	//"github.com/altair-lab/xoreum/core/miner"
-	//"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/network"
-	//"github.com/altair-lab/xoreum/xordb/memorydb"
 )
 
 const MINING_INTERVAL = 10
@@ -26,10 +22,6 @@ const BROADCAST_INTERVAL = 5
 
 // [TODO] replaceChain (logest chain rule)
 var Blockchain *core.BlockChain
-/*
-var Txpool *core.TxPool
-var Miner miner.Miner
-*/
 var mutex = &sync.Mutex{}
 
 func main() {
@@ -38,39 +30,6 @@ func main() {
 	Blockchain = network.MakeTestBlockChain(10, 5)
 	Blockchain.PrintBlockChain()
 /*
-	Blockchain = core.NewBlockChain(db)
-	Blockchain.PrintBlockChain()
-
-	// Initialization txpool, miner
-	Txpool, Miner = network.Initialization(Blockchain)
-
-	// Mining default blocks (for test)
-	for i := 0; i < DEFAULT_BLOCK_NUMBER; i++ {
-		// Make test tx and add to txpool
-		for j := 0; j < i; j++ {
-			success, err := Txpool.Add(types.MakeTestSignedTx(j + 1, Blockchain.GetState()))
-			if !success {
-				fmt.Println(err)
-			}
-		}
-
-		// Make block (mining)
-		block := Miner.Mine(Txpool, uint64(0))
-		if block == nil {
-			fmt.Println("Mining Fail")
-		}
-
-		// Insert block to Blockchain
-		err := Blockchain.Insert(block)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		// Print current block
-		Blockchain.CurrentBlock().PrintBlock()
-		Blockchain.CurrentBlock().PrintTxs()
-	}
-
 	// Keep mining every MINING_INTERVAL
 	go func() {
 		for {
@@ -121,19 +80,9 @@ func handleConn(conn net.Conn) {
 	log.Printf("CONNECTED TO %v\n", addr)
 
 	// Send only Interlink block data
-	currentBlockNumber := Blockchain.CurrentBlock().GetHeader().Number
-	updatedBlockNumber := uint64(0)
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()
-	log.Printf("INTERLINKS : %v\n", interlinks)
-	for i := 0; i < len(interlinks); i++ {
-		// Send block
-		err := network.SendBlock(conn, Blockchain.BlockAt(interlinks[i]))
-		if err != nil {
-			return
-		}
-		updatedBlockNumber = interlinks[i]
-	}
-
+	network.SendInterlinks(conn, interlinks, Blockchain)
+	updatedBlockNumber := interlinks[len(interlinks)-1]
 	quit := make(chan bool)
 
 	// Check recvBuf every clock
@@ -172,7 +121,6 @@ func handleConn(conn net.Conn) {
 				return
 			default:
 				// Check updated block
-				currentBlockNumber = Blockchain.CurrentBlock().GetHeader().Number
 				for i := updatedBlockNumber + 1; i <= Blockchain.CurrentBlock().GetHeader().Number; i++ {
 					// Send block
 					err := network.SendBlock(conn, Blockchain.BlockAt(i))
