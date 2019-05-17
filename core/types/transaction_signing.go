@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"errors"
+	"fmt"
 )
 
 var ErrInvalidSigKey = errors.New("this private key's owner is not participants of tx")

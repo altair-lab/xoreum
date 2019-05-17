@@ -138,8 +138,10 @@ func (data *Txdata) GetHashedBytes() []byte {
 
 	bytelist := []byte{}
 	for i := 0; i < len(data.Participants); i++ {
-		bytelist = append(bytelist, common.ToBytes(*data.Participants[i])...)
-		bytelist = append(bytelist, common.ToBytes(*data.PostStates[i])...)
+		bytelist = append(bytelist, common.ToBytes(data.Participants[i].X)...)
+		bytelist = append(bytelist, common.ToBytes(data.Participants[i].Y)...)
+		bytelist = append(bytelist, common.ToBytes(data.PostStates[i].Nonce)...)
+		bytelist = append(bytelist, common.ToBytes(data.PostStates[i].Balance)...)
 		bytelist = append(bytelist, common.ToBytes(*data.PrevTxHashes[i])...)
 	}
 
