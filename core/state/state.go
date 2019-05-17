@@ -59,5 +59,5 @@ func (acc *Account) Print() {
 }
 
 func (acc *Account) PrintAccount() {
-	fmt.Println("publickey:", acc.PublicKey, "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
+	fmt.Println("publickey:", acc.PublicKey, "publickey.Curve.params():", acc.PublicKey.Curve.Params(), "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
 }

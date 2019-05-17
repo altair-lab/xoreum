@@ -214,8 +214,14 @@ func MakeTestBlockChain(chainLength int64, partNum int64) *core.BlockChain {
 			fmt.Println("Mining Fail")
 		}
 
+		// Validate block
+		err := b.ValidateBlock()
+		if err != nil {
+			fmt.Println(err)
+		}
+
 		// Insert block to chain
-		err := bc.Insert(b)
+		err = bc.Insert(b)
 		if err != nil {
 			fmt.Println(err)
 		}
