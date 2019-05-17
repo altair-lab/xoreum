@@ -6,7 +6,7 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"io"
 	"log"
 	"net"
@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/altair-lab/xoreum/core"
-	"github.com/altair-lab/xoreum/core/miner"
-	"github.com/altair-lab/xoreum/core/types"
+	//"github.com/altair-lab/xoreum/core/miner"
+	//"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/network"
-	"github.com/altair-lab/xoreum/xordb/memorydb"
+	//"github.com/altair-lab/xoreum/xordb/memorydb"
 )
 
 const MINING_INTERVAL = 10
@@ -26,14 +26,18 @@ const BROADCAST_INTERVAL = 5
 
 // [TODO] replaceChain (logest chain rule)
 var Blockchain *core.BlockChain
+/*
 var Txpool *core.TxPool
 var Miner miner.Miner
+*/
 var mutex = &sync.Mutex{}
 
 func main() {
 	// create genesis block
-	db := memorydb.New()
-
+	//db := memorydb.New()
+	Blockchain = network.MakeTestBlockChain(10, 5)
+	Blockchain.PrintBlockChain()
+/*
 	Blockchain = core.NewBlockChain(db)
 	Blockchain.PrintBlockChain()
 
@@ -90,7 +94,7 @@ func main() {
 			Blockchain.CurrentBlock().PrintBlock()
 		}
 	}()
-
+*/
 	// start TCP and serve TCP server
 	server, err := net.Listen("tcp", ":9000")
 	if err != nil {
