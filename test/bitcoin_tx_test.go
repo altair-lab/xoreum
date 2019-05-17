@@ -16,10 +16,11 @@ type BitcoinBlock struct {
 }
 
 type BitcoinTx struct {
-	Inputs  []*BitcoinTxInput `json:"inputs"`
+	Inputs  []*BitcoinTxInput `json:"inputs"` // it is same as Inputs []*BitcoinTxData
 	Outputs []*BitcoinTxData  `json:"out"`
 }
 
+// embedded struct
 type BitcoinTxInput struct {
 	BitcoinTxData `json:"prev_out"`
 }
@@ -32,7 +33,7 @@ type BitcoinTxData struct {
 func (b *BitcoinBlock) PrintBlock() {
 	fmt.Println("=== Print Block Txs ===")
 	for i := 0; i < len(b.Txs); i++ {
-		fmt.Println("## transaction", i)
+		fmt.Println("\n## transaction", i)
 		b.Txs[i].PrintTx()
 	}
 	fmt.Println("=== End of Block ===")
@@ -57,6 +58,7 @@ func (btxd *BitcoinTxData) PrintTxData() {
 	fmt.Println("Value:", btxd.Value)
 }
 
+// get block's all data including txs
 func GetBitcoinBlock(blockHash string) *BitcoinBlock {
 
 	// get json from this url
@@ -127,11 +129,11 @@ func GetBitcoinTx(txHash string) *BitcoinTx {
 
 func ExampleFunc5() {
 
-	//bb := GetBitcoinBlock("0000000000000000002547fdeb348ba3e3078a05194d13e49dc6d72baaef77bc")
-	//bb.PrintBlock()
+	b := GetBitcoinBlock("0000000000000bae09a7a393a8acded75aa67e46cb81f7acaa5ad94f9eacd103")
+	b.PrintBlock()
 
-	tx := GetBitcoinTx("6ad0d210305ef6426bd6ac94d618230f48a3e264199608a86bd450b316013f3b")
-	tx.PrintTx()
+	//tx := GetBitcoinTx("6ad0d210305ef6426bd6ac94d618230f48a3e264199608a86bd450b316013f3b")
+	//tx.PrintTx()
 
 	// output: 1
 }
