@@ -94,6 +94,8 @@ func MakeTestBlockChain(chainLength int64, partNum int64) *core.BlockChain {
 				// 4. update current account state
 				accounts[r1] = ps1
 				accounts[r2] = ps2
+				bc.GetState()[*accounts[r1].PublicKey] = ps1 // update blockchain state
+				bc.GetState()[*accounts[r2].PublicKey] = ps2 // update blockchain state
 
 				// fill fields for tx
 				parPublicKeys = append(parPublicKeys, accounts[r1].PublicKey)
@@ -170,6 +172,9 @@ func MakeTestBlockChain(chainLength int64, partNum int64) *core.BlockChain {
 				accounts[r1] = ps1
 				accounts[r2] = ps2
 				accounts[r3] = ps3
+				bc.GetState()[*accounts[r1].PublicKey] = ps1 // update blockchain state
+				bc.GetState()[*accounts[r2].PublicKey] = ps2 // update blockchain state
+				bc.GetState()[*accounts[r3].PublicKey] = ps3 // update blockchain state
 
 				// fill fields for tx
 				parPublicKeys = append(parPublicKeys, accounts[r1].PublicKey)
