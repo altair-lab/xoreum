@@ -29,7 +29,6 @@ func main() {
 		}
 
 		block.PrintBlock()
-		block.PrintTxs()
 		
 		// [TODO] State validation (sign, nonce, total balance)
 	}

@@ -175,7 +175,6 @@ func RecvBlock(conn net.Conn) (*types.Block, error) {
 		}
 
 		// Unmarshal Tx
-		//tx := types.UnmarshalJSON(data, R, S)
 		tx := types.UnmarshalJSON(txbuf)
 		txs.Insert(tx)
 	}
