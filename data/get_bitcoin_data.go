@@ -13,6 +13,7 @@ import (
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/miner"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/xordb/memorydb"
 )
 
@@ -139,16 +140,59 @@ func GetBitcoinTx(txHash string) *BitcoinTx {
 // transform bitcoin data to xoreum's data
 func TransformBitcoinData() *core.BlockChain {
 	db := memorydb.New()
-	bc := core.NewBlockChainForBitcoin(db) // already has bitcoin's genesis block
+	bc, genesisPrivateKey := core.NewBlockChainForBitcoin(db) // already has bitcoin's genesis block
 
 	// users on xoreum (map[bitcoin_user_address] = xoreum_user_private_key)
 	users := make(map[string]*ecdsa.PrivateKey)
-	userCurTx := make(map[int64]*common.Hash) // map to fill PrevTxHashes of tx
 
-	// initialize
+	// user's current tx hash (map[bitcoin_user_address] = xoreum_tx_hash)
+	userCurTx := make(map[string]*common.Hash)
+
+	// initialize txpool & miner
 	Txpool := core.NewTxPool(bc)
 	Miner := miner.Miner{common.Address{0}}
 
+	// block hashes of bitcoin
+	blockHashes := make(map[int]string)
+
+	// fill blockHashes (TODO: get block hashes automatically later)
+	blockHashes[1] = "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"
+	blockHashes[2] = "000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"
+	blockHashes[3] = "0000000082b5015589a3fdf2d4baff403e6f0be035a5d9742c1cae6295464449"
+	blockHashes[4] = "000000004ebadb55ee9096c9a2f8880e09da59c0d68b1c228da88e48844a1485"
+	blockHashes[5] = "000000009b7262315dbf071787ad3656097b892abffd1f95a1a022f896f533fc"
+
+	// get blocks of bitcoin and transform into xoreum format
+	for i := 1; i < targetBlockNum; i++ {
+
+		// get block from bitcoin
+		bb := GetBitcoinBlock(blockHashes[i])
+
+		// transform transactions in the bitcoin block
+		for j := 0; j < len(bb.Txs); j++ {
+			tx := bb.Txs[j].TransformTx(users, userCurTx, genesisPrivateKey)
+
+			success, err := Txpool.Add(tx)
+			if !success {
+				fmt.Println(err)
+			}
+		}
+
+		// make xoreum block
+		b := Miner.Mine(Txpool, uint64(0))
+		if b == nil {
+			fmt.Println("Mining Fail")
+		}
+
+		// insert xoreum block into xoreum blockchain
+		err := bc.Insert(b)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+	}
+
+	return bc
 }
 
 /*
@@ -156,18 +200,31 @@ func TransformBitcoinData() *core.BlockChain {
 func (bb *BitcoinBlock) TransformBlock() *types.Block {
 
 }
+*/
 
 // tranform bitcoin's tx to xoreum's tx
-func (btx *BitcoinTx) TransformTx() *types.transaction {
+func (btx *BitcoinTx) TransformTx(users map[string]*ecdsa.PrivateKey, userCurTx map[string]*common.Hash, genesisPrivateKey *ecdsa.PrivateKey) *types.transaction {
 
 	// fields for xoreum tx
-	parPrivateKeys := []*ecdsa.PrivateKey{}
 	parPublicKeys := []*ecdsa.PublicKey{}
 	parStates := []*state.Account{}
 	prevTxHashes := []*common.Hash{}
 
+	// if this bitcoin_tx is coinbase tx
+	if btx.Inputs[0].Addr == "" {
+
+	} else {
+		for i := 0; i < len(btx.Inputs); i++ {
+
+		}
+
+	}
+
+	for i := 0; i < len(btx.Outputs); i++ {
+
+	}
+
 }
-*/
 
 func main() {
 
