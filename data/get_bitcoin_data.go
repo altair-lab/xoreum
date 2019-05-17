@@ -14,6 +14,8 @@ import (
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/state"
+	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb/memorydb"
 )
 
@@ -34,8 +36,8 @@ type BitcoinTxInput struct {
 }
 
 type BitcoinTxData struct {
-	Addr  string   `json:"addr"`
-	Value *big.Int `json:"value"`
+	Addr  string `json:"addr"`
+	Value uint64 `json:"value"`
 }
 
 func (b *BitcoinBlock) PrintBlock() {
@@ -138,12 +140,16 @@ func GetBitcoinTx(txHash string) *BitcoinTx {
 }
 
 // transform bitcoin data to xoreum's data
-func TransformBitcoinData() *core.BlockChain {
+func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 	db := memorydb.New()
 	bc, genesisPrivateKey := core.NewBlockChainForBitcoin(db) // already has bitcoin's genesis block
 
 	// users on xoreum (map[bitcoin_user_address] = xoreum_user_private_key)
 	users := make(map[string]*ecdsa.PrivateKey)
+
+	// set genesis account
+	genesisAddr := "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+	users[genesisAddr] = genesisPrivateKey
 
 	// user's current tx hash (map[bitcoin_user_address] = xoreum_tx_hash)
 	userCurTx := make(map[string]*common.Hash)
@@ -158,19 +164,105 @@ func TransformBitcoinData() *core.BlockChain {
 	// fill blockHashes (TODO: get block hashes automatically later)
 	blockHashes[1] = "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"
 	blockHashes[2] = "000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"
-	blockHashes[3] = "0000000082b5015589a3fdf2d4baff403e6f0be035a5d9742c1cae6295464449"
-	blockHashes[4] = "000000004ebadb55ee9096c9a2f8880e09da59c0d68b1c228da88e48844a1485"
-	blockHashes[5] = "000000009b7262315dbf071787ad3656097b892abffd1f95a1a022f896f533fc"
+	//blockHashes[3] = "0000000082b5015589a3fdf2d4baff403e6f0be035a5d9742c1cae6295464449"
+	//blockHashes[4] = "000000004ebadb55ee9096c9a2f8880e09da59c0d68b1c228da88e48844a1485"
+	//blockHashes[5] = "000000009b7262315dbf071787ad3656097b892abffd1f95a1a022f896f533fc"
 
 	// get blocks of bitcoin and transform into xoreum format
-	for i := 1; i < targetBlockNum; i++ {
+	for i := 1; i <= targetBlockNum; i++ {
 
 		// get block from bitcoin
 		bb := GetBitcoinBlock(blockHashes[i])
 
 		// transform transactions in the bitcoin block
 		for j := 0; j < len(bb.Txs); j++ {
-			tx := bb.Txs[j].TransformTx(users, userCurTx, genesisPrivateKey)
+			//tx := bb.Txs[j].TransformTx(users, userCurTx, genesisPrivateKey)
+			// make xoreum transaction
+
+			// users in this tx (bb.Txs[j])
+			parties := make(map[string]uint64)
+
+			// deal with Outputs of bitcoin tx
+			amountSum := uint64(0)
+			for k := 0; k < len(bb.Txs[j].Outputs); k++ {
+
+				addr := bb.Txs[j].Outputs[k].Addr
+				value := bb.Txs[j].Outputs[k].Value
+
+				if users[addr] == nil {
+					users[addr], _ = crypto.GenerateKey()
+					bc.GetState().NewAccount(&users[addr].PublicKey, 0, 0)
+				}
+
+				if _, ok := parties[addr]; ok {
+					parties[addr] += value
+				} else {
+					parties[addr] = value
+				}
+
+				amountSum += value
+			}
+
+			// deal with Inputs of bitcoin tx
+			if bb.Txs[j].Inputs[0].Addr == "" {
+				// if this bitcoin_tx is coinbase tx
+				parties[genesisAddr] = -amountSum
+			} else {
+				for k := 0; k < len(bb.Txs[j].Inputs); k++ {
+					addr := bb.Txs[j].Inputs[k].Addr
+					value := bb.Txs[j].Inputs[k].Value
+
+					if users[addr] == nil {
+						users[addr], _ = crypto.GenerateKey()
+						bc.GetState().NewAccount(&users[addr].PublicKey, 0, 0)
+					}
+
+					if _, ok := parties[addr]; ok {
+						parties[addr] -= value
+					} else {
+						parties[addr] = -value
+					}
+				}
+
+			}
+
+			// fields for xoreum tx
+			parPublicKeys := []*ecdsa.PublicKey{}
+			parStates := []*state.Account{}
+			prevTxHashes := []*common.Hash{}
+			prives := []*ecdsa.PrivateKey{}
+
+			// fill tx fields
+			for k, v := range parties {
+				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
+
+				acc := bc.GetState()[users[k].PublicKey].Copy()
+				acc.Balance += v
+				acc.Nonce++
+				parStates = append(parStates, acc)
+
+				if userCurTx[k] == nil {
+					userCurTx[k] = &common.Hash{}
+				}
+				prevTxHashes = append(prevTxHashes, userCurTx[k])
+
+				// save private keys to sign tx
+				prives = append(prives, users[k])
+			}
+
+			// make tx
+			tx := types.NewTransaction(parPublicKeys, parStates, prevTxHashes)
+
+			// sign tx
+			for k := 0; k < len(prives); k++ {
+				tx.Sign(prives[k])
+			}
+
+			// update userCurTx
+			h := tx.GetHash()
+			for k, _ := range parties {
+				userCurTx[k] = &h
+			}
 
 			success, err := Txpool.Add(tx)
 			if !success {
@@ -201,7 +293,7 @@ func (bb *BitcoinBlock) TransformBlock() *types.Block {
 
 }
 */
-
+/*
 // tranform bitcoin's tx to xoreum's tx
 func (btx *BitcoinTx) TransformTx(users map[string]*ecdsa.PrivateKey, userCurTx map[string]*common.Hash, genesisPrivateKey *ecdsa.PrivateKey) *types.transaction {
 
@@ -225,11 +317,15 @@ func (btx *BitcoinTx) TransformTx(users map[string]*ecdsa.PrivateKey, userCurTx 
 	}
 
 }
-
+*/
 func main() {
 
-	b := GetBitcoinBlock("0000000000000bae09a7a393a8acded75aa67e46cb81f7acaa5ad94f9eacd103")
-	b.PrintBlock()
+	bc := TransformBitcoinData(2)
+	bc.PrintBlockChain()
+	bc.GetState().Print()
+
+	//b := GetBitcoinBlock("0000000000000bae09a7a393a8acded75aa67e46cb81f7acaa5ad94f9eacd103")
+	//b.PrintBlock()
 
 	//tx := GetBitcoinTx("6ad0d210305ef6426bd6ac94d618230f48a3e264199608a86bd450b316013f3b")
 	//tx.PrintTx()
