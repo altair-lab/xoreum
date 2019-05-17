@@ -54,6 +54,20 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	return bc
 }
 
+func NewBlockChainForBitcoin(db xordb.Database) *BlockChain {
+
+	bc := &BlockChain{
+		db:           db,
+		genesisBlock: params.GetGenesisBlockForBitcoin(),
+	}
+	bc.currentBlock.Store(bc.genesisBlock)
+	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+	bc.s = state.NewState()
+	bc.applyTransaction(bc.s, bc.genesisBlock.GetTxs())
+
+	return bc
+}
+
 // check block's validity, if ok, then insert block into chain
 func (bc *BlockChain) Insert(block *types.Block) error {
 
