@@ -28,7 +28,7 @@ func GetGenesisBlock() (b *types.Block) {
 	return types.NewBlock(&genesis_header, types.Transactions{})
 }
 
-func GetGenesisBlockForBitcoin() *types.Block {
+func GetGenesisBlockForBitcoin() (*types.Block, *ecdsa.PrivateKey) {
 	genesis_header := types.Header{
 		ParentHash: crypto.Keccak256Hash(common.ToBytes("AAAAA")),
 		Coinbase:   common.Address{},
@@ -77,7 +77,7 @@ func GetGenesisBlockForBitcoin() *types.Block {
 		if b.GetHeader().Hash().ToBigInt().Cmp(common.Difficulty) != -1 {
 			b.GetHeader().Nonce++
 		} else {
-			return b
+			return b, genesisPrivateKey
 		}
 	}
 }

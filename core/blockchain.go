@@ -1,6 +1,7 @@
 package core
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"sync/atomic"
@@ -54,18 +55,20 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	return bc
 }
 
-func NewBlockChainForBitcoin(db xordb.Database) *BlockChain {
+func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey) {
+
+	gBlock, genesisPrivateKey := params.GetGenesisBlockForBitcoin()
 
 	bc := &BlockChain{
 		db:           db,
-		genesisBlock: params.GetGenesisBlockForBitcoin(),
+		genesisBlock: gBlock,
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
 	bc.s = state.NewState()
 	bc.applyTransaction(bc.s, bc.genesisBlock.GetTxs())
 
-	return bc
+	return bc, genesisPrivateKey
 }
 
 // check block's validity, if ok, then insert block into chain
