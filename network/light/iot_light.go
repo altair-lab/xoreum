@@ -56,4 +56,25 @@ func main() {
 	db := memorydb.New()
 	Blockchain = core.NewIoTBlockChain(db, currentBlock)
 	Blockchain.PrintBlockChain()
+/*
+	// [TODO] Keep mining every MINING_INTERVAL
+	go func() {
+		for {
+			time.Sleep(MINING_INTERVAL * time.Second)
+			// Mining from txpool
+			block := Miner.Mine(Txpool, uint64(0))
+			if block != nil {
+				block.PrintTxs()
+			} else {
+				fmt.Println("Mining Fail")
+			}
+			// Add to Blockchain
+			err := Blockchain.Insert(block)
+			if err != nil {
+				fmt.Println(err)
+			}
+			Blockchain.CurrentBlock().PrintBlock()
+		}
+	}()
+*/
 }
