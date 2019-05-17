@@ -10,12 +10,15 @@ import (
 	"log"
 
 	"github.com/altair-lab/xoreum/network"
+	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/xordb/memorydb"
 )
 
-func main() {
-	// create genesis block
-	// Blockchain := core.NewBlockChain()
+var Blockchain *core.BlockChain
 
+func main() {
+	// Connect with full node (server)
 	conn, err := net.Dial("tcp","localhost:9000")
 	if nil != err {
 		log.Fatal("failed to connect to server")
@@ -26,6 +29,7 @@ func main() {
 	if nil != err {
 		log.Fatal(err)
 	}
+	currentBlock := &types.Block{} 
 
 	for i := uint32(0); i < interlinkslen; i++ {
 		// Receive interlink block
@@ -40,6 +44,7 @@ func main() {
 			log.Fatal(err)
 			return
 		}
+		currentBlock = block
 
 		// Print block
 		block.PrintBlock()
@@ -47,5 +52,8 @@ func main() {
 
 	log.Println("INTERLINK SYNCHRONIZATION FINISHED!")
 
-	// [TODO] Make blockchain with current block (= genesis block)
+	// Make IoT blockchain with current block (= genesis block)
+	db := memorydb.New()
+	Blockchain = core.NewIoTBlockChain(db, currentBlock)
+	Blockchain.PrintBlockChain()
 }

@@ -41,11 +41,21 @@ type BlockChain struct {
 }
 
 func NewBlockChain(db xordb.Database) *BlockChain {
-
 	bc := &BlockChain{
-		//ChainID:      big.NewInt(0),
 		db:           db,
 		genesisBlock: params.GetGenesisBlock(),
+	}
+	bc.currentBlock.Store(bc.genesisBlock)
+	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+	bc.s = state.NewState()
+
+	return bc
+}
+
+func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
+	bc := &BlockChain{
+		db:           db,
+		genesisBlock: genesis,
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
