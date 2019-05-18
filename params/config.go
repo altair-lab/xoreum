@@ -43,11 +43,11 @@ func GetGenesisBlockForBitcoin() (*types.Block, *ecdsa.PrivateKey) {
 	// this account acts as coinbase tx's input (who gives mining reward)
 	// so it has 21*10^14 coins (bitcoin's maximum supply)
 	genesisPrivateKey, _ := crypto.GenerateKey()
-	genesisAccount := state.NewAccount(&genesisPrivateKey.PublicKey, 0, 2100000000000000-5000000000)
+	genesisAccount := state.NewAccount(&genesisPrivateKey.PublicKey, 1, 2100000000000000-5000000000)
 
 	// first miner of bitcoin
 	receiverPrivateKey, _ := crypto.GenerateKey()
-	receiverAccount := state.NewAccount(&receiverPrivateKey.PublicKey, 0, 5000000000)
+	receiverAccount := state.NewAccount(&receiverPrivateKey.PublicKey, 1, 5000000000)
 
 	// fields for first tx (coinbase tx of bitcoin)
 	parPublicKeys := []*ecdsa.PublicKey{}
