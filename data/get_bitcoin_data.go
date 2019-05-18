@@ -269,10 +269,6 @@ func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 				tx.Sign(prives[k])
 			}
 
-			// for test
-			e := tx.VerifySignature()
-			fmt.Println("sign err:", e)
-
 			// update userCurTx
 			h := tx.GetHash()
 			for k, _ := range parties {
