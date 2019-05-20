@@ -5,7 +5,6 @@ package core
 import (
 	"errors"
 
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 )
 
@@ -27,14 +26,12 @@ var (
 // Reference : tx_pool.go#L205
 type TxPool struct {
 	all         *txQueue // Queued transactions for time ordering (FIFO)
-	currentState	state.State // Current state in the blockchain head
 	chain		*BlockChain // Current chain
 }
 
 func NewTxPool(chain *BlockChain) *TxPool {
 	pool := &TxPool{
 		all:		newTxQueue(),
-		currentState:	chain.GetState(),
 		chain:		chain,
 	}
 

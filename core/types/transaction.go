@@ -191,7 +191,7 @@ func (tx *Transaction) PrintTx() {
 }
 
 // make random tx for test
-func MakeTestTx(participantsNum int, s state.State) *Transaction {
+func MakeTestTx(participantsNum int, s state.Accounts) *Transaction {
 	// make participants
 	parNum := participantsNum
 	parPrivateKeys := []*ecdsa.PrivateKey{}
@@ -218,7 +218,7 @@ func MakeTestTx(participantsNum int, s state.State) *Transaction {
 }
 
 // make random signed tx for test
-func MakeTestSignedTx(participantsNum int, s state.State) *Transaction {
+func MakeTestSignedTx(participantsNum int, s state.Accounts) *Transaction {
 	// make participants
 	parNum := participantsNum
 	parPrivateKeys := []*ecdsa.PrivateKey{}
