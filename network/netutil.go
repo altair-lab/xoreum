@@ -9,26 +9,10 @@ import (
 	"io"
 
 	"github.com/altair-lab/xoreum/core"
-	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/core/miner"
 )
 
 var mutex = &sync.Mutex{}
-
-// Initialization for test
-func Initialization(bc *core.BlockChain) (*core.TxPool, miner.Miner) {
-	txpool := core.NewTxPool(bc)
-	privatekey, _ := crypto.GenerateKey()
-	publickey := privatekey.PublicKey
-
-	// [FIXME] miner Coinbase type?
-	address := crypto.Keccak256Address(common.ToBytes(publickey))
-	miner := miner.Miner{address}
-
-	return txpool, miner
-}
 
 // Send message with buffer size
 func SendMessage(conn net.Conn, msg []byte) error {
