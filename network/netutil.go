@@ -24,7 +24,6 @@ func Initialization(bc *core.BlockChain) (*core.TxPool, miner.Miner) {
 	publickey := privatekey.PublicKey
 
 	// [FIXME] miner Coinbase type?
-	//account := state.NewAccount(&publickey, uint64(0), uint64(7000)) // account [Address:address, Nonce:0, Balance:7000]
 	address := crypto.Keccak256Address(common.ToBytes(publickey))
 	miner := miner.Miner{address}
 
@@ -112,6 +111,28 @@ func SendBlock(conn net.Conn, block *types.Block) error {
 	return nil
 }
 
+// Send Interlinks Block
+func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) error {
+	log.Printf("INTERLINKS : %v\n", interlinks)
+	// Send interlinkss length
+	length := make([]byte, 4)
+	binary.LittleEndian.PutUint32(length, uint32(len(interlinks)))
+	if _, err := conn.Write(length); nil != err {
+		log.Printf("failed to send interlinks length; err: %v", err)
+		return err
+	}
+
+        for i := 0; i < len(interlinks); i++ {
+                // Send block
+                err := SendBlock(conn, bc.BlockAt(interlinks[i]))
+                if err != nil {
+                        return err
+                }
+        }
+
+	return nil
+}
+
 // Receive message size
 func RecvLength(conn net.Conn) (uint32, error) {
         lengthBuf := make([]byte, 4)
@@ -175,7 +196,6 @@ func RecvBlock(conn net.Conn) (*types.Block, error) {
 		}
 
 		// Unmarshal Tx
-		//tx := types.UnmarshalJSON(data, R, S)
 		tx := types.UnmarshalJSON(txbuf)
 		txs.Insert(tx)
 	}

@@ -10,27 +10,71 @@ import (
 	"log"
 
 	"github.com/altair-lab/xoreum/network"
+	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/xordb/memorydb"
 )
 
-func main() {
-	// create genesis block
-	// Blockchain := core.NewBlockChain()
+var Blockchain *core.BlockChain
 
-	// Print synchronized json data
+func main() {
+	// Connect with full node (server)
 	conn, err := net.Dial("tcp","localhost:9000")
 	if nil != err {
-		log.Fatalf("failed to connect to server")
+		log.Fatal("failed to connect to server")
 	}
+	
+	// Get interlinks length
+	interlinkslen, err := network.RecvLength(conn)
+	if nil != err {
+		log.Fatal(err)
+	}
+	currentBlock := &types.Block{} 
 
-	for {
+	for i := uint32(0); i < interlinkslen; i++ {
+		// Receive interlink block
 		block, err := network.RecvBlock(conn)
 		if err != nil {
 			return
 		}
-
-		block.PrintBlock()
-		block.PrintTxs()
 		
-		// [TODO] State validation (sign, nonce, total balance)
+		// Block validation (sign, nonce, total balance)
+		err = block.ValidateBlock()
+		if err != nil{
+			log.Fatal(err)
+			return
+		}
+		currentBlock = block
+
+		// Print block
+		block.PrintBlock()
 	}
+
+	log.Println("INTERLINK SYNCHRONIZATION FINISHED!")
+
+	// Make IoT blockchain with current block (= genesis block)
+	db := memorydb.New()
+	Blockchain = core.NewIoTBlockChain(db, currentBlock)
+	Blockchain.PrintBlockChain()
+/*
+	// [TODO] Keep mining every MINING_INTERVAL
+	go func() {
+		for {
+			time.Sleep(MINING_INTERVAL * time.Second)
+			// Mining from txpool
+			block := Miner.Mine(Txpool, uint64(0))
+			if block != nil {
+				block.PrintTxs()
+			} else {
+				fmt.Println("Mining Fail")
+			}
+			// Add to Blockchain
+			err := Blockchain.Insert(block)
+			if err != nil {
+				fmt.Println(err)
+			}
+			Blockchain.CurrentBlock().PrintBlock()
+		}
+	}()
+*/
 }

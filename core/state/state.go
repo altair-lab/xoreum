@@ -3,27 +3,30 @@ package state
 import (
 	"crypto/ecdsa"
 	"fmt"
+
+	//"github.com/altair-lab/xoreum/common"
 )
 
-type State map[ecdsa.PublicKey]*Account
+//type State map[ecdsa.PublicKey]common.Hash
+
+type Accounts map[ecdsa.PublicKey]*Account
 
 type Account struct {
-	//Address common.Address
 	PublicKey *ecdsa.PublicKey
 	Nonce     uint64
 	Balance   uint64
 }
 
-func NewState() State {
-	return State{}
+func NewAccounts() Accounts {
+	return Accounts{}
 }
 
-func (s State) Add(acc *Account) {
+func (s Accounts) Add(acc *Account) {
 	s[*acc.PublicKey] = acc
 }
 
-func (s State) Print() {
-	sum := uint64(0)
+func (s Accounts) Print() {
+  sum := uint64(0)
 	for _, v := range s {
 		v.PrintAccount()
 		sum += v.Balance
@@ -31,15 +34,15 @@ func (s State) Print() {
 	fmt.Println("balance sum:", sum)
 }
 
-func (s State) GetBalance(pubkey *ecdsa.PublicKey) uint64 {
+func (s Accounts) GetBalance(pubkey *ecdsa.PublicKey) uint64 {
 	return s[*pubkey].Balance
 }
 
-func (s State) GetNonce(pubkey *ecdsa.PublicKey) uint64 {
+func (s Accounts) GetNonce(pubkey *ecdsa.PublicKey) uint64 {
 	return s[*pubkey].Nonce
 }
 
-func (s State) NewAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {
+func (s Accounts) NewAccount(pubkey *ecdsa.PublicKey, nonce uint64, balance uint64) *Account {
 	acc := newAccount(pubkey, nonce, balance)
 	s.Add(acc)
 	return acc
@@ -62,7 +65,7 @@ func (acc *Account) Print() {
 }
 
 func (acc *Account) PrintAccount() {
-	fmt.Println("publickey:", acc.PublicKey, "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
+	fmt.Println("publickey:", acc.PublicKey, "publickey.Curve.params():", acc.PublicKey.Curve.Params(), "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
 }
 
 func (acc *Account) Copy() *Account {
