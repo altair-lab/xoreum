@@ -76,8 +76,6 @@ func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey)
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
 
-	//bc.s = state.NewState()
-	//bc.applyTransaction(bc.s, bc.genesisBlock.GetTxs())
 	bc.accounts = state.NewAccounts()
 	bc.applyTransaction(bc.accounts, bc.genesisBlock.GetTxs())
 
