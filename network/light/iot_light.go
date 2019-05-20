@@ -23,7 +23,14 @@ func main() {
 	if nil != err {
 		log.Fatal("failed to connect to server")
 	}
-	
+/*
+	// [TODO]
+	// Get Accounts length
+	// Receive Accounts
+	// Get State length
+	// Receive State
+	// Receive Txs (We need temporary 'transactions' object in chain)
+*/
 	// Get interlinks length
 	interlinkslen, err := network.RecvLength(conn)
 	if nil != err {

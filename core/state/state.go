@@ -9,9 +9,9 @@ type State map[ecdsa.PublicKey]*Account
 
 type Account struct {
 	//Address common.Address
-	PublicKey *ecdsa.PublicKey
-	Nonce     uint64
-	Balance   uint64
+	PublicKey *ecdsa.PublicKey	`json:"pubkey"`
+	Nonce     uint64		`json:"nonce"`
+	Balance   uint64		`json:"balance"`
 }
 
 func NewState() State {

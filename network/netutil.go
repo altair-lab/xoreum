@@ -7,8 +7,10 @@ import (
 	"encoding/json"
 	"sync"
 	"io"
+	"crypto/ecdsa"
 
 	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 )
 
@@ -117,6 +119,27 @@ func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) err
 	return nil
 }
 
+// Send state map
+func SendState(conn net.Conn, state map[ecdsa.PublicKey]*state.Account) error {
+	// Send state size
+	length := make([]byte, 4)
+	binary.LittleEndian.PutUint32(length, uint32(len(state)))
+	if _, err := conn.Write(length); nil != err {
+		log.Printf("failed to send state length; err: %v", err)
+		return err
+	}
+
+	// Send all accounts in state
+	for k := range state {
+		err := SendObject(conn, k)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Receive message size
 func RecvLength(conn net.Conn) (uint32, error) {
         lengthBuf := make([]byte, 4)
@@ -152,6 +175,17 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
 		return nil, err
         }
 	return buf, nil
+}
+
+func RecvState(conn net.Conn) (*state.State, error) {
+	// Make state struct
+	buf, err := RecvObjectJson(conn)
+	if err != nil {
+		return nil, err
+	}
+	var state state.State
+	json.Unmarshal(buf, &state)
+	return &state, nil
 }
 
 // Get Transaction object json
