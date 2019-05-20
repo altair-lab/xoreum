@@ -37,7 +37,7 @@ type BlockChain struct {
 	//validator Validator
 
 	blocks []types.Block // temporary block list. blocks will be saved in db
-	s      state.State   // temporary state. it will be saved in db
+	accounts state.Accounts   // temporary accounts. it will be saved in db
 }
 
 func NewBlockChain(db xordb.Database) *BlockChain {
@@ -47,7 +47,7 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
-	bc.s = state.NewState()
+	bc.accounts = state.NewAccounts()
 
 	return bc
 }
@@ -59,7 +59,7 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
-	bc.s = state.NewState()
+	bc.accounts = state.NewAccounts()
 
 	return bc
 }
@@ -77,7 +77,7 @@ func (bc *BlockChain) Insert(block *types.Block) error {
 		// pass all validation
 		// insert that block into blockchain
 		bc.insert(block)
-		bc.applyTransaction(bc.s, block.GetTxs())
+		bc.applyTransaction(bc.accounts, block.GetTxs())
 		return nil
 	}
 }
@@ -114,7 +114,7 @@ func (bc *BlockChain) validateBlock(block *types.Block) error {
 }
 
 // Apply transaction to state
-func (bc *BlockChain) applyTransaction(s state.State, txs *types.Transactions) {
+func (bc *BlockChain) applyTransaction(s state.Accounts, txs *types.Transactions) {
 	for _, tx := range *txs {
 		for i, key := range tx.Participants() {
 			// Apply post state
@@ -137,8 +137,8 @@ func (bc *BlockChain) BlockAt(index uint64) *types.Block {
 	return &bc.blocks[index]
 }
 
-func (bc *BlockChain) GetState() state.State {
-	return bc.s
+func (bc *BlockChain) GetAccounts() state.Accounts {
+	return bc.accounts
 }
 
 func (bc *BlockChain) PrintBlockChain() {
