@@ -193,7 +193,7 @@ func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 				// if this bitcoin user appears first, mapping him with xoreum user
 				if users[addr] == nil {
 					users[addr], _ = crypto.GenerateKey()
-					bc.GetState().NewAccount(&users[addr].PublicKey, 0, 0)
+					bc.GetAccounts().NewAccount(&users[addr].PublicKey, 0, 0)
 				}
 
 				// to deal with the same user who appears more than once in this bitcoin tx (bb.Txs[j])
@@ -234,7 +234,7 @@ func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 					// if this bitcoin user appears first, mapping him with xoreum user
 					if users[addr] == nil {
 						users[addr], _ = crypto.GenerateKey()
-						bc.GetState().NewAccount(&users[addr].PublicKey, 0, 0)
+						bc.GetAccounts().NewAccount(&users[addr].PublicKey, 0, 0)
 					}
 
 					// to deal with the same user who appears more than once in this bitcoin tx (bb.Txs[j])
@@ -259,7 +259,7 @@ func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 			for k, v := range parties {
 				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
 
-				acc := bc.GetState()[users[k].PublicKey].Copy()
+				acc := bc.GetAccounts()[users[k].PublicKey].Copy()
 				acc.Balance += v
 				acc.Nonce++
 				parStates = append(parStates, acc)
@@ -368,7 +368,7 @@ func main() {
 
 	bc := TransformBitcoinData(2)
 	bc.PrintBlockChain()
-	bc.GetState().Print()
+	bc.GetAccounts().Print()
 
 	//b := GetBitcoinBlock("00000000000116d33823c5d9f8ead201edc6abf99004ae1d70c63f446746a0a5")
 	//b.PrintBlock()

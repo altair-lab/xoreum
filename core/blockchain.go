@@ -37,8 +37,8 @@ type BlockChain struct {
 	//processor	Processor
 	//validator Validator
 
-	blocks []types.Block // temporary block list. blocks will be saved in db
-	accounts state.Accounts   // temporary accounts. it will be saved in db
+	blocks   []types.Block  // temporary block list. blocks will be saved in db
+	accounts state.Accounts // temporary accounts. it will be saved in db
 }
 
 func NewBlockChain(db xordb.Database) *BlockChain {
@@ -75,8 +75,11 @@ func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey)
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
-	bc.s = state.NewState()
-	bc.applyTransaction(bc.s, bc.genesisBlock.GetTxs())
+
+	//bc.s = state.NewState()
+	//bc.applyTransaction(bc.s, bc.genesisBlock.GetTxs())
+	bc.accounts = state.NewAccounts()
+	bc.applyTransaction(bc.accounts, bc.genesisBlock.GetTxs())
 
 	return bc, genesisPrivateKey
 }
