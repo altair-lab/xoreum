@@ -225,6 +225,8 @@ func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 				parties[genesisAddr] -= blockReward
 
 			} else {
+				// not a coinbase tx
+
 				for k := 0; k < len(bb.Txs[j].Inputs); k++ {
 					addr := bb.Txs[j].Inputs[k].Addr
 					value := bb.Txs[j].Inputs[k].Value
