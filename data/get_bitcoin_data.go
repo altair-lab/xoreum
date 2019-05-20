@@ -28,6 +28,7 @@ type BitcoinBlock struct {
 type BitcoinTx struct {
 	Inputs  []*BitcoinTxInput `json:"inputs"` // it is same as Inputs []*BitcoinTxData
 	Outputs []*BitcoinTxData  `json:"out"`
+	//Fee     uint64
 }
 
 // embedded struct
@@ -184,7 +185,6 @@ func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 			parties := make(map[string]uint64)
 
 			// deal with Outputs of bitcoin tx
-			amountSum := uint64(0) // block mining reward of coinbase tx
 			for k := 0; k < len(bb.Txs[j].Outputs); k++ {
 
 				addr := bb.Txs[j].Outputs[k].Addr
@@ -205,15 +205,25 @@ func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 					parties[addr] = value
 				}
 
-				// calculate amount sum
-				amountSum += value
 			}
 
 			// deal with Inputs of bitcoin tx
 			if bb.Txs[j].Inputs[0].Addr == "" {
 				// if this bitcoin_tx is coinbase tx
-				// amountsum: block mining reward
-				parties[genesisAddr] = -amountSum
+
+				// get actual block reward (50 BTC, 25 BTC, 12.5 BTC...)
+				// blockReward = actual_block_reward + all_tx_fee_in_block
+				blockReward := bb.Txs[j].Outputs[0].Value
+				if blockReward >= 5000000000 {
+					blockReward = 5000000000
+				} else if blockReward >= 2500000000 {
+					blockReward = 2500000000
+				} else {
+					blockReward = 1250000000
+					// block reward would be 6.25 BTC in 2020
+				}
+				parties[genesisAddr] -= blockReward
+
 			} else {
 				for k := 0; k < len(bb.Txs[j].Inputs); k++ {
 					addr := bb.Txs[j].Inputs[k].Addr
@@ -330,14 +340,37 @@ func (btx *BitcoinTx) TransformTx(users map[string]*ecdsa.PrivateKey, userCurTx 
 
 }
 */
+
+func (bb *BitcoinBlock) GetValueSum() {
+
+	// transaction_fee: tx_input_sum - tx_output_sum
+
+	inputSum := uint64(0)
+	outputSum := uint64(0)
+
+	for i := 0; i < len(bb.Txs); i++ {
+		for j := 0; j < len(bb.Txs[i].Inputs); j++ {
+			inputSum += bb.Txs[i].Inputs[j].Value
+		}
+		for j := 0; j < len(bb.Txs[i].Outputs); j++ {
+			outputSum += bb.Txs[i].Outputs[j].Value
+		}
+	}
+
+	fmt.Println("input sum:", inputSum)
+	fmt.Println("output sum:", outputSum)
+
+}
+
 func main() {
 
 	bc := TransformBitcoinData(2)
 	bc.PrintBlockChain()
 	bc.GetState().Print()
 
-	//b := GetBitcoinBlock("0000000000000bae09a7a393a8acded75aa67e46cb81f7acaa5ad94f9eacd103")
+	//b := GetBitcoinBlock("00000000000116d33823c5d9f8ead201edc6abf99004ae1d70c63f446746a0a5")
 	//b.PrintBlock()
+	//b.GetValueSum()
 
 	//tx := GetBitcoinTx("6ad0d210305ef6426bd6ac94d618230f48a3e264199608a86bd450b316013f3b")
 	//tx.PrintTx()
