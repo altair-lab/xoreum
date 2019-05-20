@@ -227,6 +227,7 @@ func ExampleFunc3() {
 
 	testbc := MakeTestBlockChain(10, 5)
 	testbc.PrintBlockChain()
+	testbc.GetState().Print()
 
-	// output: 1
+	// output: 4
 }
