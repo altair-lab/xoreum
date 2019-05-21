@@ -366,7 +366,7 @@ func (bb *BitcoinBlock) GetValueSum() {
 
 func main() {
 
-	bc := TransformBitcoinData(2)
+	bc := TransformBitcoinData(3)
 	bc.PrintBlockChain()
 	bc.GetAccounts().Print()
 

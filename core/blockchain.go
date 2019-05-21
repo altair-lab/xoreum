@@ -39,6 +39,8 @@ type BlockChain struct {
 
 	blocks   []types.Block  // temporary block list. blocks will be saved in db
 	accounts state.Accounts // temporary accounts. it will be saved in db
+	s        state.State    // temporary state. it will be saved in db
+	allTxs   types.AllTxs   // temporary tx map. it will be saved in db
 }
 
 func NewBlockChain(db xordb.Database) *BlockChain {
@@ -48,7 +50,10 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+
 	bc.accounts = state.NewAccounts()
+	bc.s = state.State{}
+	bc.allTxs = types.AllTxs{}
 
 	return bc
 }
@@ -60,7 +65,10 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+
 	bc.accounts = state.NewAccounts()
+	bc.s = state.State{}
+	bc.allTxs = types.AllTxs{}
 
 	return bc
 }
@@ -78,6 +86,8 @@ func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey)
 
 	bc.accounts = state.NewAccounts()
 	bc.applyTransaction(bc.accounts, bc.genesisBlock.GetTxs())
+	bc.s = state.State{}
+	bc.allTxs = types.AllTxs{}
 
 	return bc, genesisPrivateKey
 }
@@ -166,6 +176,14 @@ func (bc *BlockChain) PrintBlockChain() {
 	}
 	fmt.Println("====================")
 	fmt.Println("=== End of Chain ===")
+}
+
+func (bc *BlockChain) GetState() state.State {
+	return bc.s
+}
+
+func (bc *BlockChain) GetAllTxs() types.AllTxs {
+	return bc.allTxs
 }
 
 /*
