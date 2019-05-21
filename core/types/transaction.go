@@ -40,7 +40,7 @@ type AllTxs map[common.Hash]*Transaction
 
 func (txs AllTxs) Print() {
 	for k, v := range txs {
-		fmt.Println("txhash:", k, "\n\ttx:", v)
+		fmt.Println("txhash:", k.ToHex(), "\n\ttx:", v)
 	}
 }
 
