@@ -26,9 +26,12 @@ func (s Accounts) Add(acc *Account) {
 }
 
 func (s Accounts) Print() {
+  sum := uint64(0)
 	for _, v := range s {
-		v.Print()
+		v.PrintAccount()
+		sum += v.Balance
 	}
+	fmt.Println("balance sum:", sum)
 }
 
 func (s Accounts) GetBalance(pubkey *ecdsa.PublicKey) uint64 {
@@ -63,4 +66,8 @@ func (acc *Account) Print() {
 
 func (acc *Account) PrintAccount() {
 	fmt.Println("publickey:", acc.PublicKey, "publickey.Curve.params():", acc.PublicKey.Curve.Params(), "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
+}
+
+func (acc *Account) Copy() *Account {
+	return NewAccount(acc.PublicKey, acc.Nonce, acc.Balance)
 }

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"sync/atomic"
@@ -36,8 +37,8 @@ type BlockChain struct {
 	//processor	Processor
 	//validator Validator
 
-	blocks []types.Block // temporary block list. blocks will be saved in db
-	accounts state.Accounts   // temporary accounts. it will be saved in db
+	blocks   []types.Block  // temporary block list. blocks will be saved in db
+	accounts state.Accounts // temporary accounts. it will be saved in db
 }
 
 func NewBlockChain(db xordb.Database) *BlockChain {
@@ -62,6 +63,23 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
 	bc.accounts = state.NewAccounts()
 
 	return bc
+}
+
+func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey) {
+
+	gBlock, genesisPrivateKey := params.GetGenesisBlockForBitcoin()
+
+	bc := &BlockChain{
+		db:           db,
+		genesisBlock: gBlock,
+	}
+	bc.currentBlock.Store(bc.genesisBlock)
+	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+
+	bc.accounts = state.NewAccounts()
+	bc.applyTransaction(bc.accounts, bc.genesisBlock.GetTxs())
+
+	return bc, genesisPrivateKey
 }
 
 // check block's validity, if ok, then insert block into chain
