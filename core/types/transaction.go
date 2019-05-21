@@ -35,6 +35,15 @@ type Transaction struct {
 // Transactions is a Transaction slice type for basic sorting
 type Transactions []*Transaction
 
+// temporary type. transaction will be saved in db
+type AllTxs map[common.Hash]*Transaction
+
+func (txs AllTxs) Print() {
+	for k, v := range txs {
+		fmt.Println("txhash:", k.ToHex(), "\n\ttx:", v)
+	}
+}
+
 // simple implementation
 type Txdata struct {
 	// new version fields
@@ -95,32 +104,32 @@ func (tx *Transaction) Nonce() []uint64 {
 
 // Get specific user's post state using public key
 func (tx *Transaction) GetPostState(key *ecdsa.PublicKey) *state.Account {
-        for i, k := range tx.Data.Participants {
-                  if *k == *key {
-                          return tx.Data.PostStates[i]
-                  }
-        }
-        // No such participant
-        return nil
+	for i, k := range tx.Data.Participants {
+		if *k == *key {
+			return tx.Data.PostStates[i]
+		}
+	}
+	// No such participant
+	return nil
 }
 
 func (tx *Transaction) GetPostBalanceSum() uint64 {
-          sum := uint64(0)
-          for _, s := range tx.Data.PostStates {
-                    sum += s.Balance
-          }
-          return sum
+	sum := uint64(0)
+	for _, s := range tx.Data.PostStates {
+		sum += s.Balance
+	}
+	return sum
 }
 
 func (tx *Transaction) GetPrevBalanceSum() uint64 {
-          sum := uint64(0)
-          for i, _ := range tx.Data.Participants {
-                    //[FIXME]
-		    //prevState := loadTransaction(tx.Data.PrevTxHashes[i]).GetPostState()
-		    prevState := &state.Account{Balance: uint64(i)}
-		    sum += prevState.Balance
-          }
-          return sum
+	sum := uint64(0)
+	for i, _ := range tx.Data.Participants {
+		//[FIXME]
+		//prevState := loadTransaction(tx.Data.PrevTxHashes[i]).GetPostState()
+		prevState := &state.Account{Balance: uint64(i)}
+		sum += prevState.Balance
+	}
+	return sum
 }
 
 //func (tx *Transaction) Value() uint64 { return tx.Data.Amount }
@@ -130,8 +139,8 @@ func (tx *Transaction) GetPrevBalanceSum() uint64 {
 //func (tx *Transaction) Recipient() ecdsa.PublicKey { return *tx.Data.Recipient }
 
 func (tx *Transaction) Participants() []*ecdsa.PublicKey { return tx.Data.Participants }
-func (tx *Transaction) PostStates() []*state.Account { return tx.Data.PostStates }
-func (tx *Transaction) PrevTxHashes() []*common.Hash { return tx.Data.PrevTxHashes }
+func (tx *Transaction) PostStates() []*state.Account     { return tx.Data.PostStates }
+func (tx *Transaction) PrevTxHashes() []*common.Hash     { return tx.Data.PrevTxHashes }
 
 // get hashed txdata's byte array
 func (data *Txdata) GetHashedBytes() []byte {

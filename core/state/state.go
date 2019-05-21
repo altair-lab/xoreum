@@ -7,9 +7,10 @@ import (
 	"github.com/altair-lab/xoreum/common"
 )
 
-type State map[ecdsa.PublicKey]common.Hash
 
-type Accounts map[ecdsa.PublicKey]*Account
+type State map[ecdsa.PublicKey]common.Hash // pubkey - TxHash (user's current tx hash)
+
+type Accounts map[ecdsa.PublicKey]*Account // pubkey - Account
 
 type Account struct {
 	PublicKey *ecdsa.PublicKey
@@ -26,7 +27,7 @@ func (s Accounts) Add(acc *Account) {
 }
 
 func (s Accounts) Print() {
-  sum := uint64(0)
+	sum := uint64(0)
 	for _, v := range s {
 		v.PrintAccount()
 		sum += v.Balance
@@ -65,9 +66,15 @@ func (acc *Account) Print() {
 }
 
 func (acc *Account) PrintAccount() {
-	fmt.Println("publickey:", acc.PublicKey, "publickey.Curve.params():", acc.PublicKey.Curve.Params(), "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
+	fmt.Println("publickey:", acc.PublicKey /*"publickey.Curve.params():", acc.PublicKey.Curve.Params(),*/, "/ nonce:", acc.Nonce, "/ balance:", acc.Balance)
 }
 
 func (acc *Account) Copy() *Account {
 	return NewAccount(acc.PublicKey, acc.Nonce, acc.Balance)
+}
+
+func (s State) Print() {
+	for k, v := range s {
+		fmt.Println("pubkey:", k, "\n\t/ txhash:", v.ToHex())
+	}
 }

@@ -287,6 +287,9 @@ func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 				userCurTx[k] = &h
 			}
 
+			// save tx into bc.allTxs
+			bc.GetAllTxs()[tx.GetHash()] = tx
+
 			// add tx into txpool
 			success, err := Txpool.Add(tx)
 			if !success {
@@ -306,6 +309,10 @@ func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 			fmt.Println(err)
 		}
 
+	}
+
+	for k, v := range userCurTx {
+		bc.GetState()[users[k].PublicKey] = *v
 	}
 
 	return bc
@@ -366,9 +373,14 @@ func (bb *BitcoinBlock) GetValueSum() {
 
 func main() {
 
-	bc := TransformBitcoinData(2)
+	bc := TransformBitcoinData(3)
 	bc.PrintBlockChain()
+	fmt.Println()
 	bc.GetAccounts().Print()
+	fmt.Println()
+	bc.GetState().Print()
+	fmt.Println()
+	bc.GetAllTxs().Print()
 
 	//b := GetBitcoinBlock("00000000000116d33823c5d9f8ead201edc6abf99004ae1d70c63f446746a0a5")
 	//b.PrintBlock()
