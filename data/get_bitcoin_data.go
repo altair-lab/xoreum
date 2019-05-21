@@ -381,6 +381,7 @@ func main() {
 	bc.GetState().Print()
 	fmt.Println()
 	bc.GetAllTxs().Print()
+	fmt.Println()
 
 	//b := GetBitcoinBlock("00000000000116d33823c5d9f8ead201edc6abf99004ae1d70c63f446746a0a5")
 	//b.PrintBlock()
