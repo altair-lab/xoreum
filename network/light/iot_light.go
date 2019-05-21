@@ -23,12 +23,22 @@ func main() {
 	if nil != err {
 		log.Fatal("failed to connect to server")
 	}
+
+	// TODO
+	// Make Blockchain here
+
 /*
 	// [TODO]
-	// Get Accounts length
-	// Receive Accounts
 	// Get State length
+	statelen, err := network.Recvlength(conn)
+	
 	// Receive State
+	for i := uint32(0); i < statelen; i++ {
+		// Receive public key
+		
+		// Receive tx hash
+	}
+
 	// Receive Txs (We need temporary 'transactions' object in chain)
 */
 	// Get interlinks length

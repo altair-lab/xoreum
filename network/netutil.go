@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"sync"
 	"io"
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
 
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/state"
@@ -120,18 +120,24 @@ func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) err
 }
 
 // Send state map
-func SendState(conn net.Conn, state map[ecdsa.PublicKey]*state.Account) error {
+func SendState(conn net.Conn, state *state.State) error {
 	// Send state size
 	length := make([]byte, 4)
-	binary.LittleEndian.PutUint32(length, uint32(len(state)))
+	binary.LittleEndian.PutUint32(length, uint32(len(*state)))
 	if _, err := conn.Write(length); nil != err {
 		log.Printf("failed to send state length; err: %v", err)
 		return err
 	}
 
-	// Send all accounts in state
-	for k := range state {
+	// Send state data (pubkey - hash)
+	for k, v := range *state {
+		// Send public key
 		err := SendObject(conn, k)
+		if err != nil {
+			return err
+		}
+		// Send tx hash
+		err = SendObject(conn, v)
 		if err != nil {
 			return err
 		}

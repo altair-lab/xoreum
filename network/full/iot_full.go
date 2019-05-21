@@ -54,8 +54,9 @@ func handleConn(conn net.Conn) {
 	log.Printf("CONNECTED TO %v\n", addr)
 /*
 	// [TODO]
-	// Send Accounts
 	// Send State
+	SendState(conn, &Blockchain.GetState())
+
 	// Send Txs in State
 */
 	// Send only Interlink block data

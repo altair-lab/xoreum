@@ -4,10 +4,10 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 
-	//"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/common"
 )
 
-//type State map[ecdsa.PublicKey]common.Hash
+type State map[ecdsa.PublicKey]common.Hash
 
 type Accounts map[ecdsa.PublicKey]*Account
 
