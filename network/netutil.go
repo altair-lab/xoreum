@@ -184,10 +184,30 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
 }
 
 func RecvState(conn net.Conn) (*state.State, error) {
-	// Make state struct
-	buf, err := RecvObjectJson(conn)
+	// Get State length
+	statelen, err := RecvLength(conn)
 	if err != nil {
 		return nil, err
+	}
+
+	// Make state struct
+	var state state.State
+	
+	// Get PublicKey - txHash
+	for i := uint32(0); i < statelen; i++ {
+		// Get PublicKey
+		pkbuf, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get txHash
+		txhashbuf, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, err
+		}
+
+		// [TODO] Unmarshal and insert to state map
 	}
 	var state state.State
 	json.Unmarshal(buf, &state)
