@@ -8,6 +8,7 @@ import (
 	"sync"
 	"io"
 	"crypto/ecdsa"
+	"crypto/elliptic"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
@@ -203,6 +204,7 @@ func RecvState(conn net.Conn) (state.State, error) {
 			return nil, err
 		}
 		json.Unmarshal(pkbuf, &publickey)
+		publickey.Curve = elliptic.P256()
 
 		// Get txHash
 		var txhash common.Hash
