@@ -52,13 +52,11 @@ func handleConn(conn net.Conn) {
 
 	// Connected to new client
 	log.Printf("CONNECTED TO %v\n", addr)
-/*
-	// [TODO]
-	// Send State
-	SendState(conn, &Blockchain.GetState())
+	Blockchain.GetState().Print()
 
-	// Send Txs in State
-*/
+	// Send State
+	network.SendState(conn, Blockchain.GetState())
+
 	// Send only Interlink block data
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()
 	network.SendInterlinks(conn, interlinks, Blockchain)

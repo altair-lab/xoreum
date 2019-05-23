@@ -7,8 +7,9 @@ import (
 	"encoding/json"
 	"sync"
 	"io"
-	//"crypto/ecdsa"
+	"crypto/ecdsa"
 
+	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
@@ -120,17 +121,17 @@ func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) err
 }
 
 // Send state map
-func SendState(conn net.Conn, state *state.State) error {
+func SendState(conn net.Conn, state state.State) error {
 	// Send state size
 	length := make([]byte, 4)
-	binary.LittleEndian.PutUint32(length, uint32(len(*state)))
+	binary.LittleEndian.PutUint32(length, uint32(len(state)))
 	if _, err := conn.Write(length); nil != err {
 		log.Printf("failed to send state length; err: %v", err)
 		return err
 	}
 
 	// Send state data (pubkey - hash)
-	for k, v := range *state {
+	for k, v := range state {
 		// Send public key
 		err := SendObject(conn, k)
 		if err != nil {
@@ -183,7 +184,7 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
 	return buf, nil
 }
 
-func RecvState(conn net.Conn) (*state.State, error) {
+func RecvState(conn net.Conn) (state.State, error) {
 	// Get State length
 	statelen, err := RecvLength(conn)
 	if err != nil {
@@ -191,27 +192,31 @@ func RecvState(conn net.Conn) (*state.State, error) {
 	}
 
 	// Make state struct
-	var state state.State
+	state := state.State{}
 	
 	// Get PublicKey - txHash
 	for i := uint32(0); i < statelen; i++ {
 		// Get PublicKey
+		var publickey ecdsa.PublicKey
 		pkbuf, err := RecvObjectJson(conn)
 		if err != nil {
 			return nil, err
 		}
+		json.Unmarshal(pkbuf, &publickey)
 
 		// Get txHash
+		var txhash common.Hash
 		txhashbuf, err := RecvObjectJson(conn)
 		if err != nil {
 			return nil, err
 		}
+		json.Unmarshal(txhashbuf, &txhash)
 
-		// [TODO] Unmarshal and insert to state map
+		// Insert to state map
+		state[publickey] = txhash
 	}
-	var state state.State
-	json.Unmarshal(buf, &state)
-	return &state, nil
+
+	return state, nil
 }
 
 // Get Transaction object json
