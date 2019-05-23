@@ -65,16 +65,8 @@ func SendTransactions(conn net.Conn, txs *types.Transactions) error {
 	// Send txs
 	for i := 0; i < len(*txs); i++ {
 		// Send transaction
-		mutex.Lock()
-		output, err := json.Marshal((*txs)[i])
+		err := SendObject(conn, (*txs)[i])
 		if err != nil {
-			log.Fatal(err)
-			return err
-		}
-		mutex.Unlock()
-		err = SendMessage(conn, output)
-		if err != nil {
-			log.Fatal(err)
 			return err
 		}
 	}
@@ -122,7 +114,7 @@ func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) err
 }
 
 // Send state map
-func SendState(conn net.Conn, state state.State) error {
+func SendState(conn net.Conn, state state.State, allTxs types.AllTxs) error {
 	// Send state size
 	length := make([]byte, 4)
 	binary.LittleEndian.PutUint32(length, uint32(len(state)))
@@ -140,6 +132,11 @@ func SendState(conn net.Conn, state state.State) error {
 		}
 		// Send tx hash
 		err = SendObject(conn, v)
+		if err != nil {
+			return err
+		}
+		// Send tx
+		err = SendObject(conn, allTxs[v])
 		if err != nil {
 			return err
 		}
@@ -185,15 +182,16 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
 	return buf, nil
 }
 
-func RecvState(conn net.Conn) (state.State, error) {
+func RecvState(conn net.Conn) (state.State, types.AllTxs, error) {
 	// Get State length
 	statelen, err := RecvLength(conn)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Make state struct
 	state := state.State{}
+	allTxs := types.AllTxs{}
 	
 	// Get PublicKey - txHash
 	for i := uint32(0); i < statelen; i++ {
@@ -201,7 +199,7 @@ func RecvState(conn net.Conn) (state.State, error) {
 		var publickey ecdsa.PublicKey
 		pkbuf, err := RecvObjectJson(conn)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		json.Unmarshal(pkbuf, &publickey)
 		publickey.Curve = elliptic.P256()
@@ -210,15 +208,23 @@ func RecvState(conn net.Conn) (state.State, error) {
 		var txhash common.Hash
 		txhashbuf, err := RecvObjectJson(conn)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		json.Unmarshal(txhashbuf, &txhash)
 
 		// Insert to state map
 		state[publickey] = txhash
+		
+		// Get tx
+		txbuf, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, nil, err
+		}
+		tx := types.UnmarshalJSON(txbuf)
+		allTxs[txhash] = tx
 	}
 
-	return state, nil
+	return state, allTxs, nil
 }
 
 // Get Transaction object json

@@ -25,7 +25,7 @@ func main() {
 	}
 
 	// Receive State
-	state, err := network.RecvState(conn)
+	state, allTxs, err := network.RecvState(conn)
 	if nil != err {
 		log.Fatal("failed to receive state")
 	}
@@ -63,7 +63,7 @@ func main() {
 
 	// Make IoT blockchain with current block (= genesis block)
 	db := memorydb.New()
-	Blockchain = core.NewIoTBlockChain(db, currentBlock, state)
+	Blockchain = core.NewIoTBlockChain(db, currentBlock, state, allTxs)
 	Blockchain.PrintBlockChain()
 	Blockchain.GetState().Print()
 	Blockchain.GetAllTxs().Print()

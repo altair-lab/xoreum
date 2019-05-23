@@ -57,7 +57,7 @@ func handleConn(conn net.Conn) {
 	Blockchain.GetAllTxs().Print()
 
 	// Send State
-	network.SendState(conn, Blockchain.GetState())
+	network.SendState(conn, Blockchain.GetState(), Blockchain.GetAllTxs())
 
 	// Send only Interlink block data
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()

@@ -58,7 +58,7 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	return bc
 }
 
-func NewIoTBlockChain(db xordb.Database, genesis *types.Block, s state.State) *BlockChain {
+func NewIoTBlockChain(db xordb.Database, genesis *types.Block, s state.State, allTxs types.AllTxs) *BlockChain {
 	bc := &BlockChain{
 		db:           db,
 		genesisBlock: genesis,
@@ -68,7 +68,7 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block, s state.State) *B
 
 	bc.accounts = state.NewAccounts()
 	bc.s = s
-	bc.allTxs = types.AllTxs{}
+	bc.allTxs = allTxs
 
 	return bc
 }
