@@ -20,42 +20,51 @@ import (
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb/memorydb"
-	"github.com/toorop/go-bitcoind"
 )
 
 type BitcoinBlock struct {
-	Hash   string       `json:"hash"`
-	Height *big.Int     `json:"height"`
-	Txs    []*BitcoinTx `json:"tx"`
+	Hash              string       `json:"hash"`
+	Height            *big.Int     `json:"height"`
+	Time              int64        `json:"time"`
+	Previousblockhash string       `json:"previousblockhash"`
+	TxHashes          []string     `json:"tx"`
+	Txs               []*BitcoinTx `json:"-"`
 }
 
 type BitcoinTx struct {
-	Inputs  []*BitcoinTxInput `json:"inputs"` // it is same as Inputs []*BitcoinTxData
-	Outputs []*BitcoinTxData  `json:"out"`
+	Hash    string            `json:"hash"`
+	Inputs  []*BitcoinTxInput `json:"vin"` // it is same as Inputs []*BitcoinTxData
+	Outputs []*BitcoinTxData  `json:"vout"`
 	//Fee     uint64
 }
 
 // embedded struct
 type BitcoinTxInput struct {
-	BitcoinTxData `json:"prev_out"`
+	TxHash       string        `json:"txid`
+	AddressIndex int           `json:"vout"`
+	Data         BitcoinTxData `json:"-"`
 }
 
 type BitcoinTxData struct {
-	Addr  string `json:"addr"`
-	Value uint64 `json:"value"`
+	Addr  string
+	Value uint64
 }
 
 func (b *BitcoinBlock) PrintBlock() {
 	fmt.Println("block hash:", b.Hash)
 	fmt.Println("block height:", b.Height)
+	fmt.Println("block time:", b.Time)
+	fmt.Println("block prev block hash:", b.Previousblockhash)
 	fmt.Println("=== Print Block Txs ===")
-	for i := 0; i < len(b.Txs); i++ {
+	for i := 0; i < len(b.TxHashes); i++ {
 		fmt.Println("\n## transaction", i)
-		b.Txs[i].PrintTx()
+		fmt.Println("hash:", b.TxHashes[i])
+		//b.Txs[i].PrintTx()
 	}
 	fmt.Println("=== End of Block ===")
 }
 
+/*
 func (btx *BitcoinTx) PrintTx() {
 	fmt.Println("--- Print Tx Inputs ---")
 	for i := 0; i < len(btx.Inputs); i++ {
@@ -69,6 +78,7 @@ func (btx *BitcoinTx) PrintTx() {
 		btx.Outputs[i].PrintTxData()
 	}
 }
+*/
 
 func (btxd *BitcoinTxData) PrintTxData() {
 	fmt.Println("Addr:", btxd.Addr)
@@ -145,7 +155,7 @@ func GetBitcoinTx(txHash string) *BitcoinTx {
 }
 
 // transform bitcoin data to xoreum's data
-func TransformBitcoinData(targetBlockNum int, rpc *bitcoind.Bitcoind) *core.BlockChain {
+func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	db := memorydb.New()
 	bc, genesisPrivateKey := core.NewBlockChainForBitcoin(db) // already has bitcoin's genesis block
 
@@ -166,12 +176,14 @@ func TransformBitcoinData(targetBlockNum int, rpc *bitcoind.Bitcoind) *core.Bloc
 	// block hashes of bitcoin
 	blockHashes := make(map[int]string)
 
-	// fill blockHashes (TODO: get block hashes automatically later)
+	// fill blockHashes (old version)
 	//blockHashes[1] = "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"
 	//blockHashes[2] = "000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"
 	//blockHashes[3] = "0000000082b5015589a3fdf2d4baff403e6f0be035a5d9742c1cae6295464449"
 	//blockHashes[4] = "000000004ebadb55ee9096c9a2f8880e09da59c0d68b1c228da88e48844a1485"
 	//blockHashes[5] = "000000009b7262315dbf071787ad3656097b892abffd1f95a1a022f896f533fc"
+
+	// fill blockHashes (new version)
 	for i := 1; i <= targetBlockNum; i++ {
 		blockHashes[i], _ = rpc.GetBlockHash(uint64(i))
 	}
@@ -180,7 +192,8 @@ func TransformBitcoinData(targetBlockNum int, rpc *bitcoind.Bitcoind) *core.Bloc
 	for i := 1; i <= targetBlockNum; i++ {
 
 		// get block from bitcoin
-		bb := GetBitcoinBlock(blockHashes[i])
+		//bb := GetBitcoinBlock(blockHashes[i])
+		bb, _ := rpc.GetBlock(blockHashes[i])
 
 		// transform transactions in the bitcoin block
 		for j := 0; j < len(bb.Txs); j++ {
@@ -380,12 +393,20 @@ func (bb *BitcoinBlock) GetValueSum() {
 
 func main() {
 
-	rpc, err := bitcoind.New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
+	//rpc, err := bitcoind.New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
+	rpc, err := New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	bc := TransformBitcoinData(3, rpc)
+	bbb, _ := rpc.GetBlock("0000000000000028312d5439ba839027fad4078d266ab9124e297a88f1b2825a")
+	bbb.PrintBlock()
+
+	rpc.GetRawTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d", true)
+
+	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d", true)
+
+	/*bc := TransformBitcoinData(1, rpc)
 	bc.PrintBlockChain()
 	fmt.Println()
 	bc.GetAccounts().Print()
@@ -393,7 +414,7 @@ func main() {
 	bc.GetState().Print()
 	fmt.Println()
 	bc.GetAllTxs().Print()
-	fmt.Println()
+	fmt.Println()*/
 
 	//b := GetBitcoinBlock("00000000000116d33823c5d9f8ead201edc6abf99004ae1d70c63f446746a0a5")
 	//b.PrintBlock()
@@ -463,12 +484,6 @@ type rpcRequest struct {
 	Id      int64       `json:"id"`
 	JsonRpc string      `json:"jsonrpc"`
 }
-
-// rpcError represents a RCP error
-/*type rpcError struct {
-	Code    int16  `json:"code"`
-	Message string `json:"message"`
-}*/
 
 type rpcResponse struct {
 	Id     int64           `json:"id"`
@@ -568,6 +583,18 @@ func (b *Bitcoind) GetBlockHash(index uint64) (hash string, err error) {
 	return
 }
 
+// GetBlock returns information about the block with the given hash.
+func (b *Bitcoind) GetBlock(blockHash string) (block BitcoinBlock, err error) {
+	r, err := b.client.call("getblock", []string{blockHash})
+	if err = handleError(err, &r); err != nil {
+		return
+	}
+	contents := string(r.Result)
+	fmt.Println("print json bitcoin block\n", contents)
+	err = json.Unmarshal(r.Result, &block)
+	return
+}
+
 // handleError handle error returned by client.call
 func handleError(err error, r *rpcResponse) error {
 	if err != nil {
@@ -579,4 +606,125 @@ func handleError(err error, r *rpcResponse) error {
 
 	}
 	return nil
+}
+
+// GetRawTransaction returns raw transaction representation for given transaction id.
+func (b *Bitcoind) GetRawTransaction(txId string, verbose bool) (rawTx interface{}, err error) {
+	intVerbose := 0
+	if verbose {
+		intVerbose = 1
+	}
+	r, err := b.client.call("getrawtransaction", []interface{}{txId, intVerbose})
+	if err = handleError(err, &r); err != nil {
+		return
+	}
+
+	contents := string(r.Result)
+	fmt.Println("print json rawtransaction\n", contents)
+	fmt.Println("rawtx end")
+
+	if !verbose {
+		err = json.Unmarshal(r.Result, &rawTx)
+	} else {
+		var t RawTransaction
+		err = json.Unmarshal(r.Result, &t)
+		rawTx = t
+	}
+	return
+}
+
+// RawTx represents a raw transaction
+type RawTransaction struct {
+	Hex           string `json:"hex"`
+	Txid          string `json:"txid"` // txhash
+	Version       uint32 `json:"version"`
+	LockTime      uint32 `json:"locktime"`
+	Vin           []Vin  `json:"vin"`  // inputs
+	Vout          []Vout `json:"vout"` // ouputs
+	BlockHash     string `json:"blockhash,omitempty"`
+	Confirmations uint64 `json:"confirmations,omitempty"`
+	Time          int64  `json:"time,omitempty"`
+	Blocktime     int64  `json:"blocktime,omitempty"`
+}
+
+// Vin represent an IN value
+type Vin struct {
+
+	// if this is a coinbase tx, it has this field
+	// and has no Txid, Vout, ScriptSig fields
+	Coinbase string `json:"coinbase"`
+
+	Txid string `json:"txid"` // hash of prev tx
+	Vout int    `json:"vout"` // index of Vout list's (source of money)
+
+	ScriptSig ScriptSig `json:"scriptSig"`
+	Sequence  uint32    `json:"sequence"`
+}
+
+// Vout represent an OUT value
+type Vout struct {
+	Value        float64      `json:"value"`        // amount of money
+	N            int          `json:"n"`            // index of Vout list's
+	ScriptPubKey ScriptPubKey `json:"scriptPubKey"` // here is a "Address" field (value owner)
+}
+
+// A ScriptSig represents a scriptsyg
+type ScriptSig struct {
+	Asm string `json:"asm"`
+	Hex string `json:"hex"`
+}
+
+type ScriptPubKey struct {
+	Asm       string   `json:"asm"`
+	Hex       string   `json:"hex"`
+	ReqSigs   int      `json:"reqSigs,omitempty"`   // = len(Addresses)
+	Type      string   `json:"type"`                // 1. pubkey, 2. <<"pubkeyhash">>, 3. scripthash, 4. multisig, 5. nulldata, 6. nonstandard ...
+	Addresses []string `json:"addresses,omitempty"` // list for multisig participants (most cases, len(Addresses) = 1)
+}
+
+// ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+// GetTransaction returns a Bitcoind.Transation struct about the given transaction
+func (b *Bitcoind) GetTransaction(txid string) (transaction Transaction, err error) {
+	//r, err := b.client.call("gettransaction", []interface{}{txid})
+	r, err := b.client.call("gettransaction", []string{txid}) // jm's new try
+
+	if err = handleError(err, &r); err != nil {
+		return
+	}
+
+	contents := string(r.Result)
+	fmt.Println("print json transaction\n", contents)
+	fmt.Println("tx end")
+
+	err = json.Unmarshal(r.Result, &transaction)
+	return
+}
+
+// TransactionDetails represents details about a transaction
+type TransactionDetails struct {
+	Account  string  `json:"account"`
+	Address  string  `json:"address,omitempty"`
+	Category string  `json:"category"`
+	Amount   float64 `json:"amount"`
+	Fee      float64 `json:"fee,omitempty"`
+}
+
+// Transaction represents a transaction
+type Transaction struct {
+	Amount          float64              `json:"amount"`
+	Account         string               `json:"account,omitempty"`
+	Address         string               `json:"address,omitempty"`
+	Category        string               `json:"category,omitempty"`
+	Fee             float64              `json:"fee,omitempty"`
+	Confirmations   int64                `json:"confirmations"`
+	BlockHash       string               `json:"blockhash"`
+	BlockIndex      int64                `json:"blockindex"`
+	BlockTime       int64                `json:"blocktime"`
+	TxID            string               `json:"txid"`
+	WalletConflicts []string             `json:"walletconflicts"`
+	Time            int64                `json:"time"`
+	TimeReceived    int64                `json:"timereceived"`
+	Details         []TransactionDetails `json:"details,omitempty"`
+	Hex             string               `json:"hex,omitempty"`
 }
