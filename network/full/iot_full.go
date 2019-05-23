@@ -16,7 +16,8 @@ import (
 )
 
 const MINING_INTERVAL = 10
-const DEFAULT_BLOCK_NUMBER = 10
+const DEFAULT_BLOCK_NUMBER = 5
+const DEFAULT_ACCOUNTS_NUMBER = 5
 const BROADCAST_INTERVAL = 5
 
 // [TODO] replaceChain (logest chain rule)
@@ -25,7 +26,7 @@ var mutex = &sync.Mutex{}
 
 func main() {
 	// create block chain
-	Blockchain = network.MakeTestBlockChain(10, 5)
+	Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER)
 	Blockchain.PrintBlockChain()
 
 	// start TCP and serve TCP server
@@ -52,6 +53,11 @@ func handleConn(conn net.Conn) {
 
 	// Connected to new client
 	log.Printf("CONNECTED TO %v\n", addr)
+	Blockchain.GetState().Print()
+	Blockchain.GetAllTxs().Print()
+
+	// Send State
+	network.SendState(conn, Blockchain.GetState(), Blockchain.GetAllTxs())
 
 	// Send only Interlink block data
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()

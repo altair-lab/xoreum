@@ -7,28 +7,16 @@ import (
 	"encoding/json"
 	"sync"
 	"io"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 
-	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/crypto"
+	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/core/miner"
 )
 
 var mutex = &sync.Mutex{}
-
-// Initialization for test
-func Initialization(bc *core.BlockChain) (*core.TxPool, miner.Miner) {
-	txpool := core.NewTxPool(bc)
-	privatekey, _ := crypto.GenerateKey()
-	publickey := privatekey.PublicKey
-
-	// [FIXME] miner Coinbase type?
-	address := crypto.Keccak256Address(common.ToBytes(publickey))
-	miner := miner.Miner{address}
-
-	return txpool, miner
-}
 
 // Send message with buffer size
 func SendMessage(conn net.Conn, msg []byte) error {
@@ -77,16 +65,8 @@ func SendTransactions(conn net.Conn, txs *types.Transactions) error {
 	// Send txs
 	for i := 0; i < len(*txs); i++ {
 		// Send transaction
-		mutex.Lock()
-		output, err := json.Marshal((*txs)[i])
+		err := SendObject(conn, (*txs)[i])
 		if err != nil {
-			log.Fatal(err)
-			return err
-		}
-		mutex.Unlock()
-		err = SendMessage(conn, output)
-		if err != nil {
-			log.Fatal(err)
 			return err
 		}
 	}
@@ -133,6 +113,38 @@ func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) err
 	return nil
 }
 
+// Send state map
+func SendState(conn net.Conn, state state.State, allTxs types.AllTxs) error {
+	// Send state size
+	length := make([]byte, 4)
+	binary.LittleEndian.PutUint32(length, uint32(len(state)))
+	if _, err := conn.Write(length); nil != err {
+		log.Printf("failed to send state length; err: %v", err)
+		return err
+	}
+
+	// Send state data (pubkey - hash)
+	for k, v := range state {
+		// Send public key
+		err := SendObject(conn, k)
+		if err != nil {
+			return err
+		}
+		// Send tx hash
+		err = SendObject(conn, v)
+		if err != nil {
+			return err
+		}
+		// Send tx
+		err = SendObject(conn, allTxs[v])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Receive message size
 func RecvLength(conn net.Conn) (uint32, error) {
         lengthBuf := make([]byte, 4)
@@ -168,6 +180,51 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
 		return nil, err
         }
 	return buf, nil
+}
+
+func RecvState(conn net.Conn) (state.State, types.AllTxs, error) {
+	// Get State length
+	statelen, err := RecvLength(conn)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Make state struct
+	state := state.State{}
+	allTxs := types.AllTxs{}
+	
+	// Get PublicKey - txHash
+	for i := uint32(0); i < statelen; i++ {
+		// Get PublicKey
+		var publickey ecdsa.PublicKey
+		pkbuf, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, nil, err
+		}
+		json.Unmarshal(pkbuf, &publickey)
+		publickey.Curve = elliptic.P256()
+
+		// Get txHash
+		var txhash common.Hash
+		txhashbuf, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, nil, err
+		}
+		json.Unmarshal(txhashbuf, &txhash)
+
+		// Insert to state map
+		state[publickey] = txhash
+		
+		// Get tx
+		txbuf, err := RecvObjectJson(conn)
+		if err != nil {
+			return nil, nil, err
+		}
+		tx := types.UnmarshalJSON(txbuf)
+		allTxs[txhash] = tx
+	}
+
+	return state, allTxs, nil
 }
 
 // Get Transaction object json

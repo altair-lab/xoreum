@@ -81,7 +81,7 @@ func UnmarshalJSON(txbuf []byte) *Transaction {
 	postStates := make([]*(state.Account), length)
 
 	for i := 0; i < length; i++ {
-		participants[i] = &ecdsa.PublicKey{Curve: &elliptic.CurveParams{}}
+		participants[i] = &ecdsa.PublicKey{Curve: elliptic.P256()}
 		postStates[i] = &state.Account{PublicKey: participants[i]}
 	}
 	txdata := Txdata{Participants: participants, PostStates: postStates}

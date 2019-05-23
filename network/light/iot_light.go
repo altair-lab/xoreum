@@ -23,6 +23,12 @@ func main() {
 	if nil != err {
 		log.Fatal("failed to connect to server")
 	}
+
+	// Receive State
+	state, allTxs, err := network.RecvState(conn)
+	if nil != err {
+		log.Fatal("failed to receive state")
+	}
 	
 	// Get interlinks length
 	interlinkslen, err := network.RecvLength(conn)
@@ -54,8 +60,10 @@ func main() {
 
 	// Make IoT blockchain with current block (= genesis block)
 	db := memorydb.New()
-	Blockchain = core.NewIoTBlockChain(db, currentBlock)
+	Blockchain = core.NewIoTBlockChain(db, currentBlock, state, allTxs)
 	Blockchain.PrintBlockChain()
+	Blockchain.GetState().Print()
+	Blockchain.GetAllTxs().Print()
 /*
 	// [TODO] Keep mining every MINING_INTERVAL
 	go func() {

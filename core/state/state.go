@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/altair-lab/xoreum/common"
-	//"github.com/altair-lab/xoreum/common"
 )
+
 
 type State map[ecdsa.PublicKey]common.Hash // pubkey - TxHash (user's current tx hash)
 

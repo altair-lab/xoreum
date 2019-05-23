@@ -21,8 +21,9 @@ func MakeTestBlockChain(chainLength int64, partNum int64) *core.BlockChain {
 
 	db := memorydb.New()
 	bc := core.NewBlockChain(db)
-	allTxs := make(map[common.Hash]*types.Transaction) // all txs in this test blockchain
-	userCurTx := make(map[int64]*common.Hash)          // map to fill PrevTxHashes of tx
+
+	allTxs := bc.GetAllTxs()                  // all txs in this test blockchain
+	userCurTx := make(map[int64]*common.Hash) // map to fill PrevTxHashes of tx
 
 	// initialize
 	Txpool := core.NewTxPool(bc)
@@ -214,18 +215,39 @@ func MakeTestBlockChain(chainLength int64, partNum int64) *core.BlockChain {
 			fmt.Println("Mining Fail")
 		}
 
-		// Validate block
-		err := b.ValidateBlock()
-		if err != nil {
-			fmt.Println(err)
-		}
-
 		// Insert block to chain
-		err = bc.Insert(b)
+		err := bc.Insert(b)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
+
+	// set blockchain's State
+	for k, v := range userCurTx {
+		bc.GetState()[privkeys[k].PublicKey] = *v
+	}
+
 	return bc
 }
 
+func ExampleFunc3() {
+
+	testbc := MakeTestBlockChain(5, 5)
+	testbc.PrintBlockChain()
+	testbc.GetAccounts().Print()
+	testbc.GetState().Print()
+	testbc.GetAllTxs().Print()
+
+	/*fmt.Println("print all txs")
+	for k, v := range testbc.GetAllTxs() {
+		fmt.Println(k.ToHex(), "->", v)
+		fmt.Println()
+	}
+	fmt.Println("print blockchain's state")
+	for k, v := range testbc.GetState() {
+		fmt.Println(k, "->", v)
+		fmt.Println()
+	}*/
+
+	// output: 4
+}
