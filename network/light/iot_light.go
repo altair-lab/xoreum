@@ -29,9 +29,6 @@ func main() {
 	if nil != err {
 		log.Fatal("failed to receive state")
 	}
-
-	// [TODO]
-	// Receive Txs (We need temporary 'transactions' object in chain)
 	
 	// Get interlinks length
 	interlinkslen, err := network.RecvLength(conn)
