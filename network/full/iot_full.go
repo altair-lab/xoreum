@@ -13,6 +13,7 @@ import (
 
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/network"
+	"github.com/altair-lab/xoreum/xordb/leveldb"
 )
 
 const MINING_INTERVAL = 10
@@ -26,7 +27,8 @@ var mutex = &sync.Mutex{}
 
 func main() {
 	// create block chain
-	Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER)
+	db, _ := leveldb.New("chaindata", 0, 0, "")
+	Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER, db)
 	Blockchain.PrintBlockChain()
 
 	// start TCP and serve TCP server
