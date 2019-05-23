@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/common"
 )
 
 // Reference : tx_pool.go#L43
@@ -75,25 +76,28 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction) error {
-	/*
-	for _, key := range tx.Participants() {
+	for i, key := range tx.Participants() {
                 // [FIXME]
 		//prevState := loadTransaction(tx.PrevTxhashes()[i]).GetPostState(key)
-		prevState := &state.Account{}
+		tx.PrintTx()
+		prevHash := *tx.PrevTxHashes()[i]
+		if prevHash != (common.Hash{0}) {
+			prevState := pool.chain.GetAllTxs()[prevHash].GetPostState(key)
 
-                // Check incorrect prev state
-                if pool.currentState.GetBalance(key) != prevState.Balance {
-                        return ErrIncorrectPrevState
-                }
-                if pool.currentState.GetNonce(key) != prevState.Nonce {
-                        return ErrIncorrectPrevState
-                }
+               		// Check incorrect prev state
+                	if pool.chain.GetAccounts().GetBalance(key) != prevState.Balance {
+                		return ErrIncorrectPrevState
+               		}
+                	if pool.chain.GetAccounts().GetNonce(key) != prevState.Nonce {
+                		return ErrIncorrectPrevState
+               		}
 
-                // Check Nonce
-                if tx.GetPostState(key).Nonce != prevState.Nonce + 1 {
-                        return ErrIncorrectNonce
-                }
-        }
+                	// Check Nonce
+                	if tx.GetPostState(key).Nonce != prevState.Nonce + 1 {
+                		return ErrIncorrectNonce
+               		}
+		}
+	}
 
         // Check Balance Sum
 	postBalanceSum := tx.GetPostBalanceSum()
@@ -107,8 +111,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	if validity != nil {
 		return ErrInvalidSender
 	}
-	*/
-
+	
 	// nothing
 	return nil 
 }
