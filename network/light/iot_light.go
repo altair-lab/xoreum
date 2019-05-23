@@ -66,6 +66,7 @@ func main() {
 	Blockchain = core.NewIoTBlockChain(db, currentBlock, state)
 	Blockchain.PrintBlockChain()
 	Blockchain.GetState().Print()
+	Blockchain.GetAllTxs().Print()
 /*
 	// [TODO] Keep mining every MINING_INTERVAL
 	go func() {
