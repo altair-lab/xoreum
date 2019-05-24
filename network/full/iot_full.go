@@ -38,9 +38,7 @@ func main() {
 	} else {
 		// Load blocks from 1st block (0 = genesis)
 		Blockchain = core.NewBlockChain(db)
-		log.Println(*last_BN)
 		for i := uint64(1); i <= *last_BN; i++ {
-			log.Println("this is ", i)
 			loaded := rawdb.LoadBlockByBN(db, i)
 			err := Blockchain.Insert(loaded)
 			if err != nil {
