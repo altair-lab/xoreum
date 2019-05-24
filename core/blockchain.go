@@ -195,7 +195,7 @@ func (bc *BlockChain) PrintBlockChain() {
 		fmt.Println("THERE IS NO BLOCK")
 	} else {
 		fmt.Println("=== Print Blocks ===")
-		for i := uint64(0); i < *length; i++ {
+		for i := bc.Genesis().GetHeader().Number; i <= *length; i++ {
 			bc.BlockAt(i).PrintBlock()
 		}
 		fmt.Println("====================")
