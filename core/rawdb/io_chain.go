@@ -277,6 +277,22 @@ func DeleteBlock(db xordb.Writer, hash common.Hash, number uint64) {
 	DeleteTd(db, hash, number)
 }
 
+// ReadGenesisHeaderHash retrieves the hash of the genesis block.
+func ReadGenesisHeaderHash(db xordb.Reader) common.Hash {
+	data, _ := db.Get(genesisHeaderKey)
+	if len(data) == 0 {
+		return common.Hash{}
+	}
+	return common.BytesToHash(data)
+}
+
+// WriteGenesisHeaderHash stores the hash of the genesis block.
+func WriteGenesisHeaderHash(db xordb.Writer, hash common.Hash) {
+	if err := db.Put(genesisHeaderKey, hash.Bytes()); err != nil {
+		log.Crit("Failed to store last header's hash", "err", err)
+	}
+}
+
 // ReadLastHeaderHash retrieves the hash of the last header.
 func ReadLastHeaderHash(db xordb.Reader) common.Hash {
 	data, _ := db.Get(lastHeaderKey)
