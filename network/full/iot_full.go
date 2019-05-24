@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
 )
@@ -21,14 +22,33 @@ const DEFAULT_BLOCK_NUMBER = 5
 const DEFAULT_ACCOUNTS_NUMBER = 5
 const BROADCAST_INTERVAL = 5
 
-// [TODO] replaceChain (logest chain rule)
 var Blockchain *core.BlockChain
 var mutex = &sync.Mutex{}
 
 func main() {
-	// create block chain
+	// Load DB
 	db, _ := leveldb.New("chaindata", 0, 0, "")
-	Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER, db)
+	last_hash := rawdb.ReadLastHeaderHash(db)
+	last_BN := rawdb.ReadHeaderNumber(db, last_hash)
+
+	// When there is no existing DB
+	if last_BN == nil {
+		// Initialize chain and store to DB
+		Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER, db)
+	} else {
+		// Load blocks via accessor api
+		Blockchain = core.NewBlockChain(db)
+		for i := uint64(1); i <= uint64(*last_BN); i++ {
+			loaded := rawdb.LoadBlockByBN(db, i)
+			err := Blockchain.Insert(loaded)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
+	}
+	
+	// Print blckchain
 	Blockchain.PrintBlockChain()
 
 	// start TCP and serve TCP server

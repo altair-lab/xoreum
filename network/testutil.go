@@ -9,12 +9,19 @@ import (
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/xordb"
 )
+
+// store block for test
+func StoreBlock(db xordb.Database, block *types.Block) {
+	rawdb.StoreBlock(db, block)
+	rawdb.WriteLastHeaderHash(db, block.GetHeader().Hash())
+}
 
 // make blockchain for test. insert simple blocks
 func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *core.BlockChain {
@@ -218,6 +225,10 @@ func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *co
 		if err != nil {
 			fmt.Println(err)
 		}
+
+		// Store in DB
+		fmt.Println("Store Block #", b.Number())
+		StoreBlock(db, b)
 	}
 
 	// set blockchain's State
