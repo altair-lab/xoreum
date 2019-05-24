@@ -78,17 +78,7 @@ func main() {
 		genesis_hash := rawdb.ReadGenesisHeaderHash(db)
 		genesis_BN := rawdb.ReadHeaderNumber(db, genesis_hash)
 		genesis := rawdb.LoadBlockByBN(db, *genesis_BN)
-		// [FIXME] Remove state, allTxs fields
 		Blockchain = core.NewIoTBlockChain(db, genesis, nil, nil)
-		
-		for i := Blockchain.Genesis().GetHeader().Number+1; i <= *last_BN; i++ {
-			loaded := rawdb.LoadBlockByBN(db, i)
-			err := Blockchain.Insert(loaded)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-		}
 		log.Println("Load Block Done!")
 	}
 
