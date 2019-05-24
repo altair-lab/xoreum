@@ -34,7 +34,7 @@ type BlockChain struct {
 	genesisBlock *types.Block
 	currentBlock atomic.Value
 
-	blocks   []types.Block  // temporary block list. blocks will be saved in db
+	//blocks   []types.Block  // temporary block list. blocks will be saved in db
 	accounts state.Accounts // temporary accounts. it will be saved in db
 	s        state.State    // temporary state. it will be saved in db
 	allTxs   types.AllTxs   // temporary tx map. it will be saved in db
@@ -48,7 +48,8 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 		genesisBlock: params.GetGenesisBlock(),
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
-	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+	bc.insert(bc.genesisBlock)
+	//bc.blocks = append(bc.blocks, *bc.genesisBlock)
 
 	bc.accounts = state.NewAccounts()
 	bc.s = state.State{}
@@ -63,7 +64,8 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block, s state.State, al
 		genesisBlock: genesis,
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
-	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+	bc.insert(bc.genesisBlock)
+	//bc.blocks = append(bc.blocks, *bc.genesisBlock)
 
 	bc.accounts = state.NewAccounts()
 	bc.s = s
@@ -85,7 +87,8 @@ func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey)
 		genesisBlock: gBlock,
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
-	bc.blocks = append(bc.blocks, *bc.genesisBlock)
+	bc.insert(bc.genesisBlock)
+	//bc.blocks = append(bc.blocks, *bc.genesisBlock)
 
 	bc.accounts = state.NewAccounts()
 	bc.applyTransaction(bc.accounts, bc.genesisBlock.GetTxs())
@@ -167,7 +170,9 @@ func (bc *BlockChain) applyTransaction(s state.Accounts, txs *types.Transactions
 
 // actually insert block
 func (bc *BlockChain) insert(block *types.Block) {
-	bc.blocks = append(bc.blocks, *block)
+	//bc.blocks = append(bc.blocks, *block)
+	rawdb.StoreBlock(bc.db, block)
+	rawdb.WriteLastHeaderHash(bc.db, block.GetHeader().Hash())
 	bc.currentBlock.Store(block)
 }
 
@@ -176,7 +181,8 @@ func (bc *BlockChain) CurrentBlock() *types.Block {
 }
 
 func (bc *BlockChain) BlockAt(index uint64) *types.Block {
-	return &bc.blocks[index]
+	return rawdb.LoadBlockByBN(bc.db, index)
+	//return &bc.blocks[index]
 }
 
 func (bc *BlockChain) GetAccounts() state.Accounts {
@@ -184,12 +190,17 @@ func (bc *BlockChain) GetAccounts() state.Accounts {
 }
 
 func (bc *BlockChain) PrintBlockChain() {
-	fmt.Println("=== Print Blocks ===")
-	for i := 0; i < len(bc.blocks); i++ {
-		bc.blocks[i].PrintBlock()
+	length := rawdb.ReadHeaderNumber(bc.db, rawdb.ReadLastHeaderHash(bc.db))
+	if length == nil {
+		fmt.Println("THERE IS NO BLOCK")
+	} else {
+		fmt.Println("=== Print Blocks ===")
+		for i := uint64(0); i < *length; i++ {
+			bc.BlockAt(i).PrintBlock()
+		}
+		fmt.Println("====================")
+		fmt.Println("=== End of Chain ===")
 	}
-	fmt.Println("====================")
-	fmt.Println("=== End of Chain ===")
 }
 
 func (bc *BlockChain) GetState() state.State {
