@@ -36,9 +36,11 @@ func main() {
 		// Initialize chain and store to DB
 		Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER, db)
 	} else {
-		// Load blocks via accessor api
+		// Load blocks from 1st block (0 = genesis)
 		Blockchain = core.NewBlockChain(db)
-		for i := uint64(1); i <= uint64(*last_BN); i++ {
+		log.Println(*last_BN)
+		for i := uint64(1); i <= *last_BN; i++ {
+			log.Println("this is ", i)
 			loaded := rawdb.LoadBlockByBN(db, i)
 			err := Blockchain.Insert(loaded)
 			if err != nil {
@@ -50,6 +52,8 @@ func main() {
 	
 	// Print blckchain
 	Blockchain.PrintBlockChain()
+	//Blockchain.GetState().Print()
+	//Blockchain.GetAllTxs().Print()
 
 	// start TCP and serve TCP server
 	server, err := net.Listen("tcp", ":9000")
@@ -75,8 +79,6 @@ func handleConn(conn net.Conn) {
 
 	// Connected to new client
 	log.Printf("CONNECTED TO %v\n", addr)
-	Blockchain.GetState().Print()
-	Blockchain.GetAllTxs().Print()
 
 	// Send State
 	network.SendState(conn, Blockchain.GetState(), Blockchain.GetAllTxs())

@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	//"time"
-
 	"github.com/altair-lab/xoreum/xordb"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/params"
 )
 
@@ -43,6 +42,8 @@ type BlockChain struct {
 	allTxs   types.AllTxs   // temporary tx map. it will be saved in db
 }
 
+func (bc *BlockChain) Genesis() *types.Block { return bc.genesisBlock }
+
 func NewBlockChain(db xordb.Database) *BlockChain {
 	bc := &BlockChain{
 		db:           db,
@@ -70,6 +71,13 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block, s state.State, al
 	bc.s = s
 	bc.allTxs = allTxs
 
+	// [FIXME]
+	rawdb.StoreBlock(db, bc.genesisBlock)
+	rawdb.WriteLastHeaderHash(db, bc.genesisBlock.GetHeader().Hash())
+	
+	// [TODO] StoreBlock
+	// [TODO] WriteGenesisHeaderHash
+	
 	return bc
 }
 
