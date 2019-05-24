@@ -225,10 +225,6 @@ func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *co
 		if err != nil {
 			fmt.Println(err)
 		}
-
-		// Store in DB
-		fmt.Println("Store Block #", b.Number())
-		StoreBlock(db, b)
 	}
 
 	// set blockchain's State
