@@ -23,14 +23,15 @@ import (
 )
 
 type BitcoinBlock struct {
-	Hash              string       `json:"hash"`
-	Height            *big.Int     `json:"height"`
-	Time              int64        `json:"time"`
-	Previousblockhash string       `json:"previousblockhash"`
-	TxHashes          []string     `json:"tx"`
-	Txs               []*BitcoinTx `json:"-"`
+	Hash              string            `json:"hash"`
+	Height            *big.Int          `json:"height"`
+	Time              int64             `json:"time"`
+	Previousblockhash string            `json:"previousblockhash"`
+	TxHashes          []string          `json:"tx"`
+	Txs               []*RawTransaction `json:"-"`
 }
 
+/*
 type BitcoinTx struct {
 	Hash    string            `json:"hash"`
 	Inputs  []*BitcoinTxInput `json:"vin"` // it is same as Inputs []*BitcoinTxData
@@ -49,7 +50,7 @@ type BitcoinTxData struct {
 	Addr  string
 	Value uint64
 }
-
+*/
 func (b *BitcoinBlock) PrintBlock() {
 	fmt.Println("block hash:", b.Hash)
 	fmt.Println("block height:", b.Height)
@@ -78,13 +79,15 @@ func (btx *BitcoinTx) PrintTx() {
 		btx.Outputs[i].PrintTxData()
 	}
 }
-*/
+
 
 func (btxd *BitcoinTxData) PrintTxData() {
 	fmt.Println("Addr:", btxd.Addr)
 	fmt.Println("Value:", btxd.Value)
 }
+*/
 
+/*
 // get block's all data including txs
 func GetBitcoinBlock(blockHash string) *BitcoinBlock {
 
@@ -153,6 +156,7 @@ func GetBitcoinTx(txHash string) *BitcoinTx {
 
 	return &tx
 }
+*/
 
 // transform bitcoin data to xoreum's data
 func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
@@ -162,7 +166,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	// users on xoreum (map[bitcoin_user_address] = xoreum_user_private_key)
 	users := make(map[string]*ecdsa.PrivateKey)
 
-	// set genesis account
+	// set genesis account (hard coded)
 	genesisAddr := "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
 	users[genesisAddr] = genesisPrivateKey
 
@@ -176,14 +180,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	// block hashes of bitcoin
 	blockHashes := make(map[int]string)
 
-	// fill blockHashes (old version)
-	//blockHashes[1] = "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"
-	//blockHashes[2] = "000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"
-	//blockHashes[3] = "0000000082b5015589a3fdf2d4baff403e6f0be035a5d9742c1cae6295464449"
-	//blockHashes[4] = "000000004ebadb55ee9096c9a2f8880e09da59c0d68b1c228da88e48844a1485"
-	//blockHashes[5] = "000000009b7262315dbf071787ad3656097b892abffd1f95a1a022f896f533fc"
-
-	// fill blockHashes (new version)
+	// fill blockHashes
 	for i := 1; i <= targetBlockNum; i++ {
 		blockHashes[i], _ = rpc.GetBlockHash(uint64(i))
 	}
@@ -196,44 +193,89 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		bb, _ := rpc.GetBlock(blockHashes[i])
 
 		// transform transactions in the bitcoin block
-		for j := 0; j < len(bb.Txs); j++ {
-			//tx := bb.Txs[j].TransformTx(users, userCurTx, genesisPrivateKey)
+		for j := 0; j < len(bb.TxHashes); j++ {
 
 			// make xoreum transaction
 
+			// get bitcoin tx
+			bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
+
 			// users in this tx (bb.Txs[j])
-			parties := make(map[string]uint64)
+			parties := make(map[string]int64)
 
-			// deal with Outputs of bitcoin tx
-			for k := 0; k < len(bb.Txs[j].Outputs); k++ {
+			// value sum of vin & vout to calculate tx fee (= vinSum - voutSum)
+			// tx fee goes to miner of this block
+			voutSum := uint64(0)
+			vinSum := uint64(0)
 
-				addr := bb.Txs[j].Outputs[k].Addr
-				value := bb.Txs[j].Outputs[k].Value
+			// deal with Vouts of bitcoin tx
+			for k := 0; k < len(bb.Txs[j].Vout); k++ {
 
-				// if this bitcoin user appears first, mapping him with xoreum user
+				//addr := bb.Txs[j].Outputs[k].Addr
+				//value := bb.Txs[j].Outputs[k].Value
+				addr := bb.Txs[j].Vout[k].ScriptPubKey.Addresses
+				value := uint64(bb.Txs[j].Vout[k].Value * 100000000) // convert BTC to satoshi (10^8)
+				addr_len := uint64(len(addr))
+
+				// calculate vout sum
+				voutSum += value
+
+				/*// if this bitcoin user appears first, mapping him with xoreum user
 				if users[addr] == nil {
 					users[addr], _ = crypto.GenerateKey()
 					bc.GetAccounts().NewAccount(&users[addr].PublicKey, 0, 0)
+				}*/
+				// if this bitcoin user appears first, mapping him with xoreum user
+				for m := uint64(0); m < addr_len; m++ {
+					if users[addr[m]] == nil {
+						users[addr[m]], _ = crypto.GenerateKey()
+						bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
+					}
 				}
 
-				// to deal with the same user who appears more than once in this bitcoin tx (bb.Txs[j])
+				/*// to deal with the same user who appears more than once in this bitcoin tx (bb.Txs[j])
 				if _, ok := parties[addr]; ok {
 					// this user appeared more than once in this tx
 					parties[addr] += value
 				} else {
 					// this user appears first in this tx
 					parties[addr] = value
+				}*/
+
+				// set each user's value (if there is more than 1 user in vout (due to multisig))
+				//values := []uint64
+				values := make([]uint64, addr_len)
+				for m := uint64(0); m < addr_len; m++ {
+					values[m] = value / addr_len
+				}
+				values[addr_len-1] += value % addr_len
+
+				// to deal with the same user who appears more than once in this bitcoin tx (bb.Txs[j])
+				for m := uint64(0); m < addr_len; m++ {
+					if _, ok := parties[addr[m]]; ok {
+						// this user appeared more than once in this tx
+						parties[addr[m]] += int64(values[m])
+					} else {
+						// this user appears first in this tx
+						parties[addr[m]] = int64(values[m])
+					}
 				}
 
 			}
 
-			// deal with Inputs of bitcoin tx
-			if bb.Txs[j].Inputs[0].Addr == "" {
-				// if this bitcoin_tx is coinbase tx
+			/*fmt.Println("parties after deal with vout")
+			for k, v := range parties {
+				fmt.Println("parties[", k, "]:", v)
+			}*/
+
+			// deal with Vins of bitcoin tx
+
+			// if this tx is coinbase tx
+			if bb.Txs[j].Vin[0].Coinbase != "" {
 
 				// get actual block reward (50 BTC, 25 BTC, 12.5 BTC...)
 				// blockReward = actual_block_reward + all_tx_fee_in_block
-				blockReward := bb.Txs[j].Outputs[0].Value
+				blockReward := uint64(bb.Txs[j].Vout[0].Value * 100000000) // convert BTC to satoshi
 				if blockReward >= 5000000000 {
 					blockReward = 5000000000
 				} else if blockReward >= 2500000000 {
@@ -242,32 +284,56 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 					blockReward = 1250000000
 					// block reward would be 6.25 BTC in 2020
 				}
-				parties[genesisAddr] -= blockReward
+				parties[genesisAddr] -= int64(blockReward)
 
 			} else {
-				// not a coinbase tx
+				for k := 0; k < len(bb.Txs[j].Vin); k++ {
+					//addr := bb.Txs[j].Inputs[k].Addr
+					//value := bb.Txs[j].Inputs[k].Value
+					float_value, addr := rpc.GetVinData(bb.Txs[j].Vin[k].Txid, bb.Txs[j].Vin[k].Vout)
+					value := uint64(float_value * 100000000) // convert BTC to satoshi
+					addr_len := uint64(len(addr))
 
-				for k := 0; k < len(bb.Txs[j].Inputs); k++ {
-					addr := bb.Txs[j].Inputs[k].Addr
-					value := bb.Txs[j].Inputs[k].Value
+					// calculate vinSum
+					vinSum += value
 
 					// if this bitcoin user appears first, mapping him with xoreum user
-					if users[addr] == nil {
-						users[addr], _ = crypto.GenerateKey()
-						bc.GetAccounts().NewAccount(&users[addr].PublicKey, 0, 0)
+					for m := uint64(0); m < addr_len; m++ {
+						if users[addr[m]] == nil {
+							users[addr[m]], _ = crypto.GenerateKey()
+							bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
+						}
 					}
+
+					// set each user's value (if there is more than 1 user in vout (due to multisig))
+					//values := []uint64
+					values := make([]uint64, addr_len)
+					for m := uint64(0); m < addr_len; m++ {
+						values[m] = value / addr_len
+					}
+					values[addr_len-1] += value % addr_len
 
 					// to deal with the same user who appears more than once in this bitcoin tx (bb.Txs[j])
-					if _, ok := parties[addr]; ok {
-						// this user appeared more than once in this tx
-						parties[addr] -= value
-					} else {
-						// this user appears first in this tx
-						parties[addr] = -value
+					for m := uint64(0); m < addr_len; m++ {
+						if _, ok := parties[addr[m]]; ok {
+							// this user appeared more than once in this tx
+							parties[addr[m]] -= int64(values[m])
+						} else {
+							// this user appears first in this tx
+							parties[addr[m]] = -int64(values[m])
+						}
 					}
-				}
 
+				}
 			}
+
+			/*fmt.Println("parties after deal with vin")
+			for k, v := range parties {
+				fmt.Println("parties[", k, "]:", v)
+			}
+			fmt.Println()*/
+
+			// TODO: deal with tx fee
 
 			// fields for xoreum tx
 			parPublicKeys := []*ecdsa.PublicKey{}
@@ -280,7 +346,12 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
 
 				acc := bc.GetAccounts()[users[k].PublicKey].Copy()
-				acc.Balance += v
+				if v > int64(0) {
+					acc.Balance += uint64(v)
+				} else {
+					acc.Balance -= uint64(-v)
+				}
+				//acc.Balance += v
 				acc.Nonce++
 				parStates = append(parStates, acc)
 
@@ -369,7 +440,7 @@ func (btx *BitcoinTx) TransformTx(users map[string]*ecdsa.PrivateKey, userCurTx 
 
 }
 */
-
+/*
 func (bb *BitcoinBlock) GetValueSum() {
 
 	// transaction_fee: tx_input_sum - tx_output_sum
@@ -390,7 +461,7 @@ func (bb *BitcoinBlock) GetValueSum() {
 	fmt.Println("output sum:", outputSum)
 
 }
-
+*/
 func main() {
 
 	//rpc, err := bitcoind.New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
@@ -399,32 +470,29 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	bbb, _ := rpc.GetBlock("0000000000000028312d5439ba839027fad4078d266ab9124e297a88f1b2825a")
+	/*bbb, _ := rpc.GetBlock("0000000000000028312d5439ba839027fad4078d266ab9124e297a88f1b2825a")
 	bbb.PrintBlock()
 
-	rpc.GetRawTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d", true)
+	rpc.GetRawTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")
 
-	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d", true)
+	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	/*bc := TransformBitcoinData(1, rpc)
-	bc.PrintBlockChain()
+	bc := TransformBitcoinData(180, rpc)
+	//TransformBitcoinData(200, rpc)
+
+	//bc.PrintBlockChain()
+
 	fmt.Println()
+	fmt.Println("Print Block Chain's all Accounts")
 	bc.GetAccounts().Print()
-	fmt.Println()
-	bc.GetState().Print()
-	fmt.Println()
-	bc.GetAllTxs().Print()
-	fmt.Println()*/
 
-	//b := GetBitcoinBlock("00000000000116d33823c5d9f8ead201edc6abf99004ae1d70c63f446746a0a5")
-	//b.PrintBlock()
-	//b.GetValueSum()
+	//fmt.Println()
+	//fmt.Println("Print Block Chain's State")
+	//bc.GetState().Print()
 
-	//tx := GetBitcoinTx("6ad0d210305ef6426bd6ac94d618230f48a3e264199608a86bd450b316013f3b")
-	//tx.PrintTx()
-
-	hash, err := rpc.GetBlockHash(500000)
-	log.Println(err, hash)
+	//fmt.Println()
+	//fmt.Println("Print Block Chain's all Transactions")
+	//bc.GetAllTxs().Print()
 
 	// output: 1
 }
@@ -589,9 +657,12 @@ func (b *Bitcoind) GetBlock(blockHash string) (block BitcoinBlock, err error) {
 	if err = handleError(err, &r); err != nil {
 		return
 	}
-	contents := string(r.Result)
-	fmt.Println("print json bitcoin block\n", contents)
+
+	/*contents := string(r.Result)
+	fmt.Println("print json bitcoin block\n", contents)*/
+
 	err = json.Unmarshal(r.Result, &block)
+	block.Txs = make([]*RawTransaction, len(block.TxHashes))
 	return
 }
 
@@ -609,28 +680,25 @@ func handleError(err error, r *rpcResponse) error {
 }
 
 // GetRawTransaction returns raw transaction representation for given transaction id.
-func (b *Bitcoind) GetRawTransaction(txId string, verbose bool) (rawTx interface{}, err error) {
-	intVerbose := 0
-	if verbose {
-		intVerbose = 1
-	}
-	r, err := b.client.call("getrawtransaction", []interface{}{txId, intVerbose})
+func (b *Bitcoind) GetRawTransaction(txId string) (*RawTransaction, error) {
+
+	r, err := b.client.call("getrawtransaction", []interface{}{txId, 1})
 	if err = handleError(err, &r); err != nil {
-		return
+		return nil, err
 	}
 
-	contents := string(r.Result)
+	/*contents := string(r.Result)
 	fmt.Println("print json rawtransaction\n", contents)
-	fmt.Println("rawtx end")
+	fmt.Println("rawtx end")*/
 
-	if !verbose {
-		err = json.Unmarshal(r.Result, &rawTx)
-	} else {
-		var t RawTransaction
-		err = json.Unmarshal(r.Result, &t)
-		rawTx = t
+	rawTx := RawTransaction{}
+	err = json.Unmarshal(r.Result, &rawTx)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
 	}
-	return
+
+	return &rawTx, nil
 }
 
 // RawTx represents a raw transaction
@@ -680,6 +748,22 @@ type ScriptPubKey struct {
 	ReqSigs   int      `json:"reqSigs,omitempty"`   // = len(Addresses)
 	Type      string   `json:"type"`                // 1. pubkey, 2. <<"pubkeyhash">>, 3. scripthash, 4. multisig, 5. nulldata, 6. nonstandard ...
 	Addresses []string `json:"addresses,omitempty"` // list for multisig participants (most cases, len(Addresses) = 1)
+}
+
+// get tx's vout[index]'s value & addresses ( = vin details)
+func (b *Bitcoind) GetVinData(txid string, index int) (float64, []string) {
+
+	r, err := b.client.call("getrawtransaction", []interface{}{txid, 1})
+	if err = handleError(err, &r); err != nil {
+		return 0, nil
+	}
+
+	var rawTx RawTransaction
+	err = json.Unmarshal(r.Result, &rawTx)
+
+	fmt.Println("tx", txid, "\n\t-> vout[", index, "]'s value:", rawTx.Vout[index].Value, "/ addresses", rawTx.Vout[index].ScriptPubKey.Addresses)
+
+	return rawTx.Vout[index].Value, rawTx.Vout[index].ScriptPubKey.Addresses
 }
 
 // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
