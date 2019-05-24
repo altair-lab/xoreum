@@ -11,6 +11,7 @@ import (
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/log"
 	"github.com/altair-lab/xoreum/rlp"
 	"github.com/altair-lab/xoreum/xordb"
@@ -146,13 +147,14 @@ func ReadBody(db xordb.Reader, hash common.Hash, number uint64) *types.Body {
 	txs := body.Transactions
 
 	for i := 0; i < len(txs); i++ {
-
 		txdata := txs[i].Data
 		participants := make([]*(ecdsa.PublicKey), len(txdata.Participants))
+		postStates := make([]*(state.Account), len(txdata.Participants))
 		for i := 0; i < len(txdata.Participants); i++ {
-			txdata.Participants[i] = &ecdsa.PublicKey{Curve: &elliptic.CurveParams{}}
+			txdata.Participants[i] = &ecdsa.PublicKey{Curve: elliptic.P256()}
+			txdata.PostStates[i] = &state.Account{PublicKey: txdata.Participants[i]}
 		}
-		txdata = types.Txdata{Participants: participants}
+		txdata = types.Txdata{Participants: participants, PostStates: postStates}
 	}
 	json.Unmarshal(data, &body)
 	return body
