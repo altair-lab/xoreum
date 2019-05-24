@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/altair-lab/xoreum/core/types"
-	"github.com/altair-lab/xoreum/common"
+	//"github.com/altair-lab/xoreum/common"
 )
 
 // Reference : tx_pool.go#L43
@@ -76,6 +76,7 @@ func (pool *TxPool) Add(tx *types.Transaction) (bool, error){
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction) error {
+	/*
 	for i, key := range tx.Participants() {
                 // [FIXME]
 		//prevState := loadTransaction(tx.PrevTxhashes()[i]).GetPostState(key)
@@ -113,6 +114,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	}
 	
 	// nothing
+	*/
 	return nil 
 }
 
