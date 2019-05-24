@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"os"
 
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/rawdb"
@@ -54,7 +55,11 @@ func main() {
 	//Blockchain.GetAllTxs().Print()
 
 	// start TCP and serve TCP server
-	server, err := net.Listen("tcp", ":9000")
+	port := "9000" //  Default port number
+	if len(os.Args) > 1 {
+		port = os.Args[1]
+	}
+	server, err := net.Listen("tcp", ":" + port)
 	if err != nil {
 		log.Fatal(err)
 	}

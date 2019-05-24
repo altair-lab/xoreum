@@ -6,6 +6,7 @@
 package main
 
 import (
+	"os"
 	"net"
 	"log"
 
@@ -20,14 +21,18 @@ var Blockchain *core.BlockChain
 
 func main() {
 	// Load DB
-	db, _ := leveldb.New("iot-chaindata", 0, 0, "")
+	db, _ := leveldb.New("chaindata-iot", 0, 0, "")
 	last_hash := rawdb.ReadLastHeaderHash(db)
 	last_BN := rawdb.ReadHeaderNumber(db, last_hash)
 
 	// When there is no existing DB
 	if last_BN == nil {
 		// Connect with full node (server)
-		conn, err := net.Dial("tcp","localhost:9000")
+		port := "9000" // Default port number
+		if len(os.Args) > 1 {
+			port = os.Args[1]
+		}
+		conn, err := net.Dial("tcp","localhost:" + port)
 		if nil != err {
 			log.Fatal("failed to connect to server")
 		}
@@ -66,14 +71,17 @@ func main() {
 
 		// Make IoT blockchain with current block (= genesis block)
 		Blockchain = core.NewIoTBlockChain(db, currentBlock, state, allTxs)
+		rawdb.WriteLastHeaderHash(db, currentBlock.GetHeader().Hash())
+		log.Println("Synchronization Done!")
 	} else {
-		// Load blocks via accessor api
-		// [TODO] Get Genesis block by GenesisBN
-		genesis := rawdb.LoadBlockByBN(db, *last_BN)
-		// [TODO] Fix after removing state, allTxs fields
+		// Load blocks after genesis block
+		genesis_hash := rawdb.ReadGenesisHeaderHash(db)
+		genesis_BN := rawdb.ReadHeaderNumber(db, genesis_hash)
+		genesis := rawdb.LoadBlockByBN(db, *genesis_BN)
+		// [FIXME] Remove state, allTxs fields
 		Blockchain = core.NewIoTBlockChain(db, genesis, nil, nil)
-		/*
-		for i := Blockchain.Genesis().GetHeader().Number; i <= *last_BN; i++ {
+		
+		for i := Blockchain.Genesis().GetHeader().Number+1; i <= *last_BN; i++ {
 			loaded := rawdb.LoadBlockByBN(db, i)
 			err := Blockchain.Insert(loaded)
 			if err != nil {
@@ -81,13 +89,13 @@ func main() {
 				return
 			}
 		}
-		*/
+		log.Println("Load Block Done!")
 	}
 
 	// Print blockchain
 	Blockchain.PrintBlockChain()
-	Blockchain.GetState().Print()
-	Blockchain.GetAllTxs().Print()
+	//Blockchain.GetState().Print()
+	//Blockchain.GetAllTxs().Print()
 /*
 	// [TODO] Keep mining every MINING_INTERVAL
 	go func() {

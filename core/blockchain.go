@@ -33,8 +33,6 @@ type BlockChain struct {
 
 	genesisBlock *types.Block
 	currentBlock atomic.Value
-	//processor	Processor
-	//validator Validator
 
 	blocks   []types.Block  // temporary block list. blocks will be saved in db
 	accounts state.Accounts // temporary accounts. it will be saved in db
@@ -71,12 +69,9 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block, s state.State, al
 	bc.s = s
 	bc.allTxs = allTxs
 
-	// [FIXME]
+	// Store Genesis block
 	rawdb.StoreBlock(db, bc.genesisBlock)
-	rawdb.WriteLastHeaderHash(db, bc.genesisBlock.GetHeader().Hash())
-	
-	// [TODO] StoreBlock
-	// [TODO] WriteGenesisHeaderHash
+	rawdb.WriteGenesisHeaderHash(db, bc.genesisBlock.GetHeader().Hash())
 	
 	return bc
 }
