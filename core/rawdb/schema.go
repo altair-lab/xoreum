@@ -11,9 +11,11 @@ import (
 var (
 	// the latest known header's hash.
 	lastHeaderKey = []byte("LastHeader")
+	genesisHeaderKey = []byte("GenesisHeader")
 
 	// the latest known full block's hash.
 	lastBlockKey = []byte("LastBlock")
+	genesisBlockKey = []byte("GenesisBlock")
 
 	// Data item prefixes (use single byte to avoid mixing data types, avoid `i`, used for indexes).
 	headerPrefix       = []byte("h") // headerPrefix + num (uint64 big endian) + hash -> header
