@@ -9,17 +9,22 @@ import (
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/crypto"
-	"github.com/altair-lab/xoreum/xordb/memorydb"
+	"github.com/altair-lab/xoreum/xordb"
 )
 
-// make blockchain for test. insert simple blocks
-func MakeTestBlockChain(chainLength int64, partNum int64) *core.BlockChain {
+// store block for test
+func StoreBlock(db xordb.Database, block *types.Block) {
+	rawdb.StoreBlock(db, block)
+	rawdb.WriteLastHeaderHash(db, block.GetHeader().Hash())
+}
 
-	db := memorydb.New()
+// make blockchain for test. insert simple blocks
+func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *core.BlockChain {
 	bc := core.NewBlockChain(db)
 
 	allTxs := bc.GetAllTxs()                  // all txs in this test blockchain
@@ -220,6 +225,10 @@ func MakeTestBlockChain(chainLength int64, partNum int64) *core.BlockChain {
 		if err != nil {
 			fmt.Println(err)
 		}
+
+		// Store in DB
+		fmt.Println("Store Block #", b.Number())
+		StoreBlock(db, b)
 	}
 
 	// set blockchain's State
@@ -228,26 +237,4 @@ func MakeTestBlockChain(chainLength int64, partNum int64) *core.BlockChain {
 	}
 
 	return bc
-}
-
-func ExampleFunc3() {
-
-	testbc := MakeTestBlockChain(5, 5)
-	testbc.PrintBlockChain()
-	testbc.GetAccounts().Print()
-	testbc.GetState().Print()
-	testbc.GetAllTxs().Print()
-
-	/*fmt.Println("print all txs")
-	for k, v := range testbc.GetAllTxs() {
-		fmt.Println(k.ToHex(), "->", v)
-		fmt.Println()
-	}
-	fmt.Println("print blockchain's state")
-	for k, v := range testbc.GetState() {
-		fmt.Println(k, "->", v)
-		fmt.Println()
-	}*/
-
-	// output: 4
 }
