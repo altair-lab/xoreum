@@ -10,11 +10,11 @@ import (
 // The fields below define the low level database schema prefixing.
 var (
 	// the latest known header's hash.
-	lastHeaderKey = []byte("LastHeader")
+	lastHeaderKey    = []byte("LastHeader")
 	genesisHeaderKey = []byte("GenesisHeader")
 
 	// the latest known full block's hash.
-	lastBlockKey = []byte("LastBlock")
+	lastBlockKey    = []byte("LastBlock")
 	genesisBlockKey = []byte("GenesisBlock")
 
 	// Data item prefixes (use single byte to avoid mixing data types, avoid `i`, used for indexes).
@@ -26,7 +26,8 @@ var (
 	blockBodyPrefix     = []byte("b") // blockBodyPrefix + num (uint64 big endian) + hash -> block body
 	blockReceiptsPrefix = []byte("r") // blockReceiptsPrefix + num (uint64 big endian) + hash -> block receipts
 
-	txLookupPrefix = []byte("l") // txLookupPrefix + hash -> transaction lookup metadata
+	txLookupPrefix = []byte("l")  // txLookupPrefix + hash -> transaction lookup metadata (= blockNumber)
+	txRawPrefix    = []byte("tx") // txRawPrefix + hash -> raw transaction data
 
 )
 
@@ -70,4 +71,9 @@ func blockBodyKey(number uint64, hash common.Hash) []byte {
 // txLookupKey = txLookupPrefix + hash
 func txLookupKey(hash common.Hash) []byte {
 	return append(txLookupPrefix, hash.Bytes()...)
+}
+
+// txRawKey = txRawPrefix + hash
+func txRawKey(hash common.Hash) []byte {
+	return append(txRawPrefix, hash.Bytes()...)
 }
