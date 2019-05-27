@@ -49,6 +49,9 @@ func (h *Hash) SetBytes(b []byte) {
 
 type Address [AddressLength]byte
 
+// Bytes gets the byte representation of the underlying hash.
+func (a Address) Bytes() []byte { return a[:] }
+
 func (h Hash) ToBigInt() *big.Int {
 	byteArr := []byte{}
 
