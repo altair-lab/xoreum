@@ -54,7 +54,7 @@ func main() {
 
 	// Print blckchain
 	Blockchain.PrintBlockChain()
-	//Blockchain.GetAccounts().Print()
+	//Blockchain.GetState().Print()
 	//Blockchain.GetAllTxs().Print()
 
 	// start TCP and serve TCP server
