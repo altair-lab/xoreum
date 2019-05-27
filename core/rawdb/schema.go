@@ -29,6 +29,8 @@ var (
 	txLookupPrefix = []byte("l")  // txLookupPrefix + hash -> transaction lookup metadata (= blockNumber)
 	txRawPrefix    = []byte("tx") // txRawPrefix + hash -> raw transaction data
 
+	statePrefix = []byte("s") // statePrefix + address ->
+
 )
 
 // encodeBlockNumber encodes a block number as big endian uint64
@@ -76,4 +78,9 @@ func txLookupKey(hash common.Hash) []byte {
 // txRawKey = txRawPrefix + hash
 func txRawKey(hash common.Hash) []byte {
 	return append(txRawPrefix, hash.Bytes()...)
+}
+
+// txRawKey = txRawPrefix + hash
+func stateKey(address common.Address) []byte {
+	return append(statePrefix, address.Bytes()...)
 }
