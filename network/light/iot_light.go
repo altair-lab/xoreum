@@ -9,7 +9,6 @@ import (
 	"os"
 	"net"
 	"log"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/core"
@@ -87,7 +86,6 @@ func main() {
 	//Blockchain.PrintBlockChain()
 	//Blockchain.GetState().Print()
 	//Blockchain.GetAllTxs().Print()
-	spew.Dump(db)
 /*
 	// [TODO] Keep mining every MINING_INTERVAL
 	go func() {

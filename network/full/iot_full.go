@@ -14,8 +14,6 @@ import (
 
 	"github.com/altair-lab/xoreum/xordb"
 	"github.com/altair-lab/xoreum/core"
-	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
@@ -67,7 +65,6 @@ func main() {
 
 	// TEST
 	for k, _ := range Blockchain.GetAccounts() {
-		log.Println(crypto.Keccak256Address(common.ToBytes(k)))
 		log.Println(rawdb.ReadState(db, k))
 	}
 
