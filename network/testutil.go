@@ -40,7 +40,7 @@ func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *co
 	for i := int64(0); i < partNum; i++ {
 		priv, _ := crypto.GenerateKey()
 		privkeys = append(privkeys, priv)
-		acc := bc.GetAccounts().NewAccount(&priv.PublicKey, 0, 100) // everyone has 100 won initially
+		acc := state.NewAccount(&priv.PublicKey, 0, 100) // everyone has 100 won initially
 		accounts = append(accounts, acc)
 		userCurTx[int64(i)] = &common.Hash{} // initialize: nil Tx
 	}

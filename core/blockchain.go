@@ -9,7 +9,6 @@ import (
 	"github.com/altair-lab/xoreum/xordb"
 
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/params"
@@ -34,7 +33,7 @@ type BlockChain struct {
 	genesisBlock *types.Block
 	currentBlock atomic.Value
 
-	accounts state.Accounts // temporary accounts. it will be saved in db
+//	accounts state.Accounts // temporary accounts. it will be saved in db
 }
 
 func (bc *BlockChain) Genesis() *types.Block { return bc.genesisBlock }
@@ -47,7 +46,7 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.insert(bc.genesisBlock)
 
-	bc.accounts = state.NewAccounts()
+	//bc.accounts = state.NewAccounts()
 
 	return bc
 }
@@ -60,7 +59,7 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.insert(bc.genesisBlock)
 
-	bc.accounts = state.NewAccounts()
+	//bc.accounts = state.NewAccounts()
 
 	// Store Genesis block
 	rawdb.StoreBlock(db, bc.genesisBlock)
@@ -80,8 +79,8 @@ func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey)
 	bc.currentBlock.Store(bc.genesisBlock)
 	bc.insert(bc.genesisBlock)
 
-	bc.accounts = state.NewAccounts()
-	bc.applyTransaction(bc.accounts, bc.genesisBlock.GetTxs())
+	//bc.accounts = state.NewAccounts()
+	bc.applyTransaction(bc.genesisBlock.GetTxs())
 /*
 	// NO bc.allTxs, bc.s
 
@@ -115,7 +114,7 @@ func (bc *BlockChain) Insert(block *types.Block) error {
 		// pass all validation
 		// insert that block into blockchain
 		bc.insert(block)
-		bc.applyTransaction(bc.accounts, block.GetTxs())
+		bc.applyTransaction(block.GetTxs())
 		return nil
 	}
 }
@@ -152,11 +151,12 @@ func (bc *BlockChain) validateBlock(block *types.Block) error {
 }
 
 // Apply transaction to state
-func (bc *BlockChain) applyTransaction(s state.Accounts, txs *types.Transactions) {
+func (bc *BlockChain) applyTransaction(txs *types.Transactions) {
 	for _, tx := range *txs {
-		for i, key := range tx.Participants() {
+		for _, key := range tx.Participants() {
 			// Apply post state
-			s[*key] = tx.PostStates()[i]
+			//s[*key] = tx.PostStates()[i]
+			rawdb.WriteState(bc.db, *key, tx.Hash)
 		}
 	}
 }
@@ -174,10 +174,6 @@ func (bc *BlockChain) CurrentBlock() *types.Block {
 
 func (bc *BlockChain) BlockAt(index uint64) *types.Block {
 	return rawdb.LoadBlockByBN(bc.db, index)
-}
-
-func (bc *BlockChain) GetAccounts() state.Accounts {
-	return bc.accounts
 }
 
 func (bc *BlockChain) PrintBlockChain() {

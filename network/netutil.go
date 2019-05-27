@@ -14,7 +14,6 @@ import (
 	"github.com/altair-lab/xoreum/xordb"
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/rawdb"
-	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 )
 
@@ -116,9 +115,10 @@ func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) err
 }
 
 // Send state map
-func SendState(conn net.Conn, db xordb.Database, acc state.Accounts) error {
+func SendState(conn net.Conn, db xordb.Database) error {
 	// Send state size
 	length := make([]byte, 4)
+	// [TODO] Get acc length from DB
 	binary.LittleEndian.PutUint32(length, uint32(len(acc)))
 	if _, err := conn.Write(length); nil != err {
 		log.Printf("failed to send state length; err: %v", err)
@@ -126,6 +126,7 @@ func SendState(conn net.Conn, db xordb.Database, acc state.Accounts) error {
 	}
 
 	// Send state data (pubkey - hash)
+	// [TODO] Get iterator of pubkey - hash from DB
 	for k, _ := range acc {
 		// Send public key
 		err := SendObject(conn, k)
