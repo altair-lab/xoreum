@@ -12,7 +12,10 @@ import (
 	"os"
 	"sync"
 
+	"github.com/altair-lab/xoreum/xordb"
 	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
@@ -64,6 +67,7 @@ func main() {
 
 	// TEST
 	for k, _ := range Blockchain.GetAccounts() {
+		log.Println(crypto.Keccak256Address(common.ToBytes(k)))
 		log.Println(rawdb.ReadState(db, k))
 	}
 
@@ -84,12 +88,12 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		go handleConn(conn)
+		go handleConn(conn, db)
 	}
 }
 
 // connection
-func handleConn(conn net.Conn) {
+func handleConn(conn net.Conn, db xordb.Database) {
 	addr := conn.RemoteAddr().String()
 	recvBuf := make([]byte, 4096) // receive buffer: 4kb
 
@@ -97,7 +101,8 @@ func handleConn(conn net.Conn) {
 	log.Printf("CONNECTED TO %v\n", addr)
 
 	// [FIXME] Send State
-	network.SendState(conn, nil, Blockchain.GetAllTxs())
+	// Remove GetAccounts , GetAllTxs
+	network.SendState(conn, db, Blockchain.GetAccounts(), Blockchain.GetAllTxs())
 
 	// Send only Interlink block data
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()

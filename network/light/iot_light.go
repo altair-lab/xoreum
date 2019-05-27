@@ -9,6 +9,7 @@ import (
 	"os"
 	"net"
 	"log"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/core"
@@ -38,7 +39,7 @@ func main() {
 		}
 
 		// Receive State
-		state, allTxs, err := network.RecvState(conn)
+		allTxs, err := network.RecvState(conn, db)
 		if nil != err {
 			log.Fatal("failed to receive state")
 		}
@@ -66,11 +67,11 @@ func main() {
 			currentBlock = block
 
 			// Print block
-			block.PrintBlock()
+			//block.PrintBlock()
 		}
 
 		// Make IoT blockchain with current block (= genesis block)
-		Blockchain = core.NewIoTBlockChain(db, currentBlock, state, allTxs)
+		Blockchain = core.NewIoTBlockChain(db, currentBlock, allTxs)
 		rawdb.WriteLastHeaderHash(db, currentBlock.GetHeader().Hash())
 		log.Println("Synchronization Done!")
 	} else {
@@ -78,14 +79,15 @@ func main() {
 		genesis_hash := rawdb.ReadGenesisHeaderHash(db)
 		genesis_BN := rawdb.ReadHeaderNumber(db, genesis_hash)
 		genesis := rawdb.LoadBlockByBN(db, *genesis_BN)
-		Blockchain = core.NewIoTBlockChain(db, genesis, nil, nil)
+		Blockchain = core.NewIoTBlockChain(db, genesis, nil)
 		log.Println("Load Block Done!")
 	}
 
 	// Print blockchain
-	Blockchain.PrintBlockChain()
+	//Blockchain.PrintBlockChain()
 	//Blockchain.GetState().Print()
 	//Blockchain.GetAllTxs().Print()
+	spew.Dump(db)
 /*
 	// [TODO] Keep mining every MINING_INTERVAL
 	go func() {

@@ -11,7 +11,9 @@ import (
 	"crypto/elliptic"
 
 	"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/xordb"
 	"github.com/altair-lab/xoreum/core"
+	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 )
@@ -114,23 +116,24 @@ func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) err
 }
 
 // Send state map
-func SendState(conn net.Conn, state state.State, allTxs types.AllTxs) error {
+func SendState(conn net.Conn, db xordb.Database, acc state.Accounts, allTxs types.AllTxs) error {
 	// Send state size
 	length := make([]byte, 4)
-	binary.LittleEndian.PutUint32(length, uint32(len(state)))
+	binary.LittleEndian.PutUint32(length, uint32(len(acc)))
 	if _, err := conn.Write(length); nil != err {
 		log.Printf("failed to send state length; err: %v", err)
 		return err
 	}
 
 	// Send state data (pubkey - hash)
-	for k, v := range state {
+	for k, _ := range acc {
 		// Send public key
 		err := SendObject(conn, k)
 		if err != nil {
 			return err
 		}
 		// Send tx hash
+		v := rawdb.ReadState(db, k)
 		err = SendObject(conn, v)
 		if err != nil {
 			return err
@@ -182,15 +185,15 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
 	return buf, nil
 }
 
-func RecvState(conn net.Conn) (state.State, types.AllTxs, error) {
+func RecvState(conn net.Conn, db xordb.Database) (types.AllTxs, error) {
 	// Get State length
 	statelen, err := RecvLength(conn)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// Make state struct
-	state := state.State{}
+	//state := state.State{}
 	allTxs := types.AllTxs{}
 	
 	// Get PublicKey - txHash
@@ -199,7 +202,7 @@ func RecvState(conn net.Conn) (state.State, types.AllTxs, error) {
 		var publickey ecdsa.PublicKey
 		pkbuf, err := RecvObjectJson(conn)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		json.Unmarshal(pkbuf, &publickey)
 		publickey.Curve = elliptic.P256()
@@ -208,23 +211,24 @@ func RecvState(conn net.Conn) (state.State, types.AllTxs, error) {
 		var txhash common.Hash
 		txhashbuf, err := RecvObjectJson(conn)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		json.Unmarshal(txhashbuf, &txhash)
 
 		// Insert to state map
-		state[publickey] = txhash
+		//state[publickey] = txhash
+		rawdb.WriteState(db, publickey, txhash)
 		
 		// Get tx
 		txbuf, err := RecvObjectJson(conn)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		tx := types.UnmarshalJSON(txbuf)
 		allTxs[txhash] = tx
 	}
 
-	return state, allTxs, nil
+	return allTxs, nil
 }
 
 // Get Transaction object json

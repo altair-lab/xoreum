@@ -56,7 +56,7 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	return bc
 }
 
-func NewIoTBlockChain(db xordb.Database, genesis *types.Block, s state.State, allTxs types.AllTxs) *BlockChain {
+func NewIoTBlockChain(db xordb.Database, genesis *types.Block, allTxs types.AllTxs) *BlockChain {
 	bc := &BlockChain{
 		db:           db,
 		genesisBlock: genesis,
@@ -65,7 +65,6 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block, s state.State, al
 	bc.insert(bc.genesisBlock)
 
 	bc.accounts = state.NewAccounts()
-	//bc.s = s
 	bc.allTxs = allTxs
 
 	// Store Genesis block
