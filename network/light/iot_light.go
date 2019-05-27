@@ -38,7 +38,7 @@ func main() {
 		}
 
 		// Receive State
-		allTxs, err := network.RecvState(conn, db)
+		err = network.RecvState(conn, db)
 		if nil != err {
 			log.Fatal("failed to receive state")
 		}
@@ -70,7 +70,7 @@ func main() {
 		}
 
 		// Make IoT blockchain with current block (= genesis block)
-		Blockchain = core.NewIoTBlockChain(db, currentBlock, allTxs)
+		Blockchain = core.NewIoTBlockChain(db, currentBlock)
 		rawdb.WriteLastHeaderHash(db, currentBlock.GetHeader().Hash())
 		log.Println("Synchronization Done!")
 	} else {
@@ -78,7 +78,7 @@ func main() {
 		genesis_hash := rawdb.ReadGenesisHeaderHash(db)
 		genesis_BN := rawdb.ReadHeaderNumber(db, genesis_hash)
 		genesis := rawdb.LoadBlockByBN(db, *genesis_BN)
-		Blockchain = core.NewIoTBlockChain(db, genesis, nil)
+		Blockchain = core.NewIoTBlockChain(db, genesis)
 		log.Println("Load Block Done!")
 	}
 

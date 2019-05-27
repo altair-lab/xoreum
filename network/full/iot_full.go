@@ -99,7 +99,7 @@ func handleConn(conn net.Conn, db xordb.Database) {
 
 	// [FIXME] Send State
 	// Remove GetAccounts , GetAllTxs
-	network.SendState(conn, db, Blockchain.GetAccounts(), Blockchain.GetAllTxs())
+	network.SendState(conn, db, Blockchain.GetAccounts())
 
 	// Send only Interlink block data
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()

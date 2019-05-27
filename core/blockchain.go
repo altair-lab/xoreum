@@ -36,7 +36,7 @@ type BlockChain struct {
 
 	accounts state.Accounts // temporary accounts. it will be saved in db
 	//s        state.State    // temporary state. it will be saved in db
-	allTxs   types.AllTxs   // temporary tx map. it will be saved in db
+	//allTxs   types.AllTxs   // temporary tx map. it will be saved in db
 }
 
 func (bc *BlockChain) Genesis() *types.Block { return bc.genesisBlock }
@@ -51,12 +51,12 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 
 	bc.accounts = state.NewAccounts()
 	//bc.s = state.State{}
-	bc.allTxs = types.AllTxs{}
+	//bc.allTxs = types.AllTxs{}
 
 	return bc
 }
 
-func NewIoTBlockChain(db xordb.Database, genesis *types.Block, allTxs types.AllTxs) *BlockChain {
+func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
 	bc := &BlockChain{
 		db:           db,
 		genesisBlock: genesis,
@@ -65,7 +65,7 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block, allTxs types.AllT
 	bc.insert(bc.genesisBlock)
 
 	bc.accounts = state.NewAccounts()
-	bc.allTxs = allTxs
+	//bc.allTxs = allTxs
 
 	// Store Genesis block
 	rawdb.StoreBlock(db, bc.genesisBlock)
@@ -88,13 +88,15 @@ func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey)
 	bc.accounts = state.NewAccounts()
 	bc.applyTransaction(bc.accounts, bc.genesisBlock.GetTxs())
 
-	bc.allTxs = types.AllTxs{}
-	genesisTxs := bc.genesisBlock.GetTxs()
-	genesisTxHash := common.Hash{}
+	//bc.allTxs = types.AllTxs{}
+	//genesisTxs := bc.genesisBlock.GetTxs()
+	//genesisTxHash := common.Hash{}
+	/*
 	for _, tx := range *genesisTxs {
 		genesisTxHash = tx.GetHash()
 		bc.allTxs[genesisTxHash] = tx
 	}
+	*/
 /*
 	bc.s = state.State{}
 	for k, _ := range bc.accounts {
@@ -200,6 +202,8 @@ func (bc *BlockChain) GetState() state.State {
 	return bc.s
 }
 */
+/*
 func (bc *BlockChain) GetAllTxs() types.AllTxs {
 	return bc.allTxs
 }
+*/

@@ -116,7 +116,7 @@ func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) err
 }
 
 // Send state map
-func SendState(conn net.Conn, db xordb.Database, acc state.Accounts, allTxs types.AllTxs) error {
+func SendState(conn net.Conn, db xordb.Database, acc state.Accounts) error {
 	// Send state size
 	length := make([]byte, 4)
 	binary.LittleEndian.PutUint32(length, uint32(len(acc)))
@@ -139,7 +139,8 @@ func SendState(conn net.Conn, db xordb.Database, acc state.Accounts, allTxs type
 			return err
 		}
 		// Send tx
-		err = SendObject(conn, allTxs[v])
+		tx, _, _, _ := rawdb.ReadTransaction(db, v)
+		err = SendObject(conn, tx)
 		if err != nil {
 			return err
 		}
@@ -185,16 +186,16 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
 	return buf, nil
 }
 
-func RecvState(conn net.Conn, db xordb.Database) (types.AllTxs, error) {
+func RecvState(conn net.Conn, db xordb.Database) (error) {
 	// Get State length
 	statelen, err := RecvLength(conn)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Make state struct
 	//state := state.State{}
-	allTxs := types.AllTxs{}
+	//allTxs := types.AllTxs{}
 	
 	// Get PublicKey - txHash
 	for i := uint32(0); i < statelen; i++ {
@@ -202,7 +203,7 @@ func RecvState(conn net.Conn, db xordb.Database) (types.AllTxs, error) {
 		var publickey ecdsa.PublicKey
 		pkbuf, err := RecvObjectJson(conn)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		json.Unmarshal(pkbuf, &publickey)
 		publickey.Curve = elliptic.P256()
@@ -211,7 +212,7 @@ func RecvState(conn net.Conn, db xordb.Database) (types.AllTxs, error) {
 		var txhash common.Hash
 		txhashbuf, err := RecvObjectJson(conn)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		json.Unmarshal(txhashbuf, &txhash)
 
@@ -222,13 +223,14 @@ func RecvState(conn net.Conn, db xordb.Database) (types.AllTxs, error) {
 		// Get tx
 		txbuf, err := RecvObjectJson(conn)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		tx := types.UnmarshalJSON(txbuf)
-		allTxs[txhash] = tx
+		//allTxs[txhash] = tx
+		rawdb.WriteTransaction(db, txhash, tx)
 	}
 
-	return allTxs, nil
+	return nil
 }
 
 // Get Transaction object json

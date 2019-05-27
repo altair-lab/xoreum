@@ -27,7 +27,7 @@ func StoreBlock(db xordb.Database, block *types.Block) {
 func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *core.BlockChain {
 	bc := core.NewBlockChain(db)
 
-	allTxs := bc.GetAllTxs()                  // all txs in this test blockchain
+	//allTxs := bc.GetAllTxs()                  // all txs in this test blockchain
 	userCurTx := make(map[int64]*common.Hash) // map to fill PrevTxHashes of tx
 
 	// initialize
@@ -128,7 +128,8 @@ func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *co
 				}
 
 				// save all tx in allTxs
-				allTxs[tx.GetHash()] = tx
+				//allTxs[tx.GetHash()] = tx
+				rawdb.WriteTransaction(db, tx.GetHash(), tx)
 
 			} else {
 				// tx's participants number: 3
@@ -209,7 +210,8 @@ func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *co
 				}
 
 				// save all tx in allTxs
-				allTxs[tx.GetHash()] = tx
+				//allTxs[tx.GetHash()] = tx
+				rawdb.WriteTransaction(db, tx.GetHash(), tx)
 			}
 
 		}
