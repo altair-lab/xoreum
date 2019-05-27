@@ -9,8 +9,8 @@ import (
 	"io"
 	"log"
 	"net"
-	"sync"
 	"os"
+	"sync"
 
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/rawdb"
@@ -42,13 +42,19 @@ func main() {
 		for i := uint64(1); i <= *last_BN; i++ {
 			loaded := rawdb.LoadBlockByBN(db, i)
 			err := Blockchain.Insert(loaded)
+			// tx := loaded.Transactions()[0]
+			// rawdb.WriteTransaction(db, tx.Hash, tx)
+			// fmt.Println("======tx test start======")
+			// loaded_tx, _, _, _ := rawdb.ReadTransaction(db, tx.Hash)
+			// loaded_tx.PrintTx()
+			// fmt.Println("======tx test end======")
 			if err != nil {
 				log.Println(err)
 				return
 			}
 		}
 	}
-	
+
 	// Print blckchain
 	Blockchain.PrintBlockChain()
 	//Blockchain.GetState().Print()
@@ -59,7 +65,7 @@ func main() {
 	if len(os.Args) > 1 {
 		port = os.Args[1]
 	}
-	server, err := net.Listen("tcp", ":" + port)
+	server, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatal(err)
 	}
