@@ -6,14 +6,14 @@
 package main
 
 import (
-	"os"
-	"net"
 	"log"
+	"net"
+	"os"
 
-	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
 )
 
@@ -32,7 +32,7 @@ func main() {
 		if len(os.Args) > 1 {
 			port = os.Args[1]
 		}
-		conn, err := net.Dial("tcp","localhost:" + port)
+		conn, err := net.Dial("tcp", "localhost:"+port)
 		if nil != err {
 			log.Fatal("failed to connect to server")
 		}
@@ -42,13 +42,13 @@ func main() {
 		if nil != err {
 			log.Fatal("failed to receive state")
 		}
-	
+
 		// Get interlinks length
 		interlinkslen, err := network.RecvLength(conn)
 		if nil != err {
 			log.Fatal(err)
 		}
-		currentBlock := &types.Block{} 
+		currentBlock := &types.Block{}
 
 		for i := uint32(0); i < interlinkslen; i++ {
 			// Receive interlink block
@@ -56,10 +56,10 @@ func main() {
 			if err != nil {
 				return
 			}
-		
+
 			// Block validation (sign, nonce, total balance)
 			err = block.ValidateBlock()
-			if err != nil{
+			if err != nil {
 				log.Fatal(err)
 				return
 			}
@@ -86,25 +86,28 @@ func main() {
 	Blockchain.PrintBlockChain()
 	//Blockchain.GetState().Print()
 	//Blockchain.GetAllTxs().Print()
-/*
-	// [TODO] Keep mining every MINING_INTERVAL
-	go func() {
-		for {
-			time.Sleep(MINING_INTERVAL * time.Second)
-			// Mining from txpool
-			block := Miner.Mine(Txpool, uint64(0))
-			if block != nil {
-				block.PrintTxs()
-			} else {
-				fmt.Println("Mining Fail")
+	/*
+		// [TODO] Keep mining every MINING_INTERVAL
+		go func() {
+			for {
+				time.Sleep(MINING_INTERVAL * time.Second)
+				// Mining from txpool
+				block := Miner.Mine(Txpool, uint64(0))
+				if block != nil {
+					block.PrintTxs()
+				} else {
+					fmt.Println("Mining Fail")
+				}
+				// Add to Blockchain
+				err := Blockchain.Insert(block)
+				if err != nil {
+					fmt.Println(err)
+				}
+				Blockchain.CurrentBlock().PrintBlock()
 			}
-			// Add to Blockchain
-			err := Blockchain.Insert(block)
-			if err != nil {
-				fmt.Println(err)
-			}
-			Blockchain.CurrentBlock().PrintBlock()
-		}
-	}()
-*/
+		}()
+	*/
+
+	/* below line prints all the states in the DB */
+	// rawdb.ReadStates(db)
 }
