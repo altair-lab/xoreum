@@ -66,7 +66,7 @@ func main() {
 			currentBlock = block
 
 			// Print block
-			//block.PrintBlock()
+			block.PrintBlock()
 		}
 
 		// Make IoT blockchain with current block (= genesis block)
@@ -83,7 +83,7 @@ func main() {
 	}
 
 	// Print blockchain
-	//Blockchain.PrintBlockChain()
+	Blockchain.PrintBlockChain()
 	//Blockchain.GetState().Print()
 	//Blockchain.GetAllTxs().Print()
 /*

@@ -44,12 +44,6 @@ func main() {
 		for i := uint64(1); i <= *last_BN; i++ {
 			loaded := rawdb.LoadBlockByBN(db, i)
 			err := Blockchain.Insert(loaded)
-			// tx := loaded.Transactions()[0]
-			// rawdb.WriteTransaction(db, tx.Hash, tx)
-			// fmt.Println("======tx test start======")
-			// loaded_tx, _, _, _ := rawdb.ReadTransaction(db, tx.Hash)
-			// loaded_tx.PrintTx()
-			// fmt.Println("======tx test end======")
 			if err != nil {
 				log.Println(err)
 				return
@@ -59,14 +53,9 @@ func main() {
 	}
 
 	// Print blckchain
-	//Blockchain.PrintBlockChain()
-	Blockchain.GetAccounts().Print()
+	Blockchain.PrintBlockChain()
+	//Blockchain.GetAccounts().Print()
 	//Blockchain.GetAllTxs().Print()
-
-	// TEST
-	for k, _ := range Blockchain.GetAccounts() {
-		log.Println(rawdb.ReadState(db, k))
-	}
 
 	// start TCP and serve TCP server
 	port := "9000" //  Default port number
@@ -98,7 +87,7 @@ func handleConn(conn net.Conn, db xordb.Database) {
 	log.Printf("CONNECTED TO %v\n", addr)
 
 	// [FIXME] Send State
-	// Remove GetAccounts , GetAllTxs
+	// Remove GetAccounts
 	network.SendState(conn, db, Blockchain.GetAccounts())
 
 	// Send only Interlink block data
