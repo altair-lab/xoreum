@@ -229,7 +229,8 @@ func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *co
 
 	// set blockchain's State
 	for k, v := range userCurTx {
-		bc.GetState()[privkeys[k].PublicKey] = *v
+		//bc.GetState()[privkeys[k].PublicKey] = *v
+		rawdb.WriteState(db, privkeys[k].PublicKey, *v)
 	}
 
 	return bc

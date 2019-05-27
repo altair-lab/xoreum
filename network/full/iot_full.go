@@ -36,6 +36,7 @@ func main() {
 	if last_BN == nil {
 		// Initialize chain and store to DB
 		Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER, db)
+		log.Println("Initialize Chain")
 	} else {
 		// Load blocks from 1st block (0 = genesis)
 		Blockchain = core.NewBlockChain(db)
@@ -53,12 +54,18 @@ func main() {
 				return
 			}
 		}
+		log.Println("Load Chain")
 	}
 
 	// Print blckchain
-	Blockchain.PrintBlockChain()
-	//Blockchain.GetState().Print()
+	//Blockchain.PrintBlockChain()
+	Blockchain.GetAccounts().Print()
 	//Blockchain.GetAllTxs().Print()
+
+	// TEST
+	for k, _ := range Blockchain.GetAccounts() {
+		log.Println(rawdb.ReadState(db, k))
+	}
 
 	// start TCP and serve TCP server
 	port := "9000" //  Default port number
@@ -89,8 +96,8 @@ func handleConn(conn net.Conn) {
 	// Connected to new client
 	log.Printf("CONNECTED TO %v\n", addr)
 
-	// Send State
-	network.SendState(conn, Blockchain.GetState(), Blockchain.GetAllTxs())
+	// [FIXME] Send State
+	network.SendState(conn, nil, Blockchain.GetAllTxs())
 
 	// Send only Interlink block data
 	interlinks := Blockchain.CurrentBlock().GetUniqueInterlink()

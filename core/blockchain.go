@@ -35,7 +35,7 @@ type BlockChain struct {
 	currentBlock atomic.Value
 
 	accounts state.Accounts // temporary accounts. it will be saved in db
-	s        state.State    // temporary state. it will be saved in db
+	//s        state.State    // temporary state. it will be saved in db
 	allTxs   types.AllTxs   // temporary tx map. it will be saved in db
 }
 
@@ -50,7 +50,7 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 	bc.insert(bc.genesisBlock)
 
 	bc.accounts = state.NewAccounts()
-	bc.s = state.State{}
+	//bc.s = state.State{}
 	bc.allTxs = types.AllTxs{}
 
 	return bc
@@ -65,7 +65,7 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block, s state.State, al
 	bc.insert(bc.genesisBlock)
 
 	bc.accounts = state.NewAccounts()
-	bc.s = s
+	//bc.s = s
 	bc.allTxs = allTxs
 
 	// Store Genesis block
@@ -96,12 +96,12 @@ func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey)
 		genesisTxHash = tx.GetHash()
 		bc.allTxs[genesisTxHash] = tx
 	}
-
+/*
 	bc.s = state.State{}
 	for k, _ := range bc.accounts {
 		bc.s[k] = genesisTxHash
 	}
-
+*/
 	return bc, genesisPrivateKey
 }
 
@@ -196,11 +196,11 @@ func (bc *BlockChain) PrintBlockChain() {
 		fmt.Println("=== End of Chain ===")
 	}
 }
-
+/*
 func (bc *BlockChain) GetState() state.State {
 	return bc.s
 }
-
+*/
 func (bc *BlockChain) GetAllTxs() types.AllTxs {
 	return bc.allTxs
 }
