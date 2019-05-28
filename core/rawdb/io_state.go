@@ -37,14 +37,20 @@ func DeleteState(db xordb.Writer, publicKey ecdsa.PublicKey) {
 }
 
 // ReadStates reads all address - txHash mappings in the db
-func ReadStates(db xordb.Iteratee) {
+func ReadStates(db xordb.Database) {
 	fmt.Println("===========states start=========")
 	iter := db.NewIterator()
 	for iter.Next() {
 		key := iter.Key()
 		value := iter.Value()
 		if string(key[0]) == "s" { // prefix for state
-			fmt.Println("address:", key, "txHash:", common.BytesToHash(value))
+			fmt.Println("address:", key)
+			tx, _, _, _ := ReadTransaction(db, common.BytesToHash(value))
+			if tx != nil {
+				tx.PrintTx()
+			} else {
+				fmt.Println("txhash: <nil>")
+			}
 		}
 	}
 	iter.Release()
