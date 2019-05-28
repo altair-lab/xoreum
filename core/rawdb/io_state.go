@@ -50,3 +50,17 @@ func ReadStates(db xordb.Iteratee) {
 	iter.Release()
 	fmt.Println("===========states end=========")
 }
+
+// Get the number of account
+func CountStates(db xordb.Iteratee) int {
+	count := 0
+	iter := db.NewIterator()
+	for iter.Next() {
+		key := iter.Key()
+		if string(key[0]) == "s" { // prefix for state
+			count += 1
+		}
+	}
+	iter.Release()
+	return count
+}
