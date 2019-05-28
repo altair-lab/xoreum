@@ -2,9 +2,11 @@ package rawdb
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/crypto"
+	"github.com/altair-lab/xoreum/log"
 	"github.com/altair-lab/xoreum/xordb"
 )
 
@@ -24,4 +26,27 @@ func ReadState(db xordb.Reader, publicKey ecdsa.PublicKey) common.Hash {
 	address := crypto.Keccak256Address(common.ToBytes(publicKey))
 	data, _ := db.Get(stateKey(address))
 	return common.BytesToHash(data)
+}
+
+// DeleteState deletes a tx hash corresponding to the PublicKey's address
+func DeleteState(db xordb.Writer, publicKey ecdsa.PublicKey) {
+	address := crypto.Keccak256Address(common.ToBytes(publicKey))
+	if err := db.Delete(stateKey(address)); err != nil {
+		log.Crit("Failed to delete block body", "err", err)
+	}
+}
+
+// ReadStates reads all address - txHash mappings in the db
+func ReadStates(db xordb.Iteratee) {
+	fmt.Println("===========states start=========")
+	iter := db.NewIterator()
+	for iter.Next() {
+		key := iter.Key()
+		value := iter.Value()
+		if string(key[0]) == "s" { // prefix for state
+			fmt.Println("address:", key, "txHash:", common.BytesToHash(value))
+		}
+	}
+	iter.Release()
+	fmt.Println("===========states end=========")
 }
