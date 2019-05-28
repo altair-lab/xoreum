@@ -186,7 +186,6 @@ func (bc *BlockChain) BlockAt(index uint64) *types.Block {
 
 func (bc *BlockChain) PrintBlockChain() {
 	length := rawdb.ReadHeaderNumber(bc.db, rawdb.ReadLastHeaderHash(bc.db))
-	fmt.Println("Length : ", *length)
 	if length == nil {
 		fmt.Println("THERE IS NO BLOCK")
 	} else {

@@ -129,12 +129,12 @@ func SendState(conn net.Conn, db xordb.Database) error {
 		value := iter.Value()
 		if string(key[0]) == "s" { // prefix for state
 			// Send address
-			err := SendObject(conn, key)
+			err := SendMessage(conn, key)
 			if err != nil {
 				return err
 			}
 			// Send tx hash
-			err = SendObject(conn, value)
+			err = SendMessage(conn, value)
 			if err != nil {
 				return err
 			}
@@ -146,27 +146,6 @@ func SendState(conn net.Conn, db xordb.Database) error {
 			}
 		}
 	}
-/*
-	for k, _ := range acc {
-		// Send public key
-		err := SendObject(conn, k)
-		if err != nil {
-			return err
-		}
-		// Send tx hash
-		v := rawdb.ReadState(db, k)
-		err = SendObject(conn, v)
-		if err != nil {
-			return err
-		}
-		// Send tx
-		tx, _, _, _ := rawdb.ReadTransaction(db, v)
-		err = SendObject(conn, tx)
-		if err != nil {
-			return err
-		}
-	}
-*/
 	return nil
 }
 
@@ -210,36 +189,27 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
 func RecvState(conn net.Conn, db xordb.Database) (error) {
 	// Get State length
 	statelen, err := RecvLength(conn)
-	log.Println("State length : ", statelen)
 	if err != nil {
 		return err
 	}
 
-	// Make state struct
-	//state := state.State{}
-	//allTxs := types.AllTxs{}
-	
 	// Get Address - txHash
 	for i := uint32(0); i < statelen; i++ {
-		// Get Address
-		var address common.Address
+		// Get Address byte[]
 		addrbuf, err := RecvObjectJson(conn)
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(addrbuf, &address)
 
-		// Get txHash
-		var txhash common.Hash
+		// Get txHash byte[]
 		txhashbuf, err := RecvObjectJson(conn)
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(txhashbuf, &txhash)
 
 		// Insert to state map
-		// state[address] = txhash
-		rawdb.WriteState(db, address, txhash)
+		// [FIXME] Just Byte[] api would be OK
+		rawdb.WriteState(db, common.BytesToAddress(addrbuf), common.BytesToHash(txhashbuf))
 		
 		// Get tx
 		txbuf, err := RecvObjectJson(conn)
@@ -247,8 +217,7 @@ func RecvState(conn net.Conn, db xordb.Database) (error) {
 			return err
 		}
 		tx := types.UnmarshalJSON(txbuf)
-		//allTxs[txhash] = tx
-		rawdb.WriteTransaction(db, txhash, tx)
+		rawdb.WriteTransaction(db, common.BytesToHash(txhashbuf), tx)
 	}
 
 	return nil
