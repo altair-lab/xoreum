@@ -84,8 +84,9 @@ func main() {
 
 	// Print blockchain
 	Blockchain.PrintBlockChain()
-	//Blockchain.GetState().Print()
+	rawdb.ReadStates(db)
 	//Blockchain.GetAllTxs().Print()
+
 	/*
 		// [TODO] Keep mining every MINING_INTERVAL
 		go func() {
@@ -108,6 +109,4 @@ func main() {
 		}()
 	*/
 
-	/* below line prints all the states in the DB */
-	// rawdb.ReadStates(db)
 }

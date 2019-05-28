@@ -9,6 +9,7 @@ import (
 	"github.com/altair-lab/xoreum/xordb"
 
 	"github.com/altair-lab/xoreum/common"
+	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/params"
@@ -156,7 +157,7 @@ func (bc *BlockChain) applyTransaction(txs *types.Transactions) {
 		for _, key := range tx.Participants() {
 			// Apply post state
 			//s[*key] = tx.PostStates()[i]
-			rawdb.WriteState(bc.db, *key, tx.Hash)
+			rawdb.WriteState(bc.db, crypto.Keccak256Address(common.ToBytes(key)), tx.Hash)
 		}
 	}
 }

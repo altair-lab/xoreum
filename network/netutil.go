@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"sync"
 	"io"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/xordb"
@@ -118,15 +116,37 @@ func SendInterlinks(conn net.Conn, interlinks []uint64, bc *core.BlockChain) err
 func SendState(conn net.Conn, db xordb.Database) error {
 	// Send state size
 	length := make([]byte, 4)
-	// [TODO] Get acc length from DB
-	binary.LittleEndian.PutUint32(length, uint32(len(acc)))
+	binary.LittleEndian.PutUint32(length, uint32(rawdb.CountStates(db)))
 	if _, err := conn.Write(length); nil != err {
 		log.Printf("failed to send state length; err: %v", err)
 		return err
 	}
 
-	// Send state data (pubkey - hash)
-	// [TODO] Get iterator of pubkey - hash from DB
+	// Send state (address - txhash) and txs from DB
+	iter := db.NewIterator()
+	for iter.Next() {
+		key := iter.Key()
+		value := iter.Value()
+		if string(key[0]) == "s" { // prefix for state
+			// Send address
+			err := SendObject(conn, key)
+			if err != nil {
+				return err
+			}
+			// Send tx hash
+			err = SendObject(conn, value)
+			if err != nil {
+				return err
+			}
+			// Send tx
+			tx, _, _, _ := rawdb.ReadTransaction(db, common.BytesToHash(value))
+			err = SendObject(conn, tx)
+			if err != nil {
+				return err
+			}
+		}
+	}
+/*
 	for k, _ := range acc {
 		// Send public key
 		err := SendObject(conn, k)
@@ -146,7 +166,7 @@ func SendState(conn net.Conn, db xordb.Database) error {
 			return err
 		}
 	}
-
+*/
 	return nil
 }
 
@@ -198,16 +218,15 @@ func RecvState(conn net.Conn, db xordb.Database) (error) {
 	//state := state.State{}
 	//allTxs := types.AllTxs{}
 	
-	// Get PublicKey - txHash
+	// Get Address - txHash
 	for i := uint32(0); i < statelen; i++ {
-		// Get PublicKey
-		var publickey ecdsa.PublicKey
-		pkbuf, err := RecvObjectJson(conn)
+		// Get Address
+		var address common.Address
+		addrbuf, err := RecvObjectJson(conn)
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(pkbuf, &publickey)
-		publickey.Curve = elliptic.P256()
+		json.Unmarshal(addrbuf, &address)
 
 		// Get txHash
 		var txhash common.Hash
@@ -218,8 +237,8 @@ func RecvState(conn net.Conn, db xordb.Database) (error) {
 		json.Unmarshal(txhashbuf, &txhash)
 
 		// Insert to state map
-		//state[publickey] = txhash
-		rawdb.WriteState(db, publickey, txhash)
+		// state[address] = txhash
+		rawdb.WriteState(db, address, txhash)
 		
 		// Get tx
 		txbuf, err := RecvObjectJson(conn)

@@ -41,20 +41,12 @@ func main() {
 	} else {
 		// Load blocks from 1st block (0 = genesis)
 		Blockchain = core.NewBlockChain(db)
-		for i := uint64(1); i <= *last_BN; i++ {
-			loaded := rawdb.LoadBlockByBN(db, i)
-			err := Blockchain.Insert(loaded)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-		}
 		log.Println("Load Chain")
 	}
 
 	// Print blckchain
 	Blockchain.PrintBlockChain()
-	//Blockchain.GetState().Print()
+	rawdb.ReadStates(db)
 	//Blockchain.GetAllTxs().Print()
 
 	// start TCP and serve TCP server
