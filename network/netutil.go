@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"sync"
 	"io"
+	"fmt"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/xordb"
@@ -217,7 +218,22 @@ func RecvState(conn net.Conn, db xordb.Database) (error) {
 			return err
 		}
 		tx := types.UnmarshalJSON(txbuf)
+		
+		// Write Transaction in DB
 		rawdb.WriteTransaction(db, common.BytesToHash(txhashbuf), tx)
+		
+		/**************** For test **************/
+		// Load Transaction saved just before
+		tx_loaded, _, _, _ := rawdb.ReadTransaction(db, common.BytesToHash(txhashbuf))
+		fmt.Println("=========================tx========================")
+		tx.PrintTx()	// original tx object is printed well
+		fmt.Println("========================txloaded===================")
+		if tx_loaded != nil {
+			tx_loaded.PrintTx()	// some tx is loaded well
+		} else {
+			fmt.Println("<nil>")	// some tx is not loaded (nil)
+		}
+		/****************************************/
 	}
 
 	return nil
