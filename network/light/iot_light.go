@@ -66,7 +66,7 @@ func main() {
 			currentBlock = block
 
 			// Print block
-			block.PrintBlock()
+			//block.PrintBlock()
 		}
 
 		// Make IoT blockchain with current block (= genesis block)
@@ -84,8 +84,8 @@ func main() {
 
 	// Print blockchain
 	Blockchain.PrintBlockChain()
-	rawdb.ReadStates(db)
-	//Blockchain.GetAllTxs().Print()
+	//rawdb.ReadStates(db)
+
 
 	/*
 		// [TODO] Keep mining every MINING_INTERVAL

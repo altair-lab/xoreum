@@ -46,8 +46,7 @@ func main() {
 
 	// Print blckchain
 	Blockchain.PrintBlockChain()
-	rawdb.ReadStates(db)
-	//Blockchain.GetAllTxs().Print()
+	//rawdb.ReadStates(db)
 
 	// start TCP and serve TCP server
 	port := "9000" //  Default port number
