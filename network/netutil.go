@@ -210,6 +210,7 @@ func RecvObjectJson(conn net.Conn) ([]byte, error) {
 func RecvState(conn net.Conn, db xordb.Database) (error) {
 	// Get State length
 	statelen, err := RecvLength(conn)
+	log.Println("State length : ", statelen)
 	if err != nil {
 		return err
 	}

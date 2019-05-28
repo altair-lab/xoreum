@@ -45,7 +45,14 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 		genesisBlock: params.GetGenesisBlock(),
 	}
 	bc.currentBlock.Store(bc.genesisBlock)
-	bc.insert(bc.genesisBlock)
+	
+	// insert current block
+	last_BN := rawdb.ReadHeaderNumber(db, rawdb.ReadLastHeaderHash(db))
+	if last_BN == nil {
+		bc.insert(bc.genesisBlock)
+	} else {
+		bc.insert(rawdb.LoadBlockByBN(db, *last_BN))
+	}
 
 	//bc.accounts = state.NewAccounts()
 
@@ -179,6 +186,7 @@ func (bc *BlockChain) BlockAt(index uint64) *types.Block {
 
 func (bc *BlockChain) PrintBlockChain() {
 	length := rawdb.ReadHeaderNumber(bc.db, rawdb.ReadLastHeaderHash(bc.db))
+	fmt.Println("Length : ", *length)
 	if length == nil {
 		fmt.Println("THERE IS NO BLOCK")
 	} else {
