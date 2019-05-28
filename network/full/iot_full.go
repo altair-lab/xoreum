@@ -45,7 +45,7 @@ func main() {
 	}
 
 	// Print blckchain
-	Blockchain.PrintBlockChain()
+	//Blockchain.PrintBlockChain()
 	//rawdb.ReadStates(db)
 
 	// start TCP and serve TCP server
