@@ -45,7 +45,7 @@ func main() {
 	}
 
 	// Print blckchain
-	//Blockchain.PrintBlockChain()
+	Blockchain.PrintBlockChain()
 	//rawdb.ReadStates(db)
 
 	// start TCP and serve TCP server
@@ -77,7 +77,6 @@ func handleConn(conn net.Conn, db xordb.Database) {
 	// Connected to new client
 	log.Printf("CONNECTED TO %v\n", addr)
 
-	// [FIXME] Send State
 	// Remove GetAccounts
 	network.SendState(conn, db)
 

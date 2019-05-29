@@ -83,7 +83,7 @@ func main() {
 	}
 
 	// Print blockchain
-	//Blockchain.PrintBlockChain()
+	Blockchain.PrintBlockChain()
 	//rawdb.ReadStates(db)
 
 

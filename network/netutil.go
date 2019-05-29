@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"sync"
 	"io"
-	"fmt"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/xordb"
@@ -211,29 +210,16 @@ func RecvState(conn net.Conn, db xordb.Database) (error) {
 		// Insert to state map
 		// [FIXME] Just Byte[] api would be OK
 		rawdb.WriteState(db, common.BytesToAddress(addrbuf), common.BytesToHash(txhashbuf))
-		
+
 		// Get tx
 		txbuf, err := RecvObjectJson(conn)
 		if err != nil {
 			return err
 		}
 		tx := types.UnmarshalJSON(txbuf)
-		
+
 		// Write Transaction in DB
 		rawdb.WriteTransaction(db, common.BytesToHash(txhashbuf), tx)
-		
-		/**************** For test **************/
-		// Load Transaction saved just before
-		tx_loaded, _, _, _ := rawdb.ReadTransaction(db, common.BytesToHash(txhashbuf))
-		fmt.Println("=========================tx========================")
-		tx.PrintTx()	// original tx object is printed well
-		fmt.Println("========================txloaded===================")
-		if tx_loaded != nil {
-			tx_loaded.PrintTx()	// some tx is loaded well
-		} else {
-			fmt.Println("<nil>")	// some tx is not loaded (nil)
-		}
-		/****************************************/
 	}
 
 	return nil
@@ -254,7 +240,7 @@ func RecvBlock(conn net.Conn) (*types.Block, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Make Tx struct
 	txs := types.Transactions{}
 	for i := uint32(0); i < txslen; i++ {
