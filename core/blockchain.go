@@ -69,8 +69,7 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
 
 	//bc.accounts = state.NewAccounts()
 
-	// Store Genesis block
-	rawdb.StoreBlock(db, bc.genesisBlock)
+	// Store Genesis block header hash
 	rawdb.WriteGenesisHeaderHash(db, bc.genesisBlock.GetHeader().Hash())
 	
 	return bc
