@@ -49,10 +49,7 @@ func ReadRawTxData(db xordb.Reader, hash common.Hash) []byte {
 	if len(data) == 0 {
 		return nil
 	}
-	if len(data) < common.HashLength {
-		return data
-	}
-	return nil
+	return data
 }
 
 // WriteRawTxData stores the raw tx data corresponding to the hash
