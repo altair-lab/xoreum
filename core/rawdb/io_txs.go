@@ -30,7 +30,7 @@ func ReadTxLookupEntry(db xordb.Reader, hash common.Hash) *uint64 {
 // WriteTxLookupEntries stores the blocknumber of the block the tx is in
 func WriteTxLookupEntries(db xordb.Writer, block *types.Block) {
 
-	num := common.Num2Bytes(block.Number())
+	num := encodeBlockNumber(block.Number())
 	for _, tx := range block.Transactions() {
 		if err := db.Put(txLookupKey(tx.Hash), num); err != nil {
 			log.Crit("Failed to store transaction lookup entry", "err", err)
