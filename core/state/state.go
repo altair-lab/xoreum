@@ -43,6 +43,23 @@ func (s Accounts) PrintAccountsSum() {
 	fmt.Println("accounts balance sum:", sum)
 }
 
+// check that if there is account.Balance < 0
+func (s Accounts) CheckNegativeBalance() {
+	negCount := 0
+	for k, v := range s {
+		i := int64(v.Balance)
+		if i < 0 {
+			fmt.Println("negative balance account:", k)
+			fmt.Println("balance:", i)
+			negCount++
+		}
+	}
+
+	if negCount == 0 {
+		fmt.Println("no negative balance account")
+	}
+}
+
 func (s Accounts) GetBalance(pubkey *ecdsa.PublicKey) uint64 {
 	return s[*pubkey].Balance
 }
