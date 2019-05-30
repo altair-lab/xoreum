@@ -67,8 +67,16 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	users := make(map[string]*ecdsa.PrivateKey)
 
 	// set genesis account (hard coded)
-	genesisAddr := "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+	//genesisAddr := "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" // ??? 내가 왜 이걸로 해놨지?
+	genesisAddr := "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 	users[genesisAddr] = genesisPrivateKey
+
+	// TODO: ground account for nonstandard transactions
+	// add ground account into genesis block -> edit params/config.go
+	//
+	//
+	//
+	//
 
 	// user's current tx hash (map[bitcoin_user_address] = xoreum_tx_hash)
 	userCurTx := make(map[string]*common.Hash)
@@ -337,6 +345,7 @@ func main() {
 	fmt.Println("block height:", bc.CurrentBlock().Number())
 	bc.GetAccounts().PrintAccountsSum()
 	bc.GetAccounts().CheckNegativeBalance()
+	bc.GetAccounts().Print()
 	//bc.CurrentBlock().PrintBlock()
 
 	//fmt.Println()
