@@ -35,6 +35,14 @@ func (s Accounts) Print() {
 	fmt.Println("balance sum:", sum)
 }
 
+func (s Accounts) PrintAccountsSum() {
+	sum := uint64(0)
+	for _, v := range s {
+		sum += v.Balance
+	}
+	fmt.Println("accounts balance sum:", sum)
+}
+
 func (s Accounts) GetBalance(pubkey *ecdsa.PublicKey) uint64 {
 	return s[*pubkey].Balance
 }
