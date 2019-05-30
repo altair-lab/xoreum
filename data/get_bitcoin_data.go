@@ -426,13 +426,14 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	bc := TransformBitcoinData(3000, rpc)
+	bc := TransformBitcoinData(10000, rpc)
 	//TransformBitcoinData(600, rpc)
 
 	//bc.PrintBlockChain()
 
 	fmt.Println("block height:", bc.CurrentBlock().Number())
 	bc.GetAccounts().PrintAccountsSum()
+	bc.GetAccounts().CheckNegativeBalance()
 	//bc.CurrentBlock().PrintBlock()
 
 	//fmt.Println()
