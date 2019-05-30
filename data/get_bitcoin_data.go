@@ -586,8 +586,6 @@ type Vin struct {
 
 // Vout represent an OUT value
 type Vout struct {
-	//Value        float64      `json:"value"`        // amount of money
-	//Value        string       `json:"value"`        // amount of money
 	Value        json.Number  `json:"value"`        // amount of money
 	N            int          `json:"n"`            // index of Vout list's
 	ScriptPubKey ScriptPubKey `json:"scriptPubKey"` // here is a "Address" field (value owner)
