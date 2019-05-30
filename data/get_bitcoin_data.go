@@ -32,77 +32,6 @@ type BitcoinBlock struct {
 	Txs               []*RawTransaction `json:"-"`
 }
 
-/*
-// get block's all data including txs
-func GetBitcoinBlock(blockHash string) *BitcoinBlock {
-
-	// get json from this url
-	url := "https://blockchain.info/rawblock/" + blockHash
-	spaceClient := http.Client{
-		Timeout: time.Second * 30, // Maximum of 2 secs
-	}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	res, getErr := spaceClient.Do(req)
-	if getErr != nil {
-		log.Fatal(getErr)
-	}
-	body, readErr := ioutil.ReadAll(res.Body)
-	if readErr != nil {
-		log.Fatal(readErr)
-	}
-
-	// print all json contents
-	bodystring := string(body)
-	fmt.Println("json object:", bodystring)
-
-	// convert json object into struct object
-	b := BitcoinBlock{}
-	jsonErr := json.Unmarshal(body, &b)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
-	}
-
-	return &b
-}
-
-func GetBitcoinTx(txHash string) *BitcoinTx {
-
-	// get json from this url
-	url := "https://blockchain.info/rawtx/" + txHash
-	spaceClient := http.Client{
-		Timeout: time.Second * 30, // Maximum of 2 secs
-	}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	res, getErr := spaceClient.Do(req)
-	if getErr != nil {
-		log.Fatal(getErr)
-	}
-	body, readErr := ioutil.ReadAll(res.Body)
-	if readErr != nil {
-		log.Fatal(readErr)
-	}
-
-	// print all json contents
-	bodystring := string(body)
-	fmt.Println("json object:", bodystring)
-
-	// convert json object into struct object
-	tx := BitcoinTx{}
-	jsonErr := json.Unmarshal(body, &tx)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
-	}
-
-	return &tx
-}
-*/
-
 func ToSatoshi(f string) uint64 {
 
 	dotPos := 0
@@ -128,6 +57,9 @@ func ToSatoshi(f string) uint64 {
 
 // transform bitcoin data to xoreum's data
 func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
+
+	fmt.Println("start to get bitcoin data")
+
 	db := memorydb.New()
 	bc, genesisPrivateKey := core.NewBlockChainForBitcoin(db) // already has bitcoin's genesis block
 
@@ -148,20 +80,23 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	// block hashes of bitcoin
 	blockHashes := make(map[int]string)
 
-	// fill blockHashes
-	for i := 1; i <= targetBlockNum; i++ {
-		blockHashes[i], _ = rpc.GetBlockHash(uint64(i))
-	}
-
 	// get blocks of bitcoin and transform into xoreum format
 	for i := 1; i <= targetBlockNum; i++ {
+
+		if i%1 == 0 {
+			fmt.Println("now at block", i)
+		}
+
+		// get block hash
+		blockHashes[i], _ = rpc.GetBlockHash(uint64(i))
 
 		// get block from bitcoin
 		//bb := GetBitcoinBlock(blockHashes[i])
 		bb, _ := rpc.GetBlock(blockHashes[i])
 
-		// address of this block's miner
-		//minerAddr := ""
+		// to check if sum of balance is changed
+		blockVinSum := uint64(0)
+		blockVoutSum := uint64(0)
 
 		// transform transactions in the bitcoin block
 		for j := 0; j < len(bb.TxHashes); j++ {
@@ -191,6 +126,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 				// calculate vout sum
 				voutSum += value
+				blockVoutSum += value
 
 				// if this bitcoin user appears first, mapping him with xoreum user
 				for m := uint64(0); m < addr_len; m++ {
@@ -201,7 +137,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				}
 
 				// set each user's value (if there is more than 1 user in vout (due to multisig))
-				//values := []uint64
 				values := make([]uint64, addr_len)
 				for m := uint64(0); m < addr_len; m++ {
 					values[m] = value / addr_len
@@ -247,25 +182,17 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 				// calculate vinSum
 				vinSum += blockReward
-
-				// save miner address (maybe miner is only one)
-				//minerAddr = bb.Txs[j].Vout[0].ScriptPubKey.Addresses[0]
-
-				// print for debugging
-				if len(bb.Txs[j].Vout[0].ScriptPubKey.Addresses) > 1 {
-					fmt.Println("\n\n\n### Err: coinbase tx has more than 1 element in addresses\n\n\n")
-				}
+				blockVinSum += blockReward
 
 			} else {
 				for k := 0; k < len(bb.Txs[j].Vin); k++ {
-					//float_value, addr := rpc.GetVinData(bb.Txs[j].Vin[k].Txid, bb.Txs[j].Vin[k].Vout)
-					//value := uint64(float_value * 100000000) // convert BTC to satoshi
 					string_value, addr := rpc.GetVinData(bb.Txs[j].Vin[k].Txid, bb.Txs[j].Vin[k].Vout)
 					value := ToSatoshi(string_value)
 					addr_len := uint64(len(addr))
 
 					// calculate vinSum
 					vinSum += value
+					blockVinSum += value
 
 					// if this bitcoin user appears first, mapping him with xoreum user
 					for m := uint64(0); m < addr_len; m++ {
@@ -276,7 +203,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 					}
 
 					// set each user's value (if there is more than 1 user in vout (due to multisig))
-					//values := []uint64
 					values := make([]uint64, addr_len)
 					for m := uint64(0); m < addr_len; m++ {
 						values[m] = value / addr_len
@@ -303,29 +229,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				fmt.Println("parties[", k, "]:", v)
 			}*/
 
-			// deal with tx fee -> send fee to miner of this block
-			// vinSum != voutSum && not a coinbase tx
-			/*if vinSum != voutSum && bb.Txs[j].Vin[0].Coinbase == "" {
-				fee := vinSum - voutSum
-				fmt.Println("tx hash:", bb.TxHashes[j])
-				fmt.Println("\t\t tx fee", fee)
-				fmt.Println(vinSum, voutSum)
-				// to deal with the same user who appears more than once in this bitcoin tx (bb.Txs[j])
-				if _, ok := parties[minerAddr]; ok {
-					// this user appeared more than once in this tx
-					parties[minerAddr] += int64(fee)
-				} else {
-					// this user appears first in this tx
-					parties[minerAddr] = int64(fee)
-				}
-			}*/
-
-			/*fmt.Println("tx hash:", bb.TxHashes[j])
-			fmt.Println("final parties")
-			for k, v := range parties {
-				fmt.Println("parties[", k, "]:", v)
-			}*/
-
 			// fields for xoreum tx
 			parPublicKeys := []*ecdsa.PublicKey{}
 			parStates := []*state.Account{}
@@ -337,18 +240,11 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
 
 				acc := bc.GetAccounts()[users[k].PublicKey].Copy()
-				//beforeBal := acc.Balance
 				if v > int64(0) {
 					acc.Balance += uint64(v)
 				} else {
 					acc.Balance -= uint64(-v)
 				}
-				//afterBal := acc.Balance
-
-				/*fmt.Println("k:", k)
-				fmt.Println("v:", v)
-				fmt.Println("before balance:", beforeBal)
-				fmt.Println("after balance:", afterBal)*/
 
 				acc.Nonce++
 				parStates = append(parStates, acc)
@@ -361,7 +257,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				// save private keys to sign tx
 				prives = append(prives, users[k])
 			}
-			//fmt.Println()
 
 			// make tx
 			tx := types.NewTransaction(parPublicKeys, parStates, prevTxHashes)
@@ -390,6 +285,13 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			bc.ApplyTransaction(bc.GetAccounts(), tx)
 		}
 
+		if blockVinSum != blockVoutSum {
+			fmt.Println("\n\nblock", i, "doesnt keep balance sum")
+			fmt.Println("\t\tvin sum:", blockVinSum)
+			fmt.Println("\t\tvout sum:", blockVoutSum)
+			return nil
+		}
+
 		// mining xoreum block
 		b := Miner.Mine(Txpool, uint64(0))
 		if b == nil {
@@ -408,6 +310,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		bc.GetState()[users[k].PublicKey] = *v
 	}
 
+	fmt.Println("finish transforming bitcoin data to xoreum")
 	return bc
 }
 
@@ -426,7 +329,7 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	bc := TransformBitcoinData(10000, rpc)
+	bc := TransformBitcoinData(10, rpc)
 	//TransformBitcoinData(600, rpc)
 
 	//bc.PrintBlockChain()
