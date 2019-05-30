@@ -17,12 +17,6 @@ import (
 	"github.com/altair-lab/xoreum/xordb"
 )
 
-// store block for test
-func StoreBlock(db xordb.Database, block *types.Block) {
-	rawdb.StoreBlock(db, block)
-	rawdb.WriteLastHeaderHash(db, block.GetHeader().Hash())
-}
-
 // make blockchain for test. insert simple blocks
 func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *core.BlockChain {
 	bc := core.NewBlockChain(db)
