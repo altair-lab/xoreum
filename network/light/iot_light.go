@@ -49,7 +49,8 @@ func main() {
 			log.Fatal(err)
 		}
 		currentBlock := &types.Block{}
-
+		
+		log.Println("Receive Interlink Blocks . . .")
 		for i := uint32(0); i < interlinkslen; i++ {
 			// Receive interlink block
 			block, err := network.RecvBlock(conn)
@@ -66,7 +67,7 @@ func main() {
 			currentBlock = block
 
 			// Print block
-			//block.PrintBlock()
+			block.PrintBlock()
 		}
 
 		// Make IoT blockchain with current block (= genesis block)

@@ -20,8 +20,8 @@ import (
 )
 
 const MINING_INTERVAL = 10
-const DEFAULT_BLOCK_NUMBER = 5
-const DEFAULT_ACCOUNTS_NUMBER = 5
+const DEFAULT_BLOCK_NUMBER = 255
+const DEFAULT_ACCOUNTS_NUMBER = 64
 const BROADCAST_INTERVAL = 5
 
 var Blockchain *core.BlockChain
@@ -36,12 +36,14 @@ func main() {
 	// When there is no existing DB
 	if last_BN == nil {
 		// Initialize chain and store to DB
-		Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER, db)
 		log.Println("Initialize Chain")
+		Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER, db)
+		log.Println("Done")
 	} else {
 		// Load blocks from 1st block (0 = genesis)
-		Blockchain = core.NewBlockChain(db)
 		log.Println("Load Chain")
+		Blockchain = core.NewBlockChain(db)
+		log.Println("Done")
 	}
 
 	// Print blckchain
