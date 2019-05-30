@@ -162,6 +162,14 @@ func (bc *BlockChain) applyTransaction(s state.Accounts, txs *types.Transactions
 	}
 }
 
+// Apply transaction to state
+func (bc *BlockChain) ApplyTransaction(s state.Accounts, tx *types.Transaction) {
+	for i, key := range tx.Participants() {
+		// Apply post state
+		s[*key] = tx.PostStates()[i]
+	}
+}
+
 // actually insert block
 func (bc *BlockChain) insert(block *types.Block) {
 	bc.blocks = append(bc.blocks, *block)
