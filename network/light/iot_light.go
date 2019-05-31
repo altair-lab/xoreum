@@ -39,7 +39,6 @@ func main() {
 		}
 		
 		log.Println("Conntected!")
-		network.PrintMemUsage()
 
 		// Receive State
 		err = network.RecvState(conn, db)
@@ -47,7 +46,6 @@ func main() {
 			log.Fatal("failed to receive state")
 		}
 		log.Println("Receive state done!")
-		network.PrintMemUsage()
 
 		// Get interlinks length
 		interlinkslen, err := network.RecvLength(conn)
@@ -74,14 +72,12 @@ func main() {
 
 			// Print block
 			block.PrintBlock()
-			network.PrintMemUsage()
 		}
 
 		// Make IoT blockchain with current block (= genesis block)
 		Blockchain = core.NewIoTBlockChain(db, currentBlock)
 		rawdb.WriteLastHeaderHash(db, currentBlock.GetHeader().Hash())
 		log.Println("Synchronization Done!")
-		network.PrintMemUsage()
 	} else {
 		// Load blocks after genesis block
 		genesis_hash := rawdb.ReadGenesisHeaderHash(db)
