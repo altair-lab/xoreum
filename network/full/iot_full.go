@@ -51,11 +51,12 @@ func main() {
 	//rawdb.ReadStates(db)
 
 	// start TCP and serve TCP server
-	port := "9000" //  Default port number
+	host := ""
+	port := "8083" //  Default port number
 	if len(os.Args) > 1 {
 		port = os.Args[1]
 	}
-	server, err := net.Listen("tcp", ":"+port)
+	server, err := net.Listen("tcp", host+":"+port)
 	if err != nil {
 		log.Fatal(err)
 	}

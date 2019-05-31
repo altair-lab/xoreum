@@ -28,20 +28,26 @@ func main() {
 	// When there is no existing DB
 	if last_BN == nil {
 		// Connect with full node (server)
-		port := "9000" // Default port number
+		host := ""
+		port := "8083" // Default port number
 		if len(os.Args) > 1 {
 			port = os.Args[1]
 		}
-		conn, err := net.Dial("tcp", "localhost:"+port)
+		conn, err := net.Dial("tcp", host+":"+port)
 		if nil != err {
 			log.Fatal("failed to connect to server")
 		}
+		
+		log.Println("Conntected!")
+		network.PrintMemUsage()
 
 		// Receive State
 		err = network.RecvState(conn, db)
 		if nil != err {
 			log.Fatal("failed to receive state")
 		}
+		log.Println("Receive state done!")
+		network.PrintMemUsage()
 
 		// Get interlinks length
 		interlinkslen, err := network.RecvLength(conn)
@@ -68,12 +74,14 @@ func main() {
 
 			// Print block
 			block.PrintBlock()
+			network.PrintMemUsage()
 		}
 
 		// Make IoT blockchain with current block (= genesis block)
 		Blockchain = core.NewIoTBlockChain(db, currentBlock)
 		rawdb.WriteLastHeaderHash(db, currentBlock.GetHeader().Hash())
 		log.Println("Synchronization Done!")
+		network.PrintMemUsage()
 	} else {
 		// Load blocks after genesis block
 		genesis_hash := rawdb.ReadGenesisHeaderHash(db)
