@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"net"
 	"encoding/binary"
 	"log"
@@ -200,26 +201,34 @@ func RecvState(conn net.Conn, db xordb.Database) (error) {
 		if err != nil {
 			return err
 		}
+		log.Println("addrbuf : ", addrbuf)
 
 		// Get txHash byte[]
 		txhashbuf, err := RecvObjectJson(conn)
 		if err != nil {
 			return err
 		}
+		log.Println("txhashbuf : ", txhashbuf)
 
 		// Insert to state map
 		// [FIXME] Just Byte[] api would be OK
+		log.Println("Start Write State")
 		rawdb.WriteState(db, common.BytesToAddress(addrbuf), common.BytesToHash(txhashbuf))
+		log.Println("Write State Done")
 
 		// Get tx
 		txbuf, err := RecvObjectJson(conn)
 		if err != nil {
 			return err
 		}
+		fmt.Println("txbuf : ", txbuf)
 		tx := types.UnmarshalJSON(txbuf)
+		log.Println("Tx Unmarshal done")
 
 		// Write Transaction in DB
+		log.Println("Start Write Transaction")
 		rawdb.WriteTransaction(db, common.BytesToHash(txhashbuf), tx)
+		log.Println("Start Write Transaction")
 	}
 
 	return nil
