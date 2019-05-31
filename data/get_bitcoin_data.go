@@ -32,6 +32,7 @@ type BitcoinBlock struct {
 	Txs               []*RawTransaction `json:"-"`
 }
 
+// convert BTC to Satoshi ( ex. "34.921" (BTC) -> 3492100000 (satoshi) ) (string -> uint64)
 func ToSatoshi(f string) uint64 {
 
 	dotPos := 0
@@ -105,6 +106,9 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		blockVinSum := uint64(0)
 		blockVoutSum := uint64(0)
 
+		// sum of tx fees in this block
+		txFeeSum := uint64(0)
+
 		// transform transactions in the bitcoin block
 		for j := 0; j < len(bb.TxHashes); j++ {
 
@@ -120,8 +124,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			// tx fee goes to miner of this block
 			voutSum := uint64(0)
 			vinSum := uint64(0)
-
-			//fmt.Println("\n tx ", bb.TxHashes[j], "start \n")
 
 			// deal with Vouts of bitcoin tx
 			for k := 0; k < len(bb.Txs[j].Vout); k++ {
@@ -183,29 +185,38 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				// get actual block reward (50 BTC, 25 BTC, 12.5 BTC...)
 				// blockReward = actual_block_reward + all_tx_fee_in_block
 
-				// old version
-				//blockReward := ToSatoshi(bb.Txs[j].Vout[0].Value.String())
-
-				// new version
-				// there can be several miners in coinbase tx
-				blockReward := uint64(0)
-				for m := 0; m < len(bb.Txs[j].Vout); m++ {
-					blockReward += ToSatoshi(bb.Txs[j].Vout[m].Value.String())
-				}
-
-				if blockReward >= 5000000000 {
-					blockReward = 5000000000
-				} else if blockReward >= 2500000000 {
-					blockReward = 2500000000
-				} else {
-					blockReward = 1250000000
-					// block reward would be 6.25 BTC in 2020
-				}
+				// newest version
+				// just give all block reward from genesis account
+				// to do so, all tx fees goes to genesis account
+				blockReward := voutSum
 				parties[genesisAddr] -= int64(blockReward)
 
 				// calculate vinSum
 				vinSum += blockReward
 				blockVinSum += blockReward
+
+				/*
+					// old version
+					// there can be several miners in coinbase tx
+					blockReward := uint64(0)
+					for m := 0; m < len(bb.Txs[j].Vout); m++ {
+						blockReward += ToSatoshi(bb.Txs[j].Vout[m].Value.String())
+					}
+
+					if blockReward >= 5000000000 {
+						blockReward = 5000000000
+					} else if blockReward >= 2500000000 {
+						blockReward = 2500000000
+					} else {
+						blockReward = 1250000000
+						// block reward would be 6.25 BTC in 2020
+					}
+					parties[genesisAddr] -= int64(blockReward)
+
+					// calculate vinSum
+					vinSum += blockReward
+					blockVinSum += blockReward
+				*/
 
 			} else {
 				for k := 0; k < len(bb.Txs[j].Vin); k++ {
@@ -251,6 +262,119 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, v := range parties {
 				fmt.Println("parties[", k, "]:", v)
 			}*/
+
+			// deal with tx fee -> transfer tx fee to genesis account
+			// if this tx has fee
+			if vinSum != voutSum {
+
+				// calculate fee
+				fee := vinSum - voutSum
+
+				// give tx fee to genesis account
+				// tx fee goes to miners through genesis account
+				parties[genesisAddr] = int64(fee)
+
+				// calculate vout sum
+				// so now this tx's vinSum is same with voutSum
+				voutSum += fee
+				blockVoutSum += fee
+
+				// calculate tx fee sum in this block
+				txFeeSum += fee
+			}
+
+			// fields for xoreum tx
+			parPublicKeys := []*ecdsa.PublicKey{}
+			parStates := []*state.Account{}
+			prevTxHashes := []*common.Hash{}
+			prives := []*ecdsa.PrivateKey{}
+
+			// fill tx fields
+			for k, v := range parties {
+				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
+
+				acc := bc.GetAccounts()[users[k].PublicKey].Copy()
+				if v > int64(0) {
+					acc.Balance += uint64(v)
+				} else {
+					acc.Balance -= uint64(-v)
+				}
+
+				acc.Nonce++
+				parStates = append(parStates, acc)
+
+				if userCurTx[k] == nil {
+					userCurTx[k] = &common.Hash{}
+				}
+				prevTxHashes = append(prevTxHashes, userCurTx[k])
+
+				// save private keys to sign tx
+				prives = append(prives, users[k])
+			}
+
+			// make tx
+			tx := types.NewTransaction(parPublicKeys, parStates, prevTxHashes)
+
+			// sign tx
+			for k := 0; k < len(prives); k++ {
+				tx.Sign(prives[k])
+			}
+
+			// update userCurTx
+			h := tx.GetHash()
+			for k, _ := range parties {
+				userCurTx[k] = &h
+			}
+
+			// save tx into bc.allTxs
+			bc.GetAllTxs()[tx.GetHash()] = tx
+
+			// add tx into txpool
+			success, err := Txpool.Add(tx)
+			if !success {
+				fmt.Println(err)
+			}
+
+			// to apply tx imediatly
+			bc.ApplyTransaction(bc.GetAccounts(), tx)
+		}
+
+		// TODO: deal with burn coins
+		// ex. when miners throw their block reward to ground account
+		// burn coin = (actual block reward + sum of tx fee) - (sum of miners vout in coinbase tx)
+		// 			 = (마이너가 받았어야 할 돈) - (마이너가 실제로 받은 돈)
+		burnCoins := uint64(0)
+		if i < 210000 {
+			// block 0~209999: reward 50 BTC
+			burnCoins = 5000000000
+		} else if i < 420000 {
+			// block 210000~419999: reward 25 BTC
+			burnCoins = 2500000000
+		} else {
+			// block 420000~: reward 12.5 BTC
+			burnCoins = 1250000000
+		}
+
+		burnCoins += txFeeSum
+
+		minersReward := uint64(0)
+		for m := 0; m < len(bb.Txs[0].Vout); m++ {
+			minersReward += ToSatoshi(bb.Txs[0].Vout[m].Value.String())
+		}
+
+		burnCoins -= minersReward
+
+		// if some of block rewards are burn
+		if burnCoins > uint64(0) {
+			// make transaction that
+			// genesis account ---------------> ground account
+			//                    burnCoins
+
+			// reuse code from above
+
+			parties := make(map[string]int64)
+			parties[genesisAddr] = -int64(burnCoins) // genesis account balance -= burnCoins
+			parties[groundAddr] = int64(burnCoins)   // ground account balance += burnCoins
 
 			// fields for xoreum tx
 			parPublicKeys := []*ecdsa.PublicKey{}
@@ -337,6 +461,53 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	return bc
 }
 
+// to know block reward period
+// 25BTC point => block 210000
+// 12.5BTC point => block 420000
+func SearchBlockReward(rpc *Bitcoind) {
+
+	isFind1 := false
+	isFind2 := false
+
+	for i := 410000; i <= 500000; i++ {
+
+		if i%10000 == 0 {
+			fmt.Println("now at block", i)
+		}
+
+		// get block hash
+		blockHash, _ := rpc.GetBlockHash(uint64(i))
+
+		// get block from bitcoin
+		bb, _ := rpc.GetBlock(blockHash)
+
+		// get coinbase tx
+		coinbaseTx, _ := rpc.GetRawTransaction(bb.TxHashes[0])
+
+		blockReward := uint64(0)
+		for j := 0; j < len(coinbaseTx.Vout); j++ {
+			blockReward += ToSatoshi(coinbaseTx.Vout[j].Value.String())
+		}
+
+		//fmt.Println("at block", i, "block reward:", blockReward)
+
+		if blockReward < 4000000000 && blockReward >= 2500000000 && isFind1 == false {
+			fmt.Println("find 25 BTC point:", i)
+			isFind1 = true
+		}
+		if blockReward < 2000000000 && blockReward >= 1250000000 && isFind2 == false {
+			fmt.Println("find 12.5 BTC point:", i)
+			isFind2 = true
+		}
+
+		if isFind1 == true && isFind2 == true {
+			break
+		}
+
+	}
+
+}
+
 func main() {
 
 	//rpc, err := bitcoind.New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
@@ -352,14 +523,12 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	bc := TransformBitcoinData(100000, rpc)
-	//TransformBitcoinData(600, rpc)
-
-	//bc.PrintBlockChain()
+	bc := TransformBitcoinData(15000, rpc)
 
 	fmt.Println("block height:", bc.CurrentBlock().Number())
 	bc.GetAccounts().PrintAccountsSum()
 	bc.GetAccounts().CheckNegativeBalance()
+
 	//bc.GetAccounts().Print()
 	//bc.CurrentBlock().PrintBlock()
 
