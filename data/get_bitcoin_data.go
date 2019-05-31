@@ -68,15 +68,14 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 	// set genesis account (hard coded)
 	//genesisAddr := "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" // ??? 내가 왜 이걸로 해놨지?
-	genesisAddr := "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	genesisAddr := "GENESIS_ADDRESS"
 	users[genesisAddr] = genesisPrivateKey
 
-	// TODO: ground account for nonstandard transactions
-	// add ground account into genesis block -> edit params/config.go
-	//
-	//
-	//
-	//
+	// ground account for nonstandard transactions (keep burn coins)
+	groundAddr := "GROUND_ADDRESS"
+	groundPrivateKey, _ := crypto.GenerateKey()
+	users[groundAddr] = groundPrivateKey
+	bc.GetAccounts().NewAccount(&users[groundAddr].PublicKey, 0, 0)
 
 	// user's current tx hash (map[bitcoin_user_address] = xoreum_tx_hash)
 	userCurTx := make(map[string]*common.Hash)
@@ -128,9 +127,16 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k := 0; k < len(bb.Txs[j].Vout); k++ {
 
 				addr := bb.Txs[j].Vout[k].ScriptPubKey.Addresses
-				//value := uint64(bb.Txs[j].Vout[k].Value * 100000000) // convert BTC to satoshi (10^8)
 				value := ToSatoshi(bb.Txs[j].Vout[k].Value.String())
 				addr_len := uint64(len(addr))
+
+				// to deal with nonstandard tx (no address field)
+				// keep this value in ground account
+				if len(addr) == 0 {
+					addrArray := []string{groundAddr}
+					addr = addrArray
+					addr_len = 1
+				}
 
 				// calculate vout sum
 				voutSum += value
@@ -176,8 +182,17 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 				// get actual block reward (50 BTC, 25 BTC, 12.5 BTC...)
 				// blockReward = actual_block_reward + all_tx_fee_in_block
-				//blockReward := uint64(bb.Txs[j].Vout[0].Value * 100000000) // convert BTC to satoshi
-				blockReward := ToSatoshi(bb.Txs[j].Vout[0].Value.String())
+
+				// old version
+				//blockReward := ToSatoshi(bb.Txs[j].Vout[0].Value.String())
+
+				// new version
+				// there can be several miners in coinbase tx
+				blockReward := uint64(0)
+				for m := 0; m < len(bb.Txs[j].Vout); m++ {
+					blockReward += ToSatoshi(bb.Txs[j].Vout[m].Value.String())
+				}
+
 				if blockReward >= 5000000000 {
 					blockReward = 5000000000
 				} else if blockReward >= 2500000000 {
@@ -337,7 +352,7 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	bc := TransformBitcoinData(10, rpc)
+	bc := TransformBitcoinData(100000, rpc)
 	//TransformBitcoinData(600, rpc)
 
 	//bc.PrintBlockChain()
@@ -345,7 +360,7 @@ func main() {
 	fmt.Println("block height:", bc.CurrentBlock().Number())
 	bc.GetAccounts().PrintAccountsSum()
 	bc.GetAccounts().CheckNegativeBalance()
-	bc.GetAccounts().Print()
+	//bc.GetAccounts().Print()
 	//bc.CurrentBlock().PrintBlock()
 
 	//fmt.Println()
