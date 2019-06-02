@@ -224,8 +224,9 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 					value := ToSatoshi(string_value)
 					addr_len := uint64(len(addr))
 
-					// to deal with nonstandard tx (no address field)
-					// get this value from ground account
+					// to deal with nonstandard tx (no address field vout but correct scriptPubKey & scriptSig
+					// -> can use this strange vout as vin successfully)
+					// get this value from ground account (because i sent this value to ground account before deal with this tx)
 					if len(addr) == 0 {
 						addrArray := []string{groundAddr}
 						addr = addrArray
@@ -347,7 +348,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			bc.ApplyTransaction(bc.GetAccounts(), tx)
 		}
 
-		// TODO: deal with burn coins
+		// deal with burn coins
 		// ex. when miners throw their block reward to ground account
 		// burn coin = (actual block reward + sum of tx fee) - (sum of miners vout in coinbase tx)
 		// 			 = (마이너가 받았어야 할 돈) - (마이너가 실제로 받은 돈)
@@ -519,22 +520,9 @@ func SearchBlockReward(rpc *Bitcoind) {
 
 }
 
-// error note
-// block 129000~130000 사이에서
-// address field 가 없는 vout을 vin으로 사용한 tx 가 있는 것 같음
-// => block 129878 에서 알 수 없는 vin을 사용함
-// 이상한 vout을 만든 tx: db3f14e43fecc80eb3e0827cecce85b3499654694d12272bf91b1b2b8c33b5cb (at block 128239)
-// 이상한 vout을 vin 으로 사용한 tx: 8ebe1df6ebf008f7ec42ccd022478c9afaec3ca0444322243b745aa2e317c272 (at block 129878)
-// 뭐가 문제였냐면 돈을 보내는데 script는 잘 짜놓고서 그에 해당하는 주소, address field를 안적어놨음
-// 그래서 주소가 없긴 해도 그 출력 script를 풀어서 사용은 할 수 있는 것
-// 같은 주소(키쌍)으로 보내는 출력 script는 같은 것을 이용해서 임시 주소를 생성하자
-// ex. {"value":0.00065536,"n":2,"scriptPubKey":{"asm":"OP_DUP OP_HASH160 6300bf4c5c2a724c280b893807afb976ec78a92b OP_EQUALVERIFY OP_CHECKSIG OP_NOP","
-//		hex":"76a9146300bf4c5c2a724c280b893807afb976ec78a92b88ac61","type":"nonstandard"}}
-// 이게 그 이상한 vout 인데 보다시피 address field 가 없음
-// 대신 스크립트는 거의 멀쩡함 (사실 맨 마지막에 쓸데없이 OP_NOP 을 붙여놓긴 했지만) (OP_NOP: 아무것도 하지 마라)
-// 받는 주소가 없기 때문에 내 처리 방식에서는 ground address로 저 돈이 들어가게 됨
-// 그니까 vin을 봤을 때 address가 없으면 ground address 에서 꺼내다 쓰는 것으로 하자
-
+// there is a vout that has no address field (=> block 128239)
+// find that strange vout
+// (there is a case that using that strange vout as vin successfully => block 129878)
 func SearchInvalidVin(rpc *Bitcoind) {
 	for i := 129000; i < 130000; i++ {
 		if i%100 == 0 {
@@ -587,13 +575,11 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	SearchInvalidVin(rpc)
-
-	/*bc := TransformBitcoinData(500000, rpc)
+	bc := TransformBitcoinData(300000, rpc)
 
 	fmt.Println("block height:", bc.CurrentBlock().Number())
 	bc.GetAccounts().PrintAccountsSum()
-	bc.GetAccounts().CheckNegativeBalance()*/
+	bc.GetAccounts().CheckNegativeBalance()
 
 	//bc.GetAccounts().Print()
 	//bc.CurrentBlock().PrintBlock()
