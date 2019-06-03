@@ -123,7 +123,7 @@ func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *co
 
 				// save all tx in allTxs
 				//allTxs[tx.GetHash()] = tx
-				rawdb.WriteTransaction(db, tx.GetHash(), tx)
+				//rawdb.WriteTransaction(db, tx.GetHash(), tx)
 
 			} else {
 				// tx's participants number: 3
@@ -205,7 +205,7 @@ func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *co
 
 				// save all tx in allTxs
 				//allTxs[tx.GetHash()] = tx
-				rawdb.WriteTransaction(db, tx.GetHash(), tx)
+				//rawdb.WriteTransaction(db, tx.GetHash(), tx)
 			}
 
 		}

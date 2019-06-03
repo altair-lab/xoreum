@@ -168,10 +168,11 @@ func (bc *BlockChain) applyTransaction(txs *types.Transactions) {
 }
 
 // Apply transaction to state
-func (bc *BlockChain) ApplyTransaction(s state.Accounts, tx *types.Transaction) {
-	for i, key := range tx.Participants() {
+func (bc *BlockChain) ApplyTransaction(tx *types.Transaction) {
+	for _, key := range tx.Participants() {
 		// Apply post state
-		s[*key] = tx.PostStates()[i]
+		//s[*key] = tx.PostStates()[i]
+		rawdb.WriteState(bc.db, crypto.Keccak256Address(common.ToBytes(key)), tx.Hash)
 	}
 }
 
