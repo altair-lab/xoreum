@@ -9,7 +9,7 @@ import (
 	"log"
 	"net"
 	"os"
-
+	"time"
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/core/types"
@@ -20,6 +20,8 @@ import (
 var Blockchain *core.BlockChain
 
 func main() {
+	start := time.Now()
+
 	// Load DB
 	db, _ := leveldb.New("chaindata-iot", 0, 0, "")
 	last_hash := rawdb.ReadLastHeaderHash(db)
@@ -28,8 +30,8 @@ func main() {
 	// When there is no existing DB
 	if last_BN == nil {
 		// Connect with full node (server)
-		host := ""
-		port := "8083" // Default port number
+		host := "lynx.snu.ac.kr"
+		port := "8085" // Default port number
 		if len(os.Args) > 1 {
 			port = os.Args[1]
 		}
@@ -71,13 +73,19 @@ func main() {
 			currentBlock = block
 
 			// Print block
-			block.PrintBlock()
+			//block.PrintBlock()
 		}
 
+		elapsed := time.Since(start)
+		log.Printf("took %s", elapsed)
 		// Make IoT blockchain with current block (= genesis block)
 		Blockchain = core.NewIoTBlockChain(db, currentBlock)
 		rawdb.WriteLastHeaderHash(db, currentBlock.GetHeader().Hash())
 		log.Println("Synchronization Done!")
+		
+
+
+
 	} else {
 		// Load blocks after genesis block
 		genesis_hash := rawdb.ReadGenesisHeaderHash(db)
