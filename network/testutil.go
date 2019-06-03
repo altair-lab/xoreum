@@ -9,7 +9,7 @@ import (
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
-	"github.com/altair-lab/xoreum/core/rawdb"
+	//"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
@@ -224,10 +224,10 @@ func MakeTestBlockChain(chainLength int64, partNum int64, db xordb.Database) *co
 	}
 
 	// set blockchain's State
-	for k, v := range userCurTx {
+	//for k, v := range userCurTx {
 		//bc.GetState()[privkeys[k].PublicKey] = *v
-		rawdb.WriteState(db, crypto.Keccak256Address(common.ToBytes(privkeys[k].PublicKey)), *v)
-	}
+		//rawdb.WriteState(db, crypto.Keccak256Address(common.ToBytes(privkeys[k].PublicKey)), *v)
+	//}
 
 	return bc
 }
