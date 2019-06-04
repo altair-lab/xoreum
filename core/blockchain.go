@@ -42,9 +42,8 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 		db:           db,
 		genesisBlock: params.GetGenesisBlock(),
 	}
-	bc.currentBlock.Store(bc.genesisBlock)
 	
-	// insert current block
+	// Set current block
 	last_BN := rawdb.ReadHeaderNumber(db, rawdb.ReadLastHeaderHash(db))
 	if last_BN == nil {
 		bc.insert(bc.genesisBlock)
@@ -63,12 +62,21 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
 		db:           db,
 		genesisBlock: genesis,
 	}
-	//bc.currentBlock.Store(bc.genesisBlock)
+	
+	// Set current block
+	last_BN := rawdb.ReadHeaderNumber(db, rawdb.ReadLastHeaderHash(db))
+	if last_BN == nil {
+		bc.insert(bc.genesisBlock)
+		rawdb.WriteGenesisHeaderHash(db, bc.genesisBlock.GetHeader().Hash())
+	} else {
+		bc.currentBlock.Store(rawdb.LoadBlockByBN(db, *last_BN))
+	}
+	/*
 	bc.insert(bc.genesisBlock)
 
 	// Store Genesis block header hash
 	rawdb.WriteGenesisHeaderHash(db, bc.genesisBlock.GetHeader().Hash())
-	
+	*/
 	return bc
 }
 
