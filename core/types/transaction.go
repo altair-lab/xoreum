@@ -117,7 +117,7 @@ func (tx *Transaction) GetPostState(key *ecdsa.PublicKey) *state.Account {
 // Get specific user's post state using address
 func (tx *Transaction) GetPostStateByAddress(key []byte) *state.Account {
 	for i, k := range tx.Data.Participants {
-		addr := crypto.Keccak256Address(common.ToBytes(*k))
+		addr := crypto.PubkeyToAddress(k)
 		statePrefix := []byte("s")
 		index := []byte{}
 		index = append(statePrefix, addr.Bytes()...)

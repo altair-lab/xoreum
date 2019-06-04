@@ -322,7 +322,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				//acc := bc.GetAccounts()[users[k].PublicKey].Copy()
 
 				// new version
-				curTxHash := rawdb.ReadState(db, users[k].PublicKey)
+				curTxHash := rawdb.ReadState(db, &users[k].PublicKey)
 				emptyHash := common.Hash{}
 				acc := &state.Account{}
 
@@ -432,7 +432,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				//acc := bc.GetAccounts()[users[k].PublicKey].Copy()
 
 				// new version
-				curTxHash := rawdb.ReadState(db, users[k].PublicKey)
+				curTxHash := rawdb.ReadState(db, &users[k].PublicKey)
 				emptyHash := common.Hash{}
 				acc := &state.Account{}
 				if curTxHash == emptyHash {
