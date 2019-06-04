@@ -1,11 +1,11 @@
 package rawdb
 
 import (
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"fmt"
 
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/crypto"
+	//"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/log"
 	"github.com/altair-lab/xoreum/xordb"
 )
@@ -22,15 +22,15 @@ func WriteState(db xordb.Writer, address common.Address, txHash common.Hash) {
 }
 
 // ReadState reads a tx hash corresponding to the PublicKey's address
-func ReadState(db xordb.Reader, publicKey *ecdsa.PublicKey) common.Hash {
-	address := crypto.PubkeyToAddress(publicKey)
+func ReadState(db xordb.Reader, address common.Address) common.Hash {
+	//address := crypto.PubkeyToAddress(publicKey)
 	data, _ := db.Get(stateKey(address))
 	return common.BytesToHash(data)
 }
 
 // DeleteState deletes a tx hash corresponding to the PublicKey's address
-func DeleteState(db xordb.Writer, publicKey *ecdsa.PublicKey) {
-	address := crypto.PubkeyToAddress(publicKey)
+func DeleteState(db xordb.Writer, address common.Address) {
+	//address := crypto.PubkeyToAddress(publicKey)
 	if err := db.Delete(stateKey(address)); err != nil {
 		log.Crit("Failed to delete block body", "err", err)
 	}
