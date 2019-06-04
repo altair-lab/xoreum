@@ -46,3 +46,10 @@ func Keccak256Address(data ...[]byte) (a common.Address) {
 func GenerateKey() (*ecdsa.PrivateKey, error) {
 	return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 }
+
+// Pubkey to address
+func PubkeyToAddress(pubkey *ecdsa.PublicKey) common.Address {
+	x := common.ToBytes(pubkey.X)
+	y := common.ToBytes(pubkey.Y)
+	return Keccak256Address(append(x, y...))
+}
