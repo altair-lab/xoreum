@@ -109,10 +109,14 @@ func ReadTransaction(db xordb.Reader, hash common.Hash) (*types.Transaction, com
 }
 
 // WriteTransaction stores a transaction into the database.
-func WriteTransaction(db xordb.Writer, hash common.Hash, tx *types.Transaction) {
-	data, err := json.Marshal(tx)
-	if err != nil {
-		fmt.Println("error while encoding", err)
+func WriteTransaction(db xordb.Database, hash common.Hash, tx *types.Transaction) {
+	oldtx, _, _, _ := ReadTransaction(db, hash)
+	// Write when there is not the same key already
+	if oldtx == nil {
+		data, err := json.Marshal(tx)
+		if err != nil {
+			fmt.Println("error while encoding", err)
+		}
+		WriteRawTxData(db, hash, data)
 	}
-	WriteRawTxData(db, hash, data)
 }

@@ -1,0 +1,1 @@
+du -sch chaindata/*.ldb
