@@ -16,21 +16,21 @@ import (
 
 // WriteState writes a tx hash corresponding to the PublicKey's address
 func WriteState(db xordb.Writer, address common.Address, txHash common.Hash) {
-	//address := crypto.Keccak256Address(common.ToBytes(publicKey))
+	//address := crypto.PubkeyToAddress(publicKey)
 	data := txHash.Bytes()
 	db.Put(stateKey(address), data)
 }
 
 // ReadState reads a tx hash corresponding to the PublicKey's address
-func ReadState(db xordb.Reader, publicKey ecdsa.PublicKey) common.Hash {
-	address := crypto.Keccak256Address(common.ToBytes(publicKey))
+func ReadState(db xordb.Reader, publicKey *ecdsa.PublicKey) common.Hash {
+	address := crypto.PubkeyToAddress(publicKey)
 	data, _ := db.Get(stateKey(address))
 	return common.BytesToHash(data)
 }
 
 // DeleteState deletes a tx hash corresponding to the PublicKey's address
-func DeleteState(db xordb.Writer, publicKey ecdsa.PublicKey) {
-	address := crypto.Keccak256Address(common.ToBytes(publicKey))
+func DeleteState(db xordb.Writer, publicKey *ecdsa.PublicKey) {
+	address := crypto.PubkeyToAddress(publicKey)
 	if err := db.Delete(stateKey(address)); err != nil {
 		log.Crit("Failed to delete block body", "err", err)
 	}
@@ -44,7 +44,6 @@ func ReadStates(db xordb.Database) {
 		key := iter.Key()
 		value := iter.Value()
 		if string(key[0]) == "s" { // prefix for state
-
 			tx, _, _, _ := ReadTransaction(db, common.BytesToHash(value))
 			if tx != nil {
 				acc := tx.GetPostStateByAddress(key)

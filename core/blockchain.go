@@ -33,8 +33,6 @@ type BlockChain struct {
 
 	genesisBlock *types.Block
 	currentBlock atomic.Value
-
-	//	accounts state.Accounts // temporary accounts. it will be saved in db
 }
 
 func (bc *BlockChain) Genesis() *types.Block { return bc.genesisBlock }
@@ -44,15 +42,15 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 		db:           db,
 		genesisBlock: params.GetGenesisBlock(),
 	}
-	//bc.currentBlock.Store(bc.genesisBlock)
 
-	// insert current block
+	// Set current block
 	last_BN := rawdb.ReadHeaderNumber(db, rawdb.ReadLastHeaderHash(db))
 
 	if last_BN == nil {
 		bc.insert(bc.genesisBlock)
 	} else {
-		bc.insert(rawdb.LoadBlockByBN(db, *last_BN))
+		//bc.insert(rawdb.LoadBlockByBN(db, *last_BN))
+		bc.currentBlock.Store(rawdb.LoadBlockByBN(db, *last_BN))
 	}
 
 	//bc.accounts = state.NewAccounts()
@@ -65,13 +63,15 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
 		db:           db,
 		genesisBlock: genesis,
 	}
-	bc.currentBlock.Store(bc.genesisBlock)
-	bc.insert(bc.genesisBlock)
 
-	//bc.accounts = state.NewAccounts()
-
-	// Store Genesis block header hash
-	rawdb.WriteGenesisHeaderHash(db, bc.genesisBlock.GetHeader().Hash())
+	// Set current block
+	last_BN := rawdb.ReadHeaderNumber(db, rawdb.ReadLastHeaderHash(db))
+	if last_BN == nil {
+		bc.insert(bc.genesisBlock)
+		rawdb.WriteGenesisHeaderHash(db, bc.genesisBlock.GetHeader().Hash())
+	} else {
+		bc.currentBlock.Store(rawdb.LoadBlockByBN(db, *last_BN))
+	}
 
 	return bc
 }
@@ -172,7 +172,7 @@ func (bc *BlockChain) applyTransaction(txs *types.Transactions) {
 		for _, key := range tx.Participants() {
 			// Apply post state
 			//s[*key] = tx.PostStates()[i]
-			rawdb.WriteState(bc.db, crypto.Keccak256Address(common.ToBytes(*key)), tx.Hash)
+			rawdb.WriteState(bc.db, crypto.PubkeyToAddress(key), tx.Hash)
 		}
 	}
 }
@@ -182,7 +182,7 @@ func (bc *BlockChain) ApplyTransaction(tx *types.Transaction) {
 	for _, key := range tx.Participants() {
 		// Apply post state
 		//s[*key] = tx.PostStates()[i]
-		rawdb.WriteState(bc.db, crypto.Keccak256Address(common.ToBytes(*key)), tx.Hash)
+		rawdb.WriteState(bc.db, crypto.PubkeyToAddress(key), tx.Hash)
 	}
 }
 
