@@ -49,7 +49,7 @@ func GenerateKey() (*ecdsa.PrivateKey, error) {
 
 // Pubkey to address
 func PubkeyToAddress(pubkey *ecdsa.PublicKey) common.Address {
-	x := common.ToBytes(pubkey.X)
-	y := common.ToBytes(pubkey.Y)
+	x := common.ToBytes(*pubkey.X)
+	y := common.ToBytes(*pubkey.Y)
 	return Keccak256Address(append(x, y...))
 }
