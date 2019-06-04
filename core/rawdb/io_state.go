@@ -44,14 +44,18 @@ func ReadStates(db xordb.Database) {
 		key := iter.Key()
 		value := iter.Value()
 		if string(key[0]) == "s" { // prefix for state
-			fmt.Println("address:", key)
+
 			tx, _, _, _ := ReadTransaction(db, common.BytesToHash(value))
 			if tx != nil {
-				tx.PrintTx()
+				acc := tx.GetPostStateByAddress(key)
+				fmt.Println("txhash:", tx.GetHash().ToHex())
+				fmt.Println("\tnonce:", acc.Nonce, "/ balance:", acc.Balance)
 			} else {
-				fmt.Println("txhash: <nil>")
+				fmt.Println("\ttxhash: <nil>")
 			}
+			//fmt.Println()
 		}
+
 	}
 	iter.Release()
 	fmt.Println("===========states end=========")

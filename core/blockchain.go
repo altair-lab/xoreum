@@ -9,9 +9,9 @@ import (
 	"github.com/altair-lab/xoreum/xordb"
 
 	"github.com/altair-lab/xoreum/common"
-	"github.com/altair-lab/xoreum/crypto"
-	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/core/rawdb"
+	"github.com/altair-lab/xoreum/core/types"
+	"github.com/altair-lab/xoreum/crypto"
 	"github.com/altair-lab/xoreum/params"
 )
 
@@ -34,7 +34,7 @@ type BlockChain struct {
 	genesisBlock *types.Block
 	currentBlock atomic.Value
 
-//	accounts state.Accounts // temporary accounts. it will be saved in db
+	//	accounts state.Accounts // temporary accounts. it will be saved in db
 }
 
 func (bc *BlockChain) Genesis() *types.Block { return bc.genesisBlock }
@@ -44,10 +44,11 @@ func NewBlockChain(db xordb.Database) *BlockChain {
 		db:           db,
 		genesisBlock: params.GetGenesisBlock(),
 	}
-	bc.currentBlock.Store(bc.genesisBlock)
-	
+	//bc.currentBlock.Store(bc.genesisBlock)
+
 	// insert current block
 	last_BN := rawdb.ReadHeaderNumber(db, rawdb.ReadLastHeaderHash(db))
+
 	if last_BN == nil {
 		bc.insert(bc.genesisBlock)
 	} else {
@@ -71,7 +72,7 @@ func NewIoTBlockChain(db xordb.Database, genesis *types.Block) *BlockChain {
 
 	// Store Genesis block header hash
 	rawdb.WriteGenesisHeaderHash(db, bc.genesisBlock.GetHeader().Hash())
-	
+
 	return bc
 }
 
@@ -83,27 +84,36 @@ func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey)
 		db:           db,
 		genesisBlock: gBlock,
 	}
-	bc.insert(bc.genesisBlock)
 
-	//bc.accounts = state.NewAccounts()
-	bc.applyTransaction(bc.genesisBlock.GetTxs())
-/*
-	// NO bc.allTxs, bc.s
+	// insert current block
+	last_BN := rawdb.ReadHeaderNumber(db, rawdb.ReadLastHeaderHash(db))
+	if last_BN == nil {
+		bc.insert(bc.genesisBlock)
+		bc.applyTransaction(bc.genesisBlock.GetTxs())
+	} else {
+		//bc.insert(rawdb.LoadBlockByBN(db, *last_BN))
 
-	bc.allTxs = types.AllTxs{}
-	genesisTxs := bc.genesisBlock.GetTxs()
-	genesisTxHash := common.Hash{}
-
-	for _, tx := range *genesisTxs {
-		genesisTxHash = tx.GetHash()
-		bc.allTxs[genesisTxHash] = tx
+		last_block := rawdb.LoadBlockByBN(db, *last_BN)
+		bc.currentBlock.Store(last_block)
 	}
 
-	bc.s = state.State{}
-	for k, _ := range bc.accounts {
-		bc.s[k] = genesisTxHash
-	}
-*/
+	/*
+		// NO bc.allTxs, bc.s
+
+		bc.allTxs = types.AllTxs{}
+		genesisTxs := bc.genesisBlock.GetTxs()
+		genesisTxHash := common.Hash{}
+
+		for _, tx := range *genesisTxs {
+			genesisTxHash = tx.GetHash()
+			bc.allTxs[genesisTxHash] = tx
+		}
+
+		bc.s = state.State{}
+		for k, _ := range bc.accounts {
+			bc.s[k] = genesisTxHash
+		}
+	*/
 	return bc, genesisPrivateKey
 }
 
@@ -162,7 +172,7 @@ func (bc *BlockChain) applyTransaction(txs *types.Transactions) {
 		for _, key := range tx.Participants() {
 			// Apply post state
 			//s[*key] = tx.PostStates()[i]
-			rawdb.WriteState(bc.db, crypto.Keccak256Address(common.ToBytes(key)), tx.Hash)
+			rawdb.WriteState(bc.db, crypto.Keccak256Address(common.ToBytes(*key)), tx.Hash)
 		}
 	}
 }
@@ -172,7 +182,7 @@ func (bc *BlockChain) ApplyTransaction(tx *types.Transaction) {
 	for _, key := range tx.Participants() {
 		// Apply post state
 		//s[*key] = tx.PostStates()[i]
-		rawdb.WriteState(bc.db, crypto.Keccak256Address(common.ToBytes(key)), tx.Hash)
+		rawdb.WriteState(bc.db, crypto.Keccak256Address(common.ToBytes(*key)), tx.Hash)
 	}
 }
 
@@ -184,7 +194,10 @@ func (bc *BlockChain) insert(block *types.Block) {
 }
 
 func (bc *BlockChain) CurrentBlock() *types.Block {
-	return bc.currentBlock.Load().(*types.Block)
+	last_hash := rawdb.ReadLastHeaderHash(bc.db) // last block hash in database
+	last_BN := rawdb.ReadHeaderNumber(bc.db, last_hash)
+	return rawdb.LoadBlockByBN(bc.db, *last_BN)
+	// return bc.currentBlock.Load().(*types.Block)
 }
 
 func (bc *BlockChain) BlockAt(index uint64) *types.Block {
@@ -203,4 +216,8 @@ func (bc *BlockChain) PrintBlockChain() {
 		fmt.Println("====================")
 		fmt.Println("=== End of Chain ===")
 	}
+}
+
+func (bc *BlockChain) GetDB() xordb.Database {
+	return bc.db
 }

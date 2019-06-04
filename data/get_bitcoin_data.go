@@ -14,13 +14,15 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/altair-lab/xoreum/core/rawdb"
+	"github.com/altair-lab/xoreum/xordb/leveldb"
+
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/miner"
 	"github.com/altair-lab/xoreum/core/state"
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/crypto"
-	"github.com/altair-lab/xoreum/xordb/memorydb"
 )
 
 type BitcoinBlock struct {
@@ -61,7 +63,16 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 	fmt.Println("start to get bitcoin data")
 
-	db := memorydb.New()
+	// make or load database
+	db, _ := leveldb.New("chaindata", 0, 0, "")
+	last_hash := rawdb.ReadLastHeaderHash(db)        // last block hash in database
+	last_BN := rawdb.ReadHeaderNumber(db, last_hash) // last block number in database
+
+	// if there is no database before
+	if last_BN == nil {
+		zero := uint64(0)
+		last_BN = &zero
+	}
 	bc, genesisPrivateKey := core.NewBlockChainForBitcoin(db) // already has bitcoin's genesis block
 
 	// users on xoreum (map[bitcoin_user_address] = xoreum_user_private_key)
@@ -76,7 +87,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	groundAddr := "GROUND_ADDRESS"
 	groundPrivateKey, _ := crypto.GenerateKey()
 	users[groundAddr] = groundPrivateKey
-	bc.GetAccounts().NewAccount(&users[groundAddr].PublicKey, 0, 0)
+	//bc.GetAccounts().NewAccount(&users[groundAddr].PublicKey, 0, 0)
 
 	// user's current tx hash (map[bitcoin_user_address] = xoreum_tx_hash)
 	userCurTx := make(map[string]*common.Hash)
@@ -88,10 +99,15 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	// block hashes of bitcoin
 	blockHashes := make(map[int]string)
 
-	// get blocks of bitcoin and transform into xoreum format
-	for i := 1; i <= targetBlockNum; i++ {
+	if int(*last_BN) == targetBlockNum {
+		fmt.Println("already at target block", targetBlockNum)
+		return bc
+	}
 
-		if i%1000 == 0 {
+	// get blocks of bitcoin and transform into xoreum format
+	for i := int(*last_BN) + 1; i <= targetBlockNum; i++ {
+
+		if i%1 == 0 {
 			fmt.Println("now at block", i)
 		}
 
@@ -148,7 +164,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				for m := uint64(0); m < addr_len; m++ {
 					if users[addr[m]] == nil {
 						users[addr[m]], _ = crypto.GenerateKey()
-						bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
+						//bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
 					}
 				}
 
@@ -241,7 +257,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 					for m := uint64(0); m < addr_len; m++ {
 						if users[addr[m]] == nil {
 							users[addr[m]], _ = crypto.GenerateKey()
-							bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
+							//bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
 						}
 					}
 
@@ -302,7 +318,21 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, v := range parties {
 				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
 
-				acc := bc.GetAccounts()[users[k].PublicKey].Copy()
+				// old version
+				//acc := bc.GetAccounts()[users[k].PublicKey].Copy()
+
+				// new version
+				curTxHash := rawdb.ReadState(db, users[k].PublicKey)
+				emptyHash := common.Hash{}
+				acc := &state.Account{}
+
+				if curTxHash == emptyHash {
+					acc = state.NewAccount(&users[k].PublicKey, 0, 0)
+				} else {
+					curTx, _, _, _ := rawdb.ReadTransaction(db, curTxHash)
+					acc = curTx.GetPostState(&users[k].PublicKey)
+				}
+
 				if v > int64(0) {
 					acc.Balance += uint64(v)
 				} else {
@@ -336,7 +366,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			}
 
 			// save tx into bc.allTxs
-			bc.GetAllTxs()[tx.GetHash()] = tx
+			//bc.GetAllTxs()[tx.GetHash()] = tx
 
 			// add tx into txpool
 			success, err := Txpool.Add(tx)
@@ -345,7 +375,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			}
 
 			// to apply tx imediatly
-			bc.ApplyTransaction(bc.GetAccounts(), tx)
+			bc.ApplyTransaction(tx)
 		}
 
 		// deal with burn coins
@@ -398,7 +428,20 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, v := range parties {
 				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
 
-				acc := bc.GetAccounts()[users[k].PublicKey].Copy()
+				// old version
+				//acc := bc.GetAccounts()[users[k].PublicKey].Copy()
+
+				// new version
+				curTxHash := rawdb.ReadState(db, users[k].PublicKey)
+				emptyHash := common.Hash{}
+				acc := &state.Account{}
+				if curTxHash == emptyHash {
+					acc = state.NewAccount(&users[k].PublicKey, 0, 0)
+				} else {
+					curTx, _, _, _ := rawdb.ReadTransaction(db, curTxHash)
+					acc = curTx.GetPostState(&users[k].PublicKey)
+				}
+
 				if v > int64(0) {
 					acc.Balance += uint64(v)
 				} else {
@@ -432,7 +475,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			}
 
 			// save tx into bc.allTxs
-			bc.GetAllTxs()[tx.GetHash()] = tx
+			//bc.GetAllTxs()[tx.GetHash()] = tx
 
 			// add tx into txpool
 			success, err := Txpool.Add(tx)
@@ -441,7 +484,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			}
 
 			// to apply tx imediatly
-			bc.ApplyTransaction(bc.GetAccounts(), tx)
+			bc.ApplyTransaction(tx)
 		}
 
 		if blockVinSum != blockVoutSum {
@@ -465,9 +508,9 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 	}
 
-	for k, v := range userCurTx {
+	/*for k, v := range userCurTx {
 		bc.GetState()[users[k].PublicKey] = *v
-	}
+	}*/
 
 	fmt.Println("finish transforming bitcoin data to xoreum")
 	return bc
@@ -575,11 +618,12 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	bc := TransformBitcoinData(300000, rpc)
+	bc := TransformBitcoinData(2, rpc)
 
 	fmt.Println("block height:", bc.CurrentBlock().Number())
-	bc.GetAccounts().PrintAccountsSum()
-	bc.GetAccounts().CheckNegativeBalance()
+	rawdb.ReadStates(bc.GetDB())
+	//bc.GetAccounts().PrintAccountsSum()
+	//bc.GetAccounts().CheckNegativeBalance()
 
 	//bc.GetAccounts().Print()
 	//bc.CurrentBlock().PrintBlock()

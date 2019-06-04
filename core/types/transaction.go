@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"reflect"
 
 	"github.com/altair-lab/xoreum/common"
 	"github.com/altair-lab/xoreum/core/state"
@@ -105,10 +106,37 @@ func (tx *Transaction) Nonce() []uint64 {
 // Get specific user's post state using public key
 func (tx *Transaction) GetPostState(key *ecdsa.PublicKey) *state.Account {
 	for i, k := range tx.Data.Participants {
-		if *k == *key {
+		if reflect.DeepEqual(*k, *key) {
 			return tx.Data.PostStates[i]
 		}
 	}
+	// No such participant
+	return nil
+}
+
+// Get specific user's post state using address
+func (tx *Transaction) GetPostStateByAddress(key []byte) *state.Account {
+	for i, k := range tx.Data.Participants {
+		addr := crypto.Keccak256Address(common.ToBytes(*k))
+		statePrefix := []byte("s")
+		index := []byte{}
+		index = append(statePrefix, addr.Bytes()...)
+
+		diff := false
+		for j := 0; j < len(index); j++ {
+			if index[j] != key[j] {
+				diff = true
+				break
+			}
+		}
+
+		if diff {
+			continue
+		}
+
+		return tx.Data.PostStates[i]
+	}
+
 	// No such participant
 	return nil
 }
@@ -191,6 +219,7 @@ func (tx *Transaction) PrintTx() {
 		fmt.Println("participant ", i)
 		fmt.Println("tx hash ", tx.Hash)
 		fmt.Println("public key: ", tx.Data.Participants[i])
+		fmt.Println("address:", crypto.Keccak256Address(common.ToBytes(tx.Data.Participants[i])))
 		//fmt.Println("post state: ", tx.Data.PostStates[i])
 		fmt.Print("post state -> ")
 		tx.Data.PostStates[i].PrintAccount()
