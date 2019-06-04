@@ -44,7 +44,7 @@ func ReadStates(db xordb.Database) {
 		key := iter.Key()
 		value := iter.Value()
 		if string(key[0]) == "s" { // prefix for state
-			fmt.Println("address:", key)
+			fmt.Println("** DB KEY address:", key)
 			tx, _, _, _ := ReadTransaction(db, common.BytesToHash(value))
 			if tx != nil {
 				tx.PrintTx()
