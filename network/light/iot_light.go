@@ -6,6 +6,8 @@
 package main
 
 import (
+
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -42,19 +44,19 @@ func main() {
 			log.Fatal("failed to connect to server")
 		}
 		
-		log.Println("Connected!")
+		fmt.Println("Connected!")
 
 		elapsed := time.Since(start)
-		log.Printf("%s", elapsed)
+		fmt.Println(elapsed)
 		// Receive State
 		err = network.RecvState(conn, db)
 		if nil != err {
 			log.Fatal("failed to receive state")
 		}
-		log.Println("Receive state done!")
+		fmt.Println("Receive state done!")
 		
 		elapsed = time.Since(start)
-		log.Printf("%s", elapsed)
+		fmt.Println(elapsed)
 		
 		// Get interlinks length
 		interlinkslen, err := network.RecvLength(conn)
@@ -63,7 +65,7 @@ func main() {
 		}
 		currentBlock := &types.Block{}
 		
-		log.Println("Receive Interlink Blocks . . .")
+		fmt.Println("Receive Interlink Blocks . . .")
 		for i := uint32(0); i < interlinkslen; i++ {
 			// Receive interlink block
 			block, err := network.RecvBlock(conn)
@@ -84,14 +86,14 @@ func main() {
 		}
 
 		elapsed = time.Since(start)
-		log.Printf("%s", elapsed)
+		fmt.Println(elapsed)
 		// Make IoT blockchain with current block (= genesis block)
 		Blockchain = core.NewIoTBlockChain(db, currentBlock)
 		rawdb.WriteLastHeaderHash(db, currentBlock.GetHeader().Hash())
-		log.Println("Synchronization Done!")
+		fmt.Println("Synchronization Done!")
 
 		elapsed = time.Since(start)
-		log.Printf("%s", elapsed)
+		fmt.Println(elapsed)
 
 
 	} else {
