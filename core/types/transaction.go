@@ -191,6 +191,7 @@ func (tx *Transaction) PrintTx() {
 		fmt.Println("participant ", i)
 		fmt.Println("tx hash ", tx.Hash)
 		fmt.Println("public key: ", tx.Data.Participants[i])
+		fmt.Println("address: ", crypto.Keccak256Address(common.ToBytes(tx.Data.Participants[i])))
 		//fmt.Println("post state: ", tx.Data.PostStates[i])
 		fmt.Print("post state -> ")
 		tx.Data.PostStates[i].PrintAccount()

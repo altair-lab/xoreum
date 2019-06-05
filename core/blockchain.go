@@ -167,6 +167,15 @@ func (bc *BlockChain) applyTransaction(txs *types.Transactions) {
 	}
 }
 
+// Apply transaction to state
+func (bc *BlockChain) ApplyTransaction(tx *types.Transaction) {
+	for _, key := range tx.Participants() {
+		// Apply post state
+		//s[*key] = tx.PostStates()[i]
+		rawdb.WriteState(bc.db, crypto.Keccak256Address(common.ToBytes(key)), tx.Hash)
+	}
+}
+
 // actually insert block
 func (bc *BlockChain) insert(block *types.Block) {
 	rawdb.StoreBlock(bc.db, block)
