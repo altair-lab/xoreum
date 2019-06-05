@@ -68,7 +68,7 @@ func main() {
 
 	// start TCP and serve TCP server
 	host := ""
-	port := "" //  Default port number (yj:8084, yh:8085)
+	port := "8084" //  Default port number (yj:8084, yh:8085)
 /*
 	if len(os.Args) > 1 {
 		port = os.Args[1]
