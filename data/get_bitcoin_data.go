@@ -107,7 +107,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	// get blocks of bitcoin and transform into xoreum format
 	for i := int(*last_BN) + 1; i <= targetBlockNum; i++ {
 
-		if i%1 == 0 {
+		if i%1000 == 0 {
 			fmt.Println("now at block", i)
 		}
 
@@ -501,7 +501,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		}
 
 		// insert xoreum block into xoreum blockchain
-		err := bc.Insert(b)
+		err := bc.InsertForBitcoin(b)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -618,7 +618,7 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	bc := TransformBitcoinData(2, rpc)
+	bc := TransformBitcoinData(200000, rpc)
 
 	fmt.Println("block height:", bc.CurrentBlock().Number())
 	rawdb.ReadStates(bc.GetDB())
