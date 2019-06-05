@@ -4,7 +4,7 @@ import os
 for x in range(100, 1001, 100):
     # Remove old db directory
     Cmd = "rm -rf chaindata_" + str(x)
-    os.System(Cmd)
+    os.system(Cmd)
     
     # Run the full node and initialize the chain
     Cmd = "go run iot_full_simulation.go " + str(x)
@@ -18,4 +18,4 @@ for x in range(100, 1001, 100):
 
     # Remove db directory
     Cmd = "rm -rf chaindata_" + str(x)
-    os.System(Cmd)
+    os.system(Cmd)
