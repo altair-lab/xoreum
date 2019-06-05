@@ -8,12 +8,22 @@ while True:
     # Connection is done after the blockchain is constructed
     connection, address = sock.accept()
     
+    # Remove old db directory
+    Cmd = "rm -rf chaindata-iot"
+    os.system(Cmd)
+    
     # Synchronize with full node
     Cmd = "go run iot_light.go"
     os.system(Cmd)
-
+    
     # Get size from db
-    Cmd = "sh size.sh"
+    Cmd = "go run iot_light.go"
+    os.system(Cmd)
+    Cmd = "du -sc chaindata-iot/*.ldb | tail -n 1 | awk '{ print $1 }' >> sizelog"
+    os.system(Cmd)
+
+    # Remove db directory
+    Cmd = "rm -rf chaindata-iot"
     os.system(Cmd)
 
     connection.close()
