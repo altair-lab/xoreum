@@ -135,6 +135,23 @@ func (bc *BlockChain) Insert(block *types.Block) error {
 	}
 }
 
+// check block's validity, if ok, then insert block into chain
+func (bc *BlockChain) InsertForBitcoin(block *types.Block) error {
+
+	// validate block before insert
+	err := bc.validateBlock(block)
+
+	if err != nil {
+		// didn't pass validation
+		return err
+	} else {
+		// pass all validation
+		// insert that block into blockchain
+		bc.insert(block)
+		return nil
+	}
+}
+
 // check that this block is valid to be inserted
 func (bc *BlockChain) validateBlock(block *types.Block) error {
 
@@ -171,18 +188,18 @@ func (bc *BlockChain) applyTransaction(txs *types.Transactions) {
 	for _, tx := range *txs {
 		for _, key := range tx.Participants() {
 			// Apply post state
-			//s[*key] = tx.PostStates()[i]
 			rawdb.WriteState(bc.db, crypto.PubkeyToAddress(key), tx.Hash)
 		}
 	}
 }
 
-// Apply transaction to state
+// Apply transaction to state and save tx (for bitcoin data transform)
 func (bc *BlockChain) ApplyTransaction(tx *types.Transaction) {
 	for _, key := range tx.Participants() {
 		// Apply post state
-		//s[*key] = tx.PostStates()[i]
 		rawdb.WriteState(bc.db, crypto.PubkeyToAddress(key), tx.Hash)
+		// save tx
+		rawdb.WriteTransaction(bc.db, tx.GetHash(), tx)
 	}
 }
 
