@@ -24,12 +24,12 @@ func main() {
 	db, _ := leveldb.New("chaindata-iot", 0, 0, "")
 	last_hash := rawdb.ReadLastHeaderHash(db)
 	last_BN := rawdb.ReadHeaderNumber(db, last_hash)
-
+	
 	// When there is no existing DB
 	if last_BN == nil {
 		// Connect with full node (server)
 		host := ""
-		port := "8083" // Default port number
+		port := "" // Default port number (yj:8084, yh:8085)
 		if len(os.Args) > 1 {
 			port = os.Args[1]
 		}
@@ -71,7 +71,7 @@ func main() {
 			currentBlock = block
 
 			// Print block
-			block.PrintBlock()
+			//block.PrintBlock()
 		}
 
 		// Make IoT blockchain with current block (= genesis block)
@@ -84,11 +84,12 @@ func main() {
 		genesis_BN := rawdb.ReadHeaderNumber(db, genesis_hash)
 		genesis := rawdb.LoadBlockByBN(db, *genesis_BN)
 		Blockchain = core.NewIoTBlockChain(db, genesis)
+		log.Println("# States : ", rawdb.CountStates(db))
 		log.Println("Load Block Done!")
 	}
 
 	// Print blockchain
-	Blockchain.PrintBlockChain()
+	//Blockchain.PrintBlockChain()
 	//rawdb.ReadStates(db)
 
 
