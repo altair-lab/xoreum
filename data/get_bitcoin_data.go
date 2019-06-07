@@ -79,7 +79,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	users := make(map[string]*ecdsa.PrivateKey)
 
 	// set genesis account (hard coded)
-	//genesisAddr := "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" // ??? 내가 왜 이걸로 해놨지?
 	genesisAddr := "GENESIS_ADDRESS"
 	users[genesisAddr] = genesisPrivateKey
 
@@ -87,7 +86,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	groundAddr := "GROUND_ADDRESS"
 	groundPrivateKey, _ := crypto.GenerateKey()
 	users[groundAddr] = groundPrivateKey
-	//bc.GetAccounts().NewAccount(&users[groundAddr].PublicKey, 0, 0)
 
 	// user's current tx hash (map[bitcoin_user_address] = xoreum_tx_hash)
 	userCurTx := make(map[string]*common.Hash)
@@ -99,7 +97,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	// block hashes of bitcoin
 	blockHashes := make(map[int]string)
 
-	if int(*last_BN) == targetBlockNum {
+	if int(*last_BN) >= targetBlockNum {
 		fmt.Println("already at target block", targetBlockNum)
 		return bc
 	}
@@ -115,7 +113,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		blockHashes[i], _ = rpc.GetBlockHash(uint64(i))
 
 		// get block from bitcoin
-		//bb := GetBitcoinBlock(blockHashes[i])
 		bb, _ := rpc.GetBlock(blockHashes[i])
 
 		// to check if sum of balance is changed
@@ -164,7 +161,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				for m := uint64(0); m < addr_len; m++ {
 					if users[addr[m]] == nil {
 						users[addr[m]], _ = crypto.GenerateKey()
-						//bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
 					}
 				}
 
@@ -198,10 +194,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			// if this tx is coinbase tx
 			if bb.Txs[j].Vin[0].Coinbase != "" {
 
-				// get actual block reward (50 BTC, 25 BTC, 12.5 BTC...)
-				// blockReward = actual_block_reward + all_tx_fee_in_block
-
-				// newest version
 				// just give all block reward from genesis account
 				// to do so, all tx fees goes to genesis account
 				blockReward := voutSum
@@ -210,29 +202,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				// calculate vinSum
 				vinSum += blockReward
 				blockVinSum += blockReward
-
-				/*
-					// old version
-					// there can be several miners in coinbase tx
-					blockReward := uint64(0)
-					for m := 0; m < len(bb.Txs[j].Vout); m++ {
-						blockReward += ToSatoshi(bb.Txs[j].Vout[m].Value.String())
-					}
-
-					if blockReward >= 5000000000 {
-						blockReward = 5000000000
-					} else if blockReward >= 2500000000 {
-						blockReward = 2500000000
-					} else {
-						blockReward = 1250000000
-						// block reward would be 6.25 BTC in 2020
-					}
-					parties[genesisAddr] -= int64(blockReward)
-
-					// calculate vinSum
-					vinSum += blockReward
-					blockVinSum += blockReward
-				*/
 
 			} else {
 				for k := 0; k < len(bb.Txs[j].Vin); k++ {
@@ -257,7 +226,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 					for m := uint64(0); m < addr_len; m++ {
 						if users[addr[m]] == nil {
 							users[addr[m]], _ = crypto.GenerateKey()
-							//bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
 						}
 					}
 
@@ -318,10 +286,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, v := range parties {
 				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
 
-				// old version
-				//acc := bc.GetAccounts()[users[k].PublicKey].Copy()
-
-				// new version
+				// get current account
 				curTxHash := rawdb.ReadState(db, &users[k].PublicKey)
 				emptyHash := common.Hash{}
 				acc := &state.Account{}
@@ -364,9 +329,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, _ := range parties {
 				userCurTx[k] = &h
 			}
-
-			// save tx into bc.allTxs
-			//bc.GetAllTxs()[tx.GetHash()] = tx
 
 			// add tx into txpool
 			success, err := Txpool.Add(tx)
@@ -428,10 +390,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, v := range parties {
 				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
 
-				// old version
-				//acc := bc.GetAccounts()[users[k].PublicKey].Copy()
-
-				// new version
+				// get current account
 				curTxHash := rawdb.ReadState(db, &users[k].PublicKey)
 				emptyHash := common.Hash{}
 				acc := &state.Account{}
@@ -473,9 +432,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, _ := range parties {
 				userCurTx[k] = &h
 			}
-
-			// save tx into bc.allTxs
-			//bc.GetAllTxs()[tx.GetHash()] = tx
 
 			// add tx into txpool
 			success, err := Txpool.Add(tx)
@@ -618,10 +574,10 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	bc := TransformBitcoinData(200000, rpc)
+	bc := TransformBitcoinData(10, rpc)
 
 	fmt.Println("block height:", bc.CurrentBlock().Number())
-	rawdb.ReadStates(bc.GetDB())
+	rawdb.CheckBalanceAndAccounts(bc.GetDB())
 	//bc.GetAccounts().PrintAccountsSum()
 	//bc.GetAccounts().CheckNegativeBalance()
 
@@ -909,3 +865,10 @@ func (b *Bitcoind) GetVinData(txid string, index int) (string, []string) {
 
 	return rawTx.Vout[index].Value.String(), rawTx.Vout[index].ScriptPubKey.Addresses
 }
+
+// TODO: bitcoin tx의 모든 vout들을 map으로 관리하고 있다가
+// 사용이 되면 그때는 map 에서 삭제하는 방식으로 관리해서
+// GetVinData 함수 콜 안해도 되게 해야 빨라 질듯?
+// 지금은 한 블록 처리 하려면 그 블록에 들어 있는
+// 모든 tx들의 vin 개수 만큼 tx rpc 콜을 하게 되는지라 엄청 느림
+// 그래서 이런 것들은 다 local에서 저장해두고 사용하고 싶은데...
