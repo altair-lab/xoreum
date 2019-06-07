@@ -91,3 +91,44 @@ func CountStates(db xordb.Iteratee) int {
 	iter.Release()
 	return count
 }
+
+// CheckBalanceAndAccounts check balance sum and count account number
+func CheckBalanceAndAccounts(db xordb.Database) {
+	fmt.Println("=========== check balance and accounts =========\n")
+	balanceSum := uint64(0)
+	accountNum := uint64(0)
+	negativeBalanceAcc := false
+	iter := db.NewIterator()
+	for iter.Next() {
+		key := iter.Key()
+		value := iter.Value()
+		if string(key[0]) == "s" { // prefix for state
+			tx, _, _, _ := ReadTransaction(db, common.BytesToHash(value))
+			if tx != nil {
+				acc := tx.GetPostStateByAddress(key)
+				//fmt.Println("txhash:", tx.GetHash().ToHex())
+				//fmt.Println("\tnonce:", acc.Nonce, "/ balance:", acc.Balance)
+				balanceSum += acc.Balance
+				accountNum++
+				if int64(acc.Balance) < int64(0) {
+					fmt.Println("@@@ WRANING: there is a negative balance account")
+					negativeBalanceAcc = true
+				}
+			} else {
+				//fmt.Println("txhash: <nil>")
+				//fmt.Println("\tnonce: x / balance: x")
+			}
+		}
+
+	}
+	iter.Release()
+	fmt.Println("account number:", accountNum)
+	fmt.Println("\nbalance sum:", balanceSum)
+	if balanceSum != uint64(2100000000000000) {
+		fmt.Println("@@@ WARNING: balance sum is not correct")
+	}
+	if negativeBalanceAcc {
+		fmt.Println("@@@ WRANING: there is a negative balance account above")
+	}
+	fmt.Println("\n==================== finish ====================")
+}
