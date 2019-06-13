@@ -79,6 +79,12 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	}
 	bc, genesisPrivateKey := core.NewBlockChainForBitcoin(db) // already has bitcoin's genesis block
 
+	// if already get bitcoin data, end function
+	if int(*lastBN) >= targetBlockNum {
+		fmt.Println("already at block", *lastBN, "( target block:", targetBlockNum, ")")
+		return bc
+	}
+
 	// users on xoreum (map[bitcoin_user_address] = xoreum_user_private_key)
 	users := make(map[string]*ecdsa.PrivateKey)
 
@@ -108,13 +114,29 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	// ex. txVouts[0x1950343241_1] = 24.1596_AMFU3VKDS_NFDKCOWE42F
 	txVouts := make(map[string]string)
 
-	if int(*lastBN) >= targetBlockNum {
-		fmt.Println("already at block", *lastBN, "( target block:", targetBlockNum, ")")
-		return bc
-	}
+	// burned tx fee sum
+	burendTxFeeSum := uint64(0)
+
+	// for panic information
+	var i int // block number
+	var j int // tx index
+	var k int // vout index
+	var p int // vin index
+
+	// print panic info
+	defer func() {
+
+		// when transformed successfully, do not print panic info
+		if i >= targetBlockNum {
+			return
+		}
+
+		fmt.Println("\n\n\npanic occured at block", i, ", at", j, "th transaction")
+		fmt.Println("vout index:", k, "/ vin index:", p, "\n\n\n")
+	}()
 
 	// get blocks of bitcoin and transform into xoreum format
-	for i := int(*lastBN) + 1; i <= targetBlockNum; i++ {
+	for i = int(*lastBN) + 1; i <= targetBlockNum; i++ {
 
 		if i%1000 == 0 {
 			fmt.Println("now at block", i)
@@ -134,7 +156,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		txFeeSum := uint64(0)
 
 		// transform transactions in the bitcoin block
-		for j := 0; j < len(bb.TxHashes); j++ {
+		for j = 0; j < len(bb.TxHashes); j++ {
 
 			// make xoreum transaction
 
@@ -150,7 +172,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			vinSum := uint64(0)
 
 			// deal with Vouts of bitcoin tx
-			for k := 0; k < len(bb.Txs[j].Vout); k++ {
+			for k = 0; k < len(bb.Txs[j].Vout); k++ {
 
 				addr := bb.Txs[j].Vout[k].ScriptPubKey.Addresses
 				value := ToSatoshi(bb.Txs[j].Vout[k].Value.String())
@@ -223,10 +245,10 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				blockVinSum += blockReward
 
 			} else {
-				for k := 0; k < len(bb.Txs[j].Vin); k++ {
+				for p = 0; p < len(bb.Txs[j].Vin); p++ {
 
 					// get value and addresses from txVouts (utxo set)
-					string_value, addr := GetVinData(txVouts, bb.Txs[j].Vin[k].Txid, bb.Txs[j].Vin[k].Vout)
+					string_value, addr := GetVinData(txVouts, bb.Txs[j].Vin[p].Txid, bb.Txs[j].Vin[p].Vout)
 					value := ToSatoshi(string_value)
 					addr_len := uint64(len(addr))
 
@@ -390,6 +412,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		if burnCoins > uint64(0) {
 
 			fmt.Println("at block", i, "miners throw", burnCoins, "satoshi")
+			burendTxFeeSum += burnCoins
 
 			// make transaction that
 			// genesis account ---------------> ground account
@@ -488,6 +511,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	fmt.Println("finish transforming bitcoin data to xoreum")
 	elapsed := time.Since(startTime)
 	fmt.Println("execution time:", elapsed)
+	fmt.Println("burned tx fee sum:", burendTxFeeSum, "satoshi")
 
 	return bc
 }
@@ -588,7 +612,7 @@ func main() {
 	}
 
 	// transform bitcoin data
-	bc := TransformBitcoinData(30, rpc)
+	bc := TransformBitcoinData(500000, rpc)
 
 	// show results
 	fmt.Println("block height:", bc.CurrentBlock().Number())
