@@ -1,0 +1,1214 @@
+start to get bitcoin data
+now at block 1000
+now at block 2000
+now at block 3000
+now at block 4000
+now at block 5000
+now at block 6000
+now at block 7000
+now at block 8000
+now at block 9000
+now at block 10000
+now at block 11000
+now at block 12000
+now at block 13000
+now at block 14000
+now at block 15000
+now at block 16000
+now at block 17000
+now at block 18000
+now at block 19000
+now at block 20000
+now at block 21000
+now at block 22000
+now at block 23000
+now at block 24000
+now at block 25000
+now at block 26000
+now at block 27000
+now at block 28000
+now at block 29000
+now at block 30000
+now at block 31000
+now at block 32000
+now at block 33000
+now at block 34000
+now at block 35000
+now at block 36000
+now at block 37000
+now at block 38000
+now at block 39000
+now at block 40000
+now at block 41000
+now at block 42000
+now at block 43000
+now at block 44000
+now at block 45000
+now at block 46000
+now at block 47000
+now at block 48000
+now at block 49000
+now at block 50000
+now at block 51000
+now at block 52000
+now at block 53000
+now at block 54000
+now at block 55000
+now at block 56000
+now at block 57000
+now at block 58000
+now at block 59000
+now at block 60000
+now at block 61000
+now at block 62000
+now at block 63000
+now at block 64000
+now at block 65000
+now at block 66000
+now at block 67000
+now at block 68000
+now at block 69000
+now at block 70000
+now at block 71000
+now at block 72000
+now at block 73000
+now at block 74000
+now at block 75000
+now at block 76000
+now at block 77000
+now at block 78000
+now at block 79000
+now at block 80000
+now at block 81000
+now at block 82000
+now at block 83000
+now at block 84000
+now at block 85000
+now at block 86000
+now at block 87000
+now at block 88000
+now at block 89000
+now at block 90000
+now at block 91000
+now at block 92000
+now at block 93000
+now at block 94000
+now at block 95000
+now at block 96000
+now at block 97000
+now at block 98000
+now at block 99000
+now at block 100000
+now at block 101000
+now at block 102000
+now at block 103000
+now at block 104000
+now at block 105000
+now at block 106000
+now at block 107000
+now at block 108000
+now at block 109000
+now at block 110000
+now at block 111000
+now at block 112000
+now at block 113000
+now at block 114000
+now at block 115000
+now at block 116000
+now at block 117000
+now at block 118000
+now at block 119000
+now at block 120000
+now at block 121000
+now at block 122000
+now at block 123000
+now at block 124000
+at block 124724 miners throw 1000001  satoshi
+now at block 125000
+now at block 126000
+now at block 127000
+now at block 128000
+now at block 129000
+now at block 130000
+now at block 131000
+now at block 132000
+now at block 133000
+now at block 134000
+now at block 135000
+now at block 136000
+now at block 137000
+now at block 138000
+now at block 139000
+now at block 140000
+now at block 141000
+now at block 142000
+now at block 143000
+now at block 144000
+now at block 145000
+now at block 146000
+now at block 147000
+now at block 148000
+now at block 149000
+now at block 150000
+now at block 151000
+now at block 152000
+now at block 153000
+now at block 154000
+now at block 155000
+now at block 156000
+now at block 157000
+now at block 158000
+now at block 159000
+now at block 160000
+now at block 161000
+now at block 162000
+at block 162705 miners throw 1700000  satoshi
+at block 162823 miners throw 100000  satoshi
+at block 162839 miners throw 1024800  satoshi
+at block 162952 miners throw 8464733  satoshi
+at block 162973 miners throw 10505939  satoshi
+at block 162980 miners throw 1179594  satoshi
+at block 162988 miners throw 664387  satoshi
+at block 162992 miners throw 4950000  satoshi
+at block 162995 miners throw 450000  satoshi
+now at block 163000
+at block 163006 miners throw 3351000  satoshi
+at block 163017 miners throw 9950000  satoshi
+at block 163029 miners throw 50000  satoshi
+at block 163063 miners throw 1351000  satoshi
+at block 163072 miners throw 450000  satoshi
+at block 163075 miners throw 510000  satoshi
+at block 163088 miners throw 1000000  satoshi
+at block 163102 miners throw 2500065  satoshi
+at block 163105 miners throw 100000  satoshi
+at block 163109 miners throw 2000000  satoshi
+at block 163113 miners throw 1500000  satoshi
+at block 163120 miners throw 18155528  satoshi
+at block 163228 miners throw 4890745  satoshi
+at block 163240 miners throw 18156811  satoshi
+at block 163274 miners throw 1251000  satoshi
+at block 163283 miners throw 250000  satoshi
+at block 163284 miners throw 4350000  satoshi
+at block 163285 miners throw 2250000  satoshi
+at block 163353 miners throw 1100000  satoshi
+at block 163368 miners throw 8300501  satoshi
+at block 163370 miners throw 4289790  satoshi
+at block 163433 miners throw 150000  satoshi
+at block 163440 miners throw 5750000  satoshi
+at block 163447 miners throw 1500000  satoshi
+at block 163453 miners throw 350000  satoshi
+at block 163458 miners throw 3340477  satoshi
+at block 163478 miners throw 650000  satoshi
+at block 163480 miners throw 5100000  satoshi
+at block 163588 miners throw 5310000  satoshi
+at block 163592 miners throw 1350000  satoshi
+at block 163596 miners throw 1850000  satoshi
+at block 163611 miners throw 1800000  satoshi
+at block 163615 miners throw 5211463  satoshi
+at block 163620 miners throw 15370000  satoshi
+at block 163622 miners throw 300000  satoshi
+at block 163623 miners throw 2100000  satoshi
+at block 163626 miners throw 430000  satoshi
+at block 163628 miners throw 2508784  satoshi
+at block 163633 miners throw 17850000  satoshi
+at block 163647 miners throw 11250000  satoshi
+at block 163656 miners throw 5162317  satoshi
+at block 163667 miners throw 500000  satoshi
+at block 163672 miners throw 5150000  satoshi
+at block 163693 miners throw 400000  satoshi
+at block 163709 miners throw 15873449  satoshi
+at block 163710 miners throw 13170451  satoshi
+at block 163714 miners throw 500000  satoshi
+at block 163719 miners throw 4952000  satoshi
+at block 163726 miners throw 2150000  satoshi
+at block 163729 miners throw 1200000  satoshi
+at block 163756 miners throw 1905454  satoshi
+at block 163791 miners throw 1500000  satoshi
+at block 163793 miners throw 400000  satoshi
+at block 163808 miners throw 2150000  satoshi
+at block 163830 miners throw 12305008  satoshi
+at block 163863 miners throw 300000  satoshi
+at block 163881 miners throw 1060000  satoshi
+at block 163889 miners throw 2200000  satoshi
+at block 163891 miners throw 350000  satoshi
+at block 163893 miners throw 50000  satoshi
+at block 163903 miners throw 401000  satoshi
+at block 163915 miners throw 2250000  satoshi
+at block 163918 miners throw 4900000  satoshi
+at block 163939 miners throw 4850000  satoshi
+at block 163947 miners throw 4100000  satoshi
+at block 163970 miners throw 250000  satoshi
+at block 163974 miners throw 450000  satoshi
+at block 163975 miners throw 6490002  satoshi
+at block 163977 miners throw 4069600  satoshi
+at block 163979 miners throw 1400000  satoshi
+at block 163985 miners throw 31352898  satoshi
+at block 163989 miners throw 1560000  satoshi
+at block 163995 miners throw 450000  satoshi
+now at block 164000
+at block 164003 miners throw 3170000  satoshi
+at block 164007 miners throw 13200000  satoshi
+at block 164022 miners throw 250000  satoshi
+at block 164023 miners throw 2700000  satoshi
+at block 164024 miners throw 800000  satoshi
+at block 164025 miners throw 450000  satoshi
+at block 164027 miners throw 4750000  satoshi
+at block 164028 miners throw 1350000  satoshi
+at block 164041 miners throw 350000  satoshi
+at block 164048 miners throw 110000  satoshi
+at block 164049 miners throw 14369496  satoshi
+at block 164050 miners throw 200000  satoshi
+at block 164056 miners throw 3908648  satoshi
+at block 164067 miners throw 150000  satoshi
+at block 164081 miners throw 1450000  satoshi
+at block 164084 miners throw 72121726  satoshi
+at block 164086 miners throw 450000  satoshi
+at block 164095 miners throw 1913010  satoshi
+at block 164098 miners throw 3219980  satoshi
+at block 164099 miners throw 1300020  satoshi
+at block 164100 miners throw 4585127  satoshi
+at block 164105 miners throw 3089997  satoshi
+at block 164106 miners throw 120000  satoshi
+at block 164127 miners throw 850000  satoshi
+at block 164128 miners throw 1250000  satoshi
+at block 164133 miners throw 1500154  satoshi
+at block 164135 miners throw 350000  satoshi
+at block 164139 miners throw 1950000  satoshi
+at block 164143 miners throw 4100000  satoshi
+at block 164147 miners throw 8680005  satoshi
+at block 164151 miners throw 400000  satoshi
+at block 164157 miners throw 3254365  satoshi
+at block 164159 miners throw 1900000  satoshi
+at block 164162 miners throw 1350000  satoshi
+at block 164165 miners throw 3100000  satoshi
+at block 164169 miners throw 2550000  satoshi
+at block 164170 miners throw 450460  satoshi
+at block 164172 miners throw 50000  satoshi
+at block 164173 miners throw 1150000  satoshi
+at block 164174 miners throw 50000  satoshi
+at block 164194 miners throw 560010  satoshi
+at block 164196 miners throw 450000  satoshi
+at block 164198 miners throw 100000  satoshi
+at block 164199 miners throw 1550000  satoshi
+at block 164201 miners throw 1981000  satoshi
+at block 164203 miners throw 3844053  satoshi
+at block 164210 miners throw 50000  satoshi
+at block 164211 miners throw 6260001  satoshi
+at block 164223 miners throw 150000  satoshi
+at block 164237 miners throw 2932385  satoshi
+at block 164243 miners throw 100000  satoshi
+at block 164246 miners throw 175780069  satoshi
+at block 164248 miners throw 1400000  satoshi
+at block 164252 miners throw 1039082  satoshi
+at block 164253 miners throw 2350000  satoshi
+at block 164254 miners throw 4500000  satoshi
+at block 164269 miners throw 3250000  satoshi
+at block 164280 miners throw 703234  satoshi
+at block 164295 miners throw 2800000  satoshi
+at block 164296 miners throw 1400000  satoshi
+at block 164298 miners throw 1300003  satoshi
+at block 164315 miners throw 50000  satoshi
+at block 164322 miners throw 16982811  satoshi
+at block 164334 miners throw 1700000  satoshi
+at block 164340 miners throw 50000  satoshi
+at block 164362 miners throw 1400000  satoshi
+at block 164365 miners throw 1100000  satoshi
+at block 164380 miners throw 795478  satoshi
+at block 164408 miners throw 150000  satoshi
+at block 164441 miners throw 91455943  satoshi
+at block 164467 miners throw 3150000  satoshi
+at block 164480 miners throw 7560000  satoshi
+at block 164496 miners throw 100000  satoshi
+at block 164528 miners throw 2750000  satoshi
+at block 164559 miners throw 300000  satoshi
+at block 164570 miners throw 11851000  satoshi
+at block 164572 miners throw 3850000  satoshi
+at block 164615 miners throw 3308883  satoshi
+at block 164622 miners throw 1090961  satoshi
+at block 164671 miners throw 400000  satoshi
+at block 164700 miners throw 6000000  satoshi
+at block 164719 miners throw 50000  satoshi
+at block 164742 miners throw 250000  satoshi
+at block 164851 miners throw 15901088  satoshi
+at block 164921 miners throw 7910000  satoshi
+at block 164967 miners throw 3750000  satoshi
+at block 164984 miners throw 2850000  satoshi
+at block 164996 miners throw 3466773  satoshi
+now at block 165000
+at block 165048 miners throw 2550000  satoshi
+at block 165062 miners throw 3700000  satoshi
+at block 165108 miners throw 150000  satoshi
+at block 165109 miners throw 3950000  satoshi
+at block 165124 miners throw 7200000  satoshi
+at block 165177 miners throw 2541361  satoshi
+at block 165194 miners throw 2008000  satoshi
+at block 165283 miners throw 2616143  satoshi
+at block 165776 miners throw 250000  satoshi
+now at block 166000
+at block 166250 miners throw 3260524  satoshi
+at block 166263 miners throw 10500000  satoshi
+at block 166486 miners throw 2850000  satoshi
+at block 166698 miners throw 1400000  satoshi
+at block 166890 miners throw 780436  satoshi
+now at block 167000
+at block 167013 miners throw 6200000  satoshi
+at block 167035 miners throw 6750000  satoshi
+at block 167074 miners throw 283601  satoshi
+at block 167168 miners throw 100000  satoshi
+at block 167204 miners throw 1750000  satoshi
+now at block 168000
+at block 168596 miners throw 650000  satoshi
+now at block 169000
+at block 169464 miners throw 2150000  satoshi
+at block 169670 miners throw 910000  satoshi
+at block 169899 miners throw 5200000  satoshi
+now at block 170000
+now at block 171000
+now at block 172000
+now at block 173000
+now at block 174000
+now at block 175000
+now at block 176000
+now at block 177000
+now at block 178000
+now at block 179000
+now at block 180000
+at block 180324 miners throw 50000  satoshi
+at block 180435 miners throw 50000  satoshi
+at block 180442 miners throw 50000  satoshi
+at block 180470 miners throw 50000  satoshi
+at block 180492 miners throw 50000  satoshi
+at block 180539 miners throw 50000  satoshi
+at block 180573 miners throw 50000  satoshi
+at block 180578 miners throw 50000  satoshi
+at block 180591 miners throw 50000  satoshi
+at block 180597 miners throw 900000  satoshi
+at block 180628 miners throw 50000  satoshi
+at block 180678 miners throw 50000  satoshi
+at block 180691 miners throw 50000  satoshi
+at block 180788 miners throw 50000  satoshi
+at block 180833 miners throw 50000  satoshi
+at block 180837 miners throw 50000  satoshi
+at block 180888 miners throw 52500  satoshi
+at block 180905 miners throw 50000  satoshi
+at block 180985 miners throw 50000  satoshi
+now at block 181000
+at block 181014 miners throw 50000  satoshi
+at block 181104 miners throw 50000  satoshi
+at block 181118 miners throw 50000  satoshi
+at block 181348 miners throw 50000  satoshi
+at block 181588 miners throw 50000  satoshi
+at block 181591 miners throw 100000  satoshi
+at block 181602 miners throw 50000  satoshi
+at block 181603 miners throw 1000  satoshi
+at block 181625 miners throw 50000  satoshi
+at block 181653 miners throw 50000  satoshi
+at block 181750 miners throw 50000  satoshi
+at block 181780 miners throw 200000  satoshi
+at block 181790 miners throw 50000  satoshi
+at block 181796 miners throw 50000  satoshi
+at block 181839 miners throw 50000  satoshi
+at block 181853 miners throw 50000  satoshi
+at block 181875 miners throw 50000  satoshi
+at block 181882 miners throw 50000  satoshi
+at block 181886 miners throw 50000  satoshi
+at block 181949 miners throw 50000  satoshi
+at block 181986 miners throw 50000  satoshi
+at block 181990 miners throw 50000  satoshi
+now at block 182000
+at block 182000 miners throw 50000  satoshi
+at block 182054 miners throw 50000  satoshi
+at block 182070 miners throw 50000  satoshi
+at block 182148 miners throw 50000  satoshi
+at block 182219 miners throw 50000  satoshi
+at block 182322 miners throw 50000  satoshi
+at block 182370 miners throw 10000  satoshi
+at block 182454 miners throw 50000  satoshi
+at block 182535 miners throw 50000  satoshi
+at block 182592 miners throw 50000  satoshi
+at block 182598 miners throw 50000  satoshi
+at block 182658 miners throw 50000  satoshi
+at block 182693 miners throw 50000  satoshi
+at block 182727 miners throw 50000  satoshi
+at block 182751 miners throw 50000  satoshi
+at block 182755 miners throw 50000  satoshi
+at block 182756 miners throw 50000  satoshi
+at block 182794 miners throw 50000  satoshi
+at block 182811 miners throw 50000  satoshi
+at block 182823 miners throw 50000  satoshi
+at block 182863 miners throw 50000  satoshi
+at block 182907 miners throw 50000  satoshi
+at block 182934 miners throw 50000  satoshi
+at block 182988 miners throw 50000  satoshi
+now at block 183000
+at block 183039 miners throw 50000  satoshi
+at block 183110 miners throw 50000  satoshi
+at block 183130 miners throw 50000  satoshi
+at block 183189 miners throw 50000  satoshi
+at block 183258 miners throw 50000  satoshi
+at block 183259 miners throw 50000  satoshi
+at block 183486 miners throw 50000  satoshi
+at block 183491 miners throw 50000  satoshi
+at block 183612 miners throw 50000  satoshi
+at block 183628 miners throw 50000  satoshi
+at block 183745 miners throw 50000  satoshi
+at block 183770 miners throw 50000  satoshi
+at block 183798 miners throw 50000  satoshi
+at block 183852 miners throw 50000  satoshi
+at block 183868 miners throw 50000  satoshi
+at block 183891 miners throw 50000  satoshi
+at block 183953 miners throw 50000  satoshi
+at block 183956 miners throw 50000  satoshi
+at block 183964 miners throw 50000  satoshi
+at block 183983 miners throw 10000  satoshi
+now at block 184000
+at block 184083 miners throw 50000  satoshi
+at block 184177 miners throw 50000  satoshi
+at block 184265 miners throw 50000  satoshi
+at block 184290 miners throw 50000  satoshi
+at block 184315 miners throw 50000  satoshi
+at block 184334 miners throw 50000  satoshi
+at block 184336 miners throw 50000  satoshi
+at block 184344 miners throw 50000  satoshi
+at block 184369 miners throw 50000  satoshi
+at block 184403 miners throw 50000  satoshi
+at block 184409 miners throw 50000  satoshi
+at block 184441 miners throw 50000  satoshi
+at block 184450 miners throw 700000  satoshi
+at block 184462 miners throw 50000  satoshi
+at block 184468 miners throw 50000  satoshi
+at block 184472 miners throw 50000  satoshi
+at block 184476 miners throw 50000  satoshi
+at block 184483 miners throw 50000  satoshi
+at block 184507 miners throw 50000  satoshi
+at block 184513 miners throw 50000  satoshi
+at block 184618 miners throw 50000  satoshi
+at block 184633 miners throw 50000  satoshi
+at block 184665 miners throw 50000  satoshi
+at block 184687 miners throw 50000  satoshi
+at block 184693 miners throw 50000  satoshi
+at block 184717 miners throw 50000  satoshi
+at block 184781 miners throw 50000  satoshi
+at block 184801 miners throw 50000  satoshi
+at block 184804 miners throw 50000  satoshi
+at block 184881 miners throw 50000  satoshi
+at block 184909 miners throw 50000  satoshi
+at block 184910 miners throw 50000  satoshi
+at block 184913 miners throw 50000  satoshi
+at block 184920 miners throw 50000  satoshi
+at block 184961 miners throw 50000  satoshi
+at block 184996 miners throw 50000  satoshi
+now at block 185000
+at block 185030 miners throw 50000  satoshi
+at block 185033 miners throw 50000  satoshi
+at block 185052 miners throw 50000  satoshi
+at block 185054 miners throw 50000  satoshi
+at block 185058 miners throw 50000  satoshi
+at block 185072 miners throw 50000  satoshi
+at block 185075 miners throw 50000  satoshi
+at block 185091 miners throw 50000  satoshi
+at block 185110 miners throw 50000  satoshi
+at block 185161 miners throw 50000  satoshi
+at block 185219 miners throw 50000  satoshi
+at block 185222 miners throw 50000  satoshi
+at block 185276 miners throw 150000  satoshi
+at block 185292 miners throw 50000  satoshi
+at block 185326 miners throw 50000  satoshi
+at block 185359 miners throw 50000  satoshi
+at block 185366 miners throw 50000  satoshi
+at block 185388 miners throw 50000  satoshi
+at block 185512 miners throw 50000  satoshi
+at block 185605 miners throw 50000  satoshi
+at block 185621 miners throw 50000  satoshi
+at block 185638 miners throw 50000  satoshi
+at block 185669 miners throw 50000  satoshi
+at block 185709 miners throw 50000  satoshi
+at block 185722 miners throw 50000  satoshi
+at block 185740 miners throw 50000  satoshi
+at block 185761 miners throw 50000  satoshi
+at block 185784 miners throw 50000  satoshi
+at block 185837 miners throw 50000  satoshi
+at block 185866 miners throw 50000  satoshi
+at block 185868 miners throw 50000  satoshi
+at block 185876 miners throw 50000  satoshi
+at block 185893 miners throw 50000  satoshi
+at block 185911 miners throw 50000  satoshi
+now at block 186000
+at block 186047 miners throw 150000  satoshi
+at block 186048 miners throw 50000  satoshi
+at block 186076 miners throw 50000  satoshi
+at block 186135 miners throw 50000  satoshi
+at block 186140 miners throw 50000  satoshi
+at block 186145 miners throw 10000  satoshi
+at block 186163 miners throw 50000  satoshi
+at block 186177 miners throw 50000  satoshi
+at block 186199 miners throw 50000  satoshi
+at block 186216 miners throw 50000  satoshi
+at block 186262 miners throw 50000  satoshi
+at block 186331 miners throw 50000  satoshi
+at block 186333 miners throw 50000  satoshi
+at block 186365 miners throw 50000  satoshi
+at block 186398 miners throw 50000  satoshi
+at block 186417 miners throw 50000  satoshi
+at block 186428 miners throw 50000  satoshi
+at block 186439 miners throw 50000  satoshi
+at block 186446 miners throw 50000  satoshi
+at block 186457 miners throw 50000  satoshi
+at block 186467 miners throw 50000  satoshi
+at block 186474 miners throw 50000  satoshi
+at block 186485 miners throw 50000  satoshi
+at block 186498 miners throw 50000  satoshi
+at block 186508 miners throw 50000  satoshi
+at block 186513 miners throw 50000  satoshi
+at block 186514 miners throw 50000  satoshi
+at block 186559 miners throw 50000  satoshi
+at block 186602 miners throw 50000  satoshi
+at block 186612 miners throw 50000  satoshi
+at block 186618 miners throw 50000  satoshi
+at block 186678 miners throw 50000  satoshi
+at block 186712 miners throw 50000  satoshi
+at block 186749 miners throw 50000  satoshi
+at block 186754 miners throw 50000  satoshi
+at block 186769 miners throw 50000  satoshi
+at block 186782 miners throw 50000  satoshi
+at block 186797 miners throw 50000  satoshi
+at block 186802 miners throw 50000  satoshi
+at block 186808 miners throw 50000  satoshi
+at block 186817 miners throw 50000  satoshi
+at block 186845 miners throw 50000  satoshi
+at block 186847 miners throw 50000  satoshi
+at block 186856 miners throw 50000  satoshi
+at block 186860 miners throw 50000  satoshi
+at block 186885 miners throw 50000  satoshi
+at block 186921 miners throw 50000  satoshi
+at block 186959 miners throw 50000  satoshi
+at block 186971 miners throw 50000  satoshi
+now at block 187000
+at block 187115 miners throw 50000  satoshi
+at block 187149 miners throw 50000  satoshi
+at block 187169 miners throw 50000  satoshi
+at block 187173 miners throw 50000  satoshi
+at block 187180 miners throw 50000  satoshi
+at block 187187 miners throw 50000  satoshi
+at block 187191 miners throw 50000  satoshi
+at block 187204 miners throw 50000  satoshi
+at block 187216 miners throw 50000  satoshi
+at block 187276 miners throw 50000  satoshi
+at block 187286 miners throw 50000  satoshi
+at block 187402 miners throw 50000  satoshi
+at block 187411 miners throw 50000  satoshi
+at block 187416 miners throw 50000  satoshi
+at block 187423 miners throw 50000  satoshi
+at block 187476 miners throw 50000  satoshi
+at block 187477 miners throw 50000  satoshi
+at block 187478 miners throw 550000  satoshi
+at block 187512 miners throw 100000  satoshi
+at block 187521 miners throw 50000  satoshi
+at block 187531 miners throw 150000  satoshi
+at block 187624 miners throw 50000  satoshi
+at block 187631 miners throw 50000  satoshi
+at block 187643 miners throw 50000  satoshi
+at block 187645 miners throw 50000  satoshi
+at block 187719 miners throw 300000  satoshi
+at block 187745 miners throw 50000  satoshi
+at block 187848 miners throw 50000  satoshi
+at block 187868 miners throw 50000  satoshi
+at block 187876 miners throw 50000  satoshi
+at block 187925 miners throw 50000  satoshi
+at block 187972 miners throw 50000  satoshi
+at block 187986 miners throw 50000  satoshi
+at block 187992 miners throw 50000  satoshi
+now at block 188000
+at block 188024 miners throw 50000  satoshi
+at block 188070 miners throw 50000  satoshi
+at block 188078 miners throw 50000  satoshi
+at block 188162 miners throw 50000  satoshi
+at block 188197 miners throw 600000  satoshi
+at block 188216 miners throw 50000  satoshi
+at block 188227 miners throw 50000  satoshi
+at block 188279 miners throw 50000  satoshi
+at block 188377 miners throw 50000  satoshi
+at block 188378 miners throw 50000  satoshi
+at block 188382 miners throw 50000  satoshi
+at block 188417 miners throw 50000  satoshi
+at block 188433 miners throw 50000  satoshi
+at block 188446 miners throw 50000  satoshi
+at block 188477 miners throw 50000  satoshi
+at block 188501 miners throw 50000  satoshi
+at block 188524 miners throw 50000  satoshi
+at block 188542 miners throw 50000  satoshi
+at block 188557 miners throw 50000  satoshi
+at block 188596 miners throw 50000  satoshi
+at block 188693 miners throw 50000  satoshi
+at block 188699 miners throw 50000  satoshi
+at block 188772 miners throw 50000  satoshi
+at block 188877 miners throw 10000  satoshi
+at block 188922 miners throw 50000  satoshi
+at block 188974 miners throw 50000  satoshi
+at block 188977 miners throw 10000  satoshi
+at block 188985 miners throw 50000  satoshi
+now at block 189000
+at block 189003 miners throw 1000000  satoshi
+at block 189006 miners throw 50000  satoshi
+at block 189068 miners throw 50000  satoshi
+at block 189089 miners throw 4000  satoshi
+at block 189184 miners throw 50000  satoshi
+at block 189224 miners throw 50000  satoshi
+at block 189227 miners throw 50000  satoshi
+at block 189239 miners throw 50000  satoshi
+at block 189251 miners throw 50000  satoshi
+at block 189255 miners throw 50000  satoshi
+at block 189270 miners throw 10000  satoshi
+at block 189278 miners throw 50000  satoshi
+at block 189287 miners throw 50000  satoshi
+at block 189308 miners throw 50000  satoshi
+at block 189309 miners throw 50000  satoshi
+at block 189329 miners throw 50000  satoshi
+at block 189346 miners throw 50000  satoshi
+at block 189416 miners throw 50000  satoshi
+at block 189438 miners throw 50000  satoshi
+at block 189452 miners throw 100000  satoshi
+at block 189523 miners throw 50000  satoshi
+at block 189582 miners throw 50000  satoshi
+at block 189584 miners throw 50000  satoshi
+at block 189631 miners throw 50000  satoshi
+at block 189639 miners throw 50000  satoshi
+at block 189644 miners throw 50000  satoshi
+at block 189650 miners throw 50000  satoshi
+at block 189670 miners throw 50000  satoshi
+at block 189672 miners throw 50000  satoshi
+at block 189684 miners throw 50000  satoshi
+at block 189689 miners throw 50000  satoshi
+at block 189697 miners throw 50000  satoshi
+at block 189700 miners throw 50000  satoshi
+at block 189741 miners throw 100000  satoshi
+at block 189742 miners throw 100000  satoshi
+at block 189744 miners throw 50000  satoshi
+at block 189745 miners throw 50000  satoshi
+at block 189764 miners throw 50000  satoshi
+at block 189818 miners throw 50000  satoshi
+at block 189850 miners throw 50000  satoshi
+at block 189861 miners throw 50000  satoshi
+at block 189900 miners throw 52500  satoshi
+at block 189919 miners throw 50000  satoshi
+at block 189923 miners throw 50000  satoshi
+at block 189966 miners throw 50000  satoshi
+at block 189988 miners throw 50000  satoshi
+now at block 190000
+at block 190015 miners throw 50000  satoshi
+at block 190025 miners throw 50000  satoshi
+at block 190034 miners throw 50000  satoshi
+at block 190051 miners throw 50000  satoshi
+at block 190052 miners throw 100000  satoshi
+at block 190066 miners throw 50000  satoshi
+at block 190079 miners throw 50000  satoshi
+at block 190112 miners throw 50000  satoshi
+at block 190118 miners throw 50000  satoshi
+at block 190136 miners throw 50000  satoshi
+at block 190145 miners throw 50000  satoshi
+at block 190190 miners throw 50000  satoshi
+at block 190218 miners throw 50000  satoshi
+at block 190238 miners throw 50000  satoshi
+at block 190242 miners throw 50000  satoshi
+at block 190279 miners throw 50000  satoshi
+at block 190296 miners throw 50000  satoshi
+at block 190331 miners throw 50000  satoshi
+at block 190360 miners throw 50000  satoshi
+at block 190363 miners throw 50000  satoshi
+at block 190372 miners throw 50000  satoshi
+at block 190377 miners throw 50000  satoshi
+at block 190444 miners throw 50000  satoshi
+at block 190456 miners throw 50000  satoshi
+at block 190462 miners throw 50000  satoshi
+at block 190534 miners throw 50000  satoshi
+at block 190605 miners throw 50000  satoshi
+at block 190628 miners throw 50000  satoshi
+at block 190704 miners throw 50000  satoshi
+at block 190707 miners throw 50000  satoshi
+at block 190730 miners throw 50000  satoshi
+at block 190818 miners throw 50000  satoshi
+at block 190821 miners throw 50000  satoshi
+at block 190822 miners throw 50000  satoshi
+at block 190826 miners throw 50000  satoshi
+at block 190852 miners throw 50000  satoshi
+at block 190865 miners throw 50000  satoshi
+at block 190892 miners throw 50000  satoshi
+at block 190898 miners throw 50000  satoshi
+at block 190925 miners throw 50000  satoshi
+at block 190969 miners throw 50000  satoshi
+now at block 191000
+at block 191038 miners throw 50000  satoshi
+at block 191046 miners throw 50000  satoshi
+at block 191053 miners throw 50000  satoshi
+at block 191063 miners throw 50000  satoshi
+at block 191104 miners throw 50000  satoshi
+at block 191137 miners throw 50000  satoshi
+at block 191155 miners throw 50000  satoshi
+at block 191158 miners throw 50000  satoshi
+at block 191177 miners throw 50000  satoshi
+at block 191182 miners throw 50000  satoshi
+at block 191203 miners throw 100000  satoshi
+at block 191241 miners throw 50000  satoshi
+at block 191244 miners throw 50000  satoshi
+at block 191297 miners throw 50000  satoshi
+at block 191351 miners throw 50000  satoshi
+at block 191352 miners throw 50000  satoshi
+at block 191392 miners throw 50000  satoshi
+at block 191400 miners throw 50000  satoshi
+at block 191431 miners throw 50000  satoshi
+at block 191503 miners throw 52500  satoshi
+at block 191507 miners throw 50000  satoshi
+at block 191511 miners throw 50000  satoshi
+at block 191514 miners throw 50000  satoshi
+at block 191524 miners throw 50000  satoshi
+at block 191622 miners throw 50000  satoshi
+at block 191733 miners throw 50000  satoshi
+at block 191784 miners throw 50000  satoshi
+at block 191882 miners throw 50000  satoshi
+at block 191901 miners throw 50000  satoshi
+now at block 192000
+at block 192038 miners throw 50000  satoshi
+at block 192081 miners throw 200000  satoshi
+at block 192095 miners throw 50000  satoshi
+at block 192113 miners throw 50000  satoshi
+at block 192160 miners throw 50000  satoshi
+at block 192208 miners throw 50000  satoshi
+at block 192237 miners throw 50000  satoshi
+at block 192239 miners throw 50000  satoshi
+at block 192350 miners throw 50000  satoshi
+at block 192463 miners throw 50000  satoshi
+at block 192507 miners throw 50000  satoshi
+at block 192536 miners throw 50000  satoshi
+at block 192554 miners throw 50000  satoshi
+at block 192566 miners throw 50000  satoshi
+at block 192578 miners throw 50000  satoshi
+at block 192582 miners throw 100000  satoshi
+at block 192604 miners throw 50000  satoshi
+at block 192630 miners throw 50000  satoshi
+at block 192680 miners throw 50000  satoshi
+at block 192708 miners throw 50000  satoshi
+at block 192766 miners throw 50000  satoshi
+at block 192790 miners throw 50000  satoshi
+at block 192814 miners throw 30000  satoshi
+at block 192875 miners throw 50000  satoshi
+at block 192880 miners throw 50000  satoshi
+at block 192881 miners throw 50000  satoshi
+at block 192883 miners throw 50000  satoshi
+at block 192908 miners throw 50000  satoshi
+at block 192919 miners throw 50000  satoshi
+at block 192980 miners throw 50000  satoshi
+now at block 193000
+at block 193020 miners throw 51000  satoshi
+at block 193050 miners throw 50000  satoshi
+at block 193058 miners throw 50000  satoshi
+at block 193065 miners throw 50000  satoshi
+at block 193099 miners throw 50000  satoshi
+at block 193170 miners throw 100000  satoshi
+at block 193186 miners throw 50000  satoshi
+at block 193197 miners throw 50000  satoshi
+at block 193207 miners throw 10  satoshi
+at block 193208 miners throw 50000  satoshi
+at block 193216 miners throw 50000  satoshi
+at block 193231 miners throw 50000  satoshi
+at block 193264 miners throw 50000  satoshi
+at block 193265 miners throw 50000  satoshi
+at block 193311 miners throw 50000  satoshi
+at block 193325 miners throw 50000  satoshi
+at block 193327 miners throw 50000  satoshi
+at block 193351 miners throw 50000  satoshi
+at block 193369 miners throw 50000  satoshi
+at block 193374 miners throw 50000  satoshi
+at block 193387 miners throw 50000  satoshi
+at block 193404 miners throw 50000  satoshi
+at block 193430 miners throw 50000  satoshi
+at block 193437 miners throw 50000  satoshi
+at block 193473 miners throw 50000  satoshi
+at block 193490 miners throw 50000  satoshi
+at block 193500 miners throw 50000  satoshi
+at block 193505 miners throw 50000  satoshi
+at block 193520 miners throw 50000  satoshi
+at block 193521 miners throw 50000  satoshi
+at block 193546 miners throw 50000  satoshi
+at block 193558 miners throw 50000  satoshi
+at block 193568 miners throw 50000  satoshi
+at block 193643 miners throw 50000  satoshi
+at block 193937 miners throw 50000  satoshi
+at block 193948 miners throw 50000  satoshi
+at block 193956 miners throw 50000  satoshi
+at block 193977 miners throw 50000  satoshi
+at block 193980 miners throw 50000  satoshi
+now at block 194000
+at block 194035 miners throw 50000  satoshi
+at block 194037 miners throw 50000  satoshi
+at block 194078 miners throw 150000  satoshi
+at block 194109 miners throw 50000  satoshi
+at block 194116 miners throw 50000  satoshi
+at block 194361 miners throw 50000  satoshi
+at block 194369 miners throw 50000  satoshi
+at block 194620 miners throw 100000  satoshi
+at block 194649 miners throw 50000  satoshi
+at block 194652 miners throw 50000  satoshi
+at block 194710 miners throw 100000  satoshi
+at block 194716 miners throw 50000  satoshi
+at block 194732 miners throw 50000  satoshi
+at block 194742 miners throw 50000  satoshi
+at block 194826 miners throw 50000  satoshi
+at block 194904 miners throw 50000  satoshi
+at block 194953 miners throw 50000  satoshi
+now at block 195000
+at block 195069 miners throw 50000  satoshi
+at block 195150 miners throw 50000  satoshi
+at block 195214 miners throw 5000  satoshi
+at block 195241 miners throw 50000  satoshi
+at block 195299 miners throw 50000  satoshi
+at block 195319 miners throw 100000  satoshi
+at block 195336 miners throw 50000  satoshi
+at block 195571 miners throw 50000  satoshi
+at block 195709 miners throw 50000  satoshi
+at block 195780 miners throw 50000  satoshi
+at block 195785 miners throw 50000  satoshi
+at block 195787 miners throw 50000  satoshi
+at block 195880 miners throw 50000  satoshi
+at block 195911 miners throw 52500  satoshi
+at block 195921 miners throw 52500  satoshi
+at block 195937 miners throw 50000  satoshi
+at block 195973 miners throw 50000  satoshi
+now at block 196000
+at block 196011 miners throw 50000  satoshi
+at block 196012 miners throw 50000  satoshi
+at block 196150 miners throw 50000  satoshi
+at block 196217 miners throw 50000  satoshi
+at block 196220 miners throw 50000  satoshi
+at block 196229 miners throw 50000  satoshi
+at block 196258 miners throw 50000  satoshi
+at block 196312 miners throw 50000  satoshi
+at block 196314 miners throw 50000  satoshi
+at block 196334 miners throw 50000  satoshi
+at block 196348 miners throw 50000  satoshi
+at block 196354 miners throw 50000  satoshi
+at block 196363 miners throw 50000  satoshi
+at block 196381 miners throw 50000  satoshi
+at block 196382 miners throw 50000  satoshi
+at block 196387 miners throw 250000  satoshi
+at block 196417 miners throw 50000  satoshi
+at block 196425 miners throw 50000  satoshi
+at block 196520 miners throw 50000  satoshi
+at block 196560 miners throw 50000  satoshi
+at block 196669 miners throw 50000  satoshi
+at block 196679 miners throw 50000  satoshi
+at block 196692 miners throw 50000  satoshi
+at block 196750 miners throw 50000  satoshi
+at block 196776 miners throw 50000  satoshi
+at block 196808 miners throw 50000  satoshi
+at block 196812 miners throw 50000  satoshi
+at block 196815 miners throw 100000  satoshi
+at block 196822 miners throw 50000  satoshi
+at block 196826 miners throw 50000  satoshi
+at block 196829 miners throw 50000  satoshi
+at block 196839 miners throw 50000  satoshi
+at block 196884 miners throw 50000  satoshi
+at block 196905 miners throw 50000  satoshi
+at block 196909 miners throw 50000  satoshi
+at block 196928 miners throw 50000  satoshi
+at block 196938 miners throw 50000  satoshi
+at block 196939 miners throw 50000  satoshi
+at block 196963 miners throw 50000  satoshi
+at block 196969 miners throw 50000  satoshi
+now at block 197000
+at block 197014 miners throw 50000  satoshi
+at block 197028 miners throw 50000  satoshi
+at block 197059 miners throw 50000  satoshi
+at block 197071 miners throw 10000  satoshi
+at block 197095 miners throw 50000  satoshi
+at block 197099 miners throw 50000  satoshi
+at block 197116 miners throw 50000  satoshi
+at block 197119 miners throw 50000  satoshi
+at block 197262 miners throw 50000  satoshi
+at block 197273 miners throw 50000  satoshi
+at block 197316 miners throw 50000  satoshi
+at block 197359 miners throw 50000  satoshi
+at block 197378 miners throw 50000  satoshi
+at block 197380 miners throw 50000  satoshi
+at block 197409 miners throw 50000  satoshi
+at block 197455 miners throw 50000  satoshi
+at block 197472 miners throw 50000  satoshi
+at block 197504 miners throw 50000  satoshi
+at block 197511 miners throw 50000  satoshi
+at block 197533 miners throw 50000  satoshi
+at block 197603 miners throw 10000  satoshi
+at block 197607 miners throw 50000  satoshi
+at block 197700 miners throw 50000  satoshi
+at block 197752 miners throw 50000  satoshi
+at block 197754 miners throw 50000  satoshi
+at block 197810 miners throw 50000  satoshi
+at block 197821 miners throw 50000  satoshi
+at block 197822 miners throw 50000  satoshi
+at block 197825 miners throw 50000  satoshi
+at block 197830 miners throw 50000  satoshi
+at block 197846 miners throw 50000  satoshi
+at block 197861 miners throw 50000  satoshi
+at block 197872 miners throw 50000  satoshi
+at block 197879 miners throw 10000  satoshi
+at block 197892 miners throw 50000  satoshi
+at block 197915 miners throw 50000  satoshi
+at block 197926 miners throw 50000  satoshi
+at block 197927 miners throw 50000  satoshi
+at block 197929 miners throw 50000  satoshi
+at block 197935 miners throw 250000  satoshi
+now at block 198000
+at block 198037 miners throw 10000  satoshi
+at block 198076 miners throw 50000  satoshi
+at block 198085 miners throw 683  satoshi
+at block 198103 miners throw 50000  satoshi
+at block 198118 miners throw 50000  satoshi
+at block 198213 miners throw 50000  satoshi
+at block 198268 miners throw 50000  satoshi
+at block 198328 miners throw 50000  satoshi
+at block 198331 miners throw 50000  satoshi
+at block 198369 miners throw 50000  satoshi
+at block 198395 miners throw 50000  satoshi
+at block 198484 miners throw 50000  satoshi
+at block 198504 miners throw 50000  satoshi
+at block 198608 miners throw 50000  satoshi
+at block 198977 miners throw 50000  satoshi
+at block 198984 miners throw 50000  satoshi
+now at block 199000
+at block 199052 miners throw 50000  satoshi
+at block 199059 miners throw 100000  satoshi
+at block 199097 miners throw 50000  satoshi
+at block 199153 miners throw 50000  satoshi
+at block 199164 miners throw 50000  satoshi
+at block 199326 miners throw 50000  satoshi
+at block 199386 miners throw 50000  satoshi
+at block 199446 miners throw 50000  satoshi
+at block 199522 miners throw 50000  satoshi
+at block 199973 miners throw 50000  satoshi
+now at block 200000
+at block 200043 miners throw 50000  satoshi
+at block 200061 miners throw 50000  satoshi
+now at block 201000
+now at block 202000
+at block 202359 miners throw 50000  satoshi
+at block 202439 miners throw 50000  satoshi
+at block 202545 miners throw 50000  satoshi
+at block 202566 miners throw 100000  satoshi
+at block 202855 miners throw 50000  satoshi
+at block 202986 miners throw 50000  satoshi
+now at block 203000
+at block 203051 miners throw 50000  satoshi
+at block 203214 miners throw 50000  satoshi
+at block 203397 miners throw 50000  satoshi
+at block 203453 miners throw 100000  satoshi
+at block 203514 miners throw 50000  satoshi
+at block 203646 miners throw 50000  satoshi
+now at block 204000
+at block 204275 miners throw 50000  satoshi
+at block 204278 miners throw 50000  satoshi
+at block 204283 miners throw 50000  satoshi
+at block 204342 miners throw 350000  satoshi
+at block 204391 miners throw 100000  satoshi
+at block 204403 miners throw 50000  satoshi
+at block 204425 miners throw 100000  satoshi
+at block 204475 miners throw 50000  satoshi
+at block 204513 miners throw 50000  satoshi
+at block 204591 miners throw 50000  satoshi
+at block 204607 miners throw 50000  satoshi
+at block 204883 miners throw 50000  satoshi
+at block 204902 miners throw 10000  satoshi
+at block 204950 miners throw 50000  satoshi
+now at block 205000
+at block 205029 miners throw 100000  satoshi
+at block 205253 miners throw 100000  satoshi
+at block 205302 miners throw 50000  satoshi
+at block 205334 miners throw 50000  satoshi
+at block 205551 miners throw 50000  satoshi
+at block 205685 miners throw 50000  satoshi
+at block 205782 miners throw 50000  satoshi
+at block 205897 miners throw 100000  satoshi
+at block 205961 miners throw 50000  satoshi
+now at block 206000
+at block 206024 miners throw 100000  satoshi
+at block 206092 miners throw 50000  satoshi
+at block 206126 miners throw 50000  satoshi
+at block 206185 miners throw 50000  satoshi
+at block 206330 miners throw 50000  satoshi
+at block 206485 miners throw 50000  satoshi
+at block 206641 miners throw 100000  satoshi
+at block 206676 miners throw 50000  satoshi
+at block 206681 miners throw 50000  satoshi
+now at block 207000
+at block 207235 miners throw 50000  satoshi
+at block 207287 miners throw 50000  satoshi
+at block 207374 miners throw 50000  satoshi
+at block 207548 miners throw 50000  satoshi
+at block 207689 miners throw 100000  satoshi
+at block 207699 miners throw 50000  satoshi
+at block 207783 miners throw 50000  satoshi
+at block 207930 miners throw 100000  satoshi
+now at block 208000
+at block 208021 miners throw 50000  satoshi
+at block 208337 miners throw 50000  satoshi
+at block 208369 miners throw 50000  satoshi
+at block 208648 miners throw 100000  satoshi
+at block 208729 miners throw 50000  satoshi
+at block 208810 miners throw 100000  satoshi
+now at block 209000
+at block 209069 miners throw 50000  satoshi
+at block 209310 miners throw 50000  satoshi
+now at block 210000
+at block 210213 miners throw 50000  satoshi
+at block 210327 miners throw 50000  satoshi
+at block 210427 miners throw 50000  satoshi
+at block 210671 miners throw 50000  satoshi
+at block 210806 miners throw 50000  satoshi
+at block 210849 miners throw 100000  satoshi
+at block 210928 miners throw 50000  satoshi
+at block 210974 miners throw 50000  satoshi
+at block 210975 miners throw 100000  satoshi
+now at block 211000
+at block 211137 miners throw 50000  satoshi
+at block 211214 miners throw 100000  satoshi
+at block 211414 miners throw 100000  satoshi
+at block 211617 miners throw 50000  satoshi
+at block 211638 miners throw 50000  satoshi
+at block 211719 miners throw 50000  satoshi
+at block 211849 miners throw 100000  satoshi
+now at block 212000
+at block 212207 miners throw 100000  satoshi
+at block 212282 miners throw 100000  satoshi
+at block 212372 miners throw 100000  satoshi
+at block 212501 miners throw 50000  satoshi
+at block 212947 miners throw 100000  satoshi
+at block 212967 miners throw 100000  satoshi
+now at block 213000
+at block 213085 miners throw 50000  satoshi
+at block 213173 miners throw 50000  satoshi
+at block 213232 miners throw 50000  satoshi
+at block 213322 miners throw 50000  satoshi
+at block 213463 miners throw 50000  satoshi
+at block 213758 miners throw 50000  satoshi
+at block 213956 miners throw 50000  satoshi
+at block 213975 miners throw 100000  satoshi
+now at block 214000
+at block 214150 miners throw 100000  satoshi
+at block 214163 miners throw 100000  satoshi
+at block 214251 miners throw 500000  satoshi
+at block 214478 miners throw 50000  satoshi
+at block 214485 miners throw 100000  satoshi
+at block 214572 miners throw 50000  satoshi
+at block 214597 miners throw 100000  satoshi
+at block 214602 miners throw 100000  satoshi
+at block 214610 miners throw 50000  satoshi
+at block 214619 miners throw 50000  satoshi
+at block 214657 miners throw 50000  satoshi
+at block 214748 miners throw 100000  satoshi
+at block 214952 miners throw 50000  satoshi
+at block 214967 miners throw 100000  satoshi
+now at block 215000
+at block 215021 miners throw 100000  satoshi
+at block 215056 miners throw 100000  satoshi
+at block 215095 miners throw 100000  satoshi
+at block 215118 miners throw 100000  satoshi
+at block 215129 miners throw 50000  satoshi
+at block 215230 miners throw 100000  satoshi
+at block 215247 miners throw 100000  satoshi
+at block 215324 miners throw 50000  satoshi
+at block 215411 miners throw 50000  satoshi
+at block 215483 miners throw 50000  satoshi
+at block 215497 miners throw 100000  satoshi
+at block 215659 miners throw 50000  satoshi
+at block 215696 miners throw 50000  satoshi
+at block 215822 miners throw 100000  satoshi
+at block 215934 miners throw 50000  satoshi
+at block 215958 miners throw 100000  satoshi
+at block 215965 miners throw 50000  satoshi
+now at block 216000
+at block 216058 miners throw 50000  satoshi
+at block 216070 miners throw 50000  satoshi
+at block 216123 miners throw 50000  satoshi
+at block 216138 miners throw 50000  satoshi
+at block 216407 miners throw 100000  satoshi
+at block 216507 miners throw 100000  satoshi
+at block 216577 miners throw 50000  satoshi
+at block 216585 miners throw 50000  satoshi
+at block 216620 miners throw 50000  satoshi
+at block 216691 miners throw 50000  satoshi
+at block 216718 miners throw 100000  satoshi
+at block 216757 miners throw 100000  satoshi
+at block 216773 miners throw 50000  satoshi
+at block 216888 miners throw 50000  satoshi
+at block 216907 miners throw 50000  satoshi
+at block 216912 miners throw 50000  satoshi
+at block 216966 miners throw 100000  satoshi
+now at block 217000
+at block 217056 miners throw 50000  satoshi
+at block 217140 miners throw 50000  satoshi
+at block 217207 miners throw 50000  satoshi
+at block 217291 miners throw 100000  satoshi
+at block 217313 miners throw 50000  satoshi
+at block 217382 miners throw 100000  satoshi
+at block 217391 miners throw 100000  satoshi
+at block 217531 miners throw 100000  satoshi
+at block 217534 miners throw 100000  satoshi
+at block 217548 miners throw 50000  satoshi
+at block 217667 miners throw 100000  satoshi
+at block 217684 miners throw 50000  satoshi
+at block 217688 miners throw 100000  satoshi
+at block 217811 miners throw 50000  satoshi
+at block 217834 miners throw 100000  satoshi
+at block 217912 miners throw 50000  satoshi
+at block 217918 miners throw 50000  satoshi
+at block 217934 miners throw 100000  satoshi
+now at block 218000
+at block 218047 miners throw 50000  satoshi
+at block 218106 miners throw 100000  satoshi
+at block 218130 miners throw 100000  satoshi
+at block 218152 miners throw 50000  satoshi
+at block 218205 miners throw 50000  satoshi
+at block 218238 miners throw 100000  satoshi
+at block 218252 miners throw 50000  satoshi
+at block 218348 miners throw 100000  satoshi
+at block 218370 miners throw 100000  satoshi
+at block 218462 miners throw 100000  satoshi
+at block 218582 miners throw 100000  satoshi
+at block 218634 miners throw 50000  satoshi
+at block 218683 miners throw 200000  satoshi
+at block 218749 miners throw 50000  satoshi
+at block 218776 miners throw 100000  satoshi
+at block 218798 miners throw 100000  satoshi
+at block 218897 miners throw 100000  satoshi
+at block 218957 miners throw 100000  satoshi
+at block 218993 miners throw 100000  satoshi
+now at block 219000
+at block 219013 miners throw 50000  satoshi
+at block 219031 miners throw 50000  satoshi
+at block 219275 miners throw 50000  satoshi
+at block 219283 miners throw 50000  satoshi
+at block 219304 miners throw 100000  satoshi
+at block 219311 miners throw 50000  satoshi
+at block 219452 miners throw 100000  satoshi
+at block 219626 miners throw 100000  satoshi
+at block 219743 miners throw 100000  satoshi
+at block 219938 miners throw 50000  satoshi
+at block 219941 miners throw 100000  satoshi
+at block 219998 miners throw 100000  satoshi
+now at block 220000
+at block 220110 miners throw 50000  satoshi
+at block 220389 miners throw 50000  satoshi
+at block 220453 miners throw 100000  satoshi
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0x40 pc=0x767556]
+
+goroutine 1 [running]:
+main.TransformBitcoinData(0x493e0, 0xc0000ac058, 0x208c)
+        /home/jmlee/go/src/github.com/altair-lab/xoreum/data/get_bitcoin_data.go:151 +0x9a6
+main.main()
+        /home/jmlee/go/src/github.com/altair-lab/xoreum/data/get_bitcoin_data.go:603 +0x105
+exit status 2
+
+start to get bitcoin data
+already at block 220499 ( target block: 30 )
+block height: 220499
+=========== check balance and accounts =========
+
+^Csignal: interrupt
