@@ -1,5 +1,4 @@
 /*
-  Full Node     : Send all blocks from chain and keep update
   IoT-full Node : Send only interlink blocks from chain and keep update
 */
 
@@ -11,6 +10,7 @@ import (
 	"net"
 	"os"
 	"sync"
+	"encoding/json"
 
 	"github.com/altair-lab/xoreum/xordb"
 	"github.com/altair-lab/xoreum/core"
@@ -18,16 +18,37 @@ import (
 	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
 )
-
+/*
 const MINING_INTERVAL = 10
 const DEFAULT_BLOCK_NUMBER = 255
 const DEFAULT_ACCOUNTS_NUMBER = 64
 const BROADCAST_INTERVAL = 5
-
+*/
 var Blockchain *core.BlockChain
 var mutex = &sync.Mutex{}
 
+type Configuration struct {
+	Hostname	string
+	Port		string
+	BlockNumber	int64
+	Participants	int64
+	Difficulty	int
+	MiningInterval	int
+	BroadcastInterval	int
+}
+
 func main() {
+	// Load configuration
+	file, _ := os.Open("../conf.json")
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	configuration := Configuration{}
+	err := decoder.Decode(&configuration)
+	if err != nil {
+		log.Println("error : ", err)
+	}
+	log.Println(configuration)
+
 	// Load DB
 	db, _ := leveldb.New("chaindata", 0, 0, "")
 	last_hash := rawdb.ReadLastHeaderHash(db)
@@ -37,7 +58,7 @@ func main() {
 	if last_BN == nil {
 		// Initialize chain and store to DB
 		log.Println("Initialize Chain")
-		Blockchain = network.MakeTestBlockChain(DEFAULT_BLOCK_NUMBER, DEFAULT_ACCOUNTS_NUMBER, db)
+		Blockchain = network.MakeTestBlockChain(configuration.BlockNumber, configuration.Participants, db)
 		log.Println("Done")
 	} else {
 		// Load blocks from 1st block (0 = genesis)
@@ -51,12 +72,7 @@ func main() {
 	//rawdb.ReadStates(db)
 
 	// start TCP and serve TCP server
-	host := ""
-	port := "8083" //  Default port number
-	if len(os.Args) > 1 {
-		port = os.Args[1]
-	}
-	server, err := net.Listen("tcp", host+":"+port)
+	server, err := net.Listen("tcp", configuration.Hostname+":"+configuration.Port)
 	if err != nil {
 		log.Fatal(err)
 	}

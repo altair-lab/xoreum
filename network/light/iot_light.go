@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"encoding/json"
 
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/rawdb"
@@ -19,7 +20,28 @@ import (
 
 var Blockchain *core.BlockChain
 
+type Configuration struct {
+	Hostname	string
+	Port		string
+	BlockNumber	int64
+	Participants	int64
+	Difficulty	int
+	MiningInterval	int
+	BroadcastInterval	int
+}
+
 func main() {
+	// Load configuration
+	file, _ := os.Open("../conf.json")
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	configuration := Configuration{}
+	err := decoder.Decode(&configuration)
+	if err != nil {
+		log.Println("error : ", err)
+	}
+	log.Println(configuration)
+
 	// Load DB
 	db, _ := leveldb.New("chaindata-iot", 0, 0, "")
 	last_hash := rawdb.ReadLastHeaderHash(db)
@@ -28,16 +50,11 @@ func main() {
 	// When there is no existing DB
 	if last_BN == nil {
 		// Connect with full node (server)
-		host := ""
-		port := "8083" // Default port number
-		if len(os.Args) > 1 {
-			port = os.Args[1]
-		}
-		conn, err := net.Dial("tcp", host+":"+port)
+		conn, err := net.Dial("tcp", configuration.Hostname+":"+configuration.Port)
 		if nil != err {
 			log.Fatal("failed to connect to server")
 		}
-		
+
 		log.Println("Conntected!")
 
 		// Receive State
