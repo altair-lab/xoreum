@@ -22,7 +22,7 @@ import (
 
 const MINING_INTERVAL = 10
 const DEFAULT_BLOCK_NUMBER = 1000
-const DEFAULT_ACCOUNTS_NUMBER = 10000
+const DEFAULT_ACCOUNTS_NUMBER = 1000
 const BROADCAST_INTERVAL = 5
 
 var Blockchain *core.BlockChain
@@ -30,9 +30,9 @@ var mutex = &sync.Mutex{}
 
 func main() {
 	// configuration
-	host := ""
-	port := "" //  Default port number (yj:8084, yh:8085)
-	readyport := "" // Use this port to send a ready message (yj:8086)
+	host := "lynx.snu.ac.kr"
+	port := "8084" //  Default port number (yj:8084, yh:8085)
+	readyport := "8086" // Use this port to send a ready message (yj:8086)
 
 	// Set Default Block Number for test
     	testBlockNum := int64(DEFAULT_BLOCK_NUMBER)
@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// Load DB
-	db, _ := leveldb.New("chaindata_"+strconv.FormatInt(testBlockNum, 10), 0, 0, "")
+	db, _ := leveldb.New("chaindata_"+strconv.FormatInt(testAccNum, 10), 0, 0, "")
 	last_hash := rawdb.ReadLastHeaderHash(db)
 	last_BN := rawdb.ReadHeaderNumber(db, last_hash)
 

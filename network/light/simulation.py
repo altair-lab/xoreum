@@ -22,8 +22,4 @@ while True:
     Cmd = "du -sc chaindata-iot/*.ldb | tail -n 1 | awk '{ print $1 }' >> sizelog"
     os.system(Cmd)
 
-    # Remove db directory
-    Cmd = "rm -rf chaindata-iot"
-    os.system(Cmd)
-
     connection.close()
