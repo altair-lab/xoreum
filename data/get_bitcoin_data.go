@@ -79,7 +79,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	users := make(map[string]*ecdsa.PrivateKey)
 
 	// set genesis account (hard coded)
-	//genesisAddr := "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" // ??? 내가 왜 이걸로 해놨지?
 	genesisAddr := "GENESIS_ADDRESS"
 	users[genesisAddr] = genesisPrivateKey
 
@@ -211,29 +210,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				vinSum += blockReward
 				blockVinSum += blockReward
 
-				/*
-					// old version
-					// there can be several miners in coinbase tx
-					blockReward := uint64(0)
-					for m := 0; m < len(bb.Txs[j].Vout); m++ {
-						blockReward += ToSatoshi(bb.Txs[j].Vout[m].Value.String())
-					}
-
-					if blockReward >= 5000000000 {
-						blockReward = 5000000000
-					} else if blockReward >= 2500000000 {
-						blockReward = 2500000000
-					} else {
-						blockReward = 1250000000
-						// block reward would be 6.25 BTC in 2020
-					}
-					parties[genesisAddr] -= int64(blockReward)
-
-					// calculate vinSum
-					vinSum += blockReward
-					blockVinSum += blockReward
-				*/
-
 			} else {
 				for k := 0; k < len(bb.Txs[j].Vin); k++ {
 					string_value, addr := rpc.GetVinData(bb.Txs[j].Vin[k].Txid, bb.Txs[j].Vin[k].Vout)
@@ -364,9 +340,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, _ := range parties {
 				userCurTx[k] = &h
 			}
-
-			// save tx into bc.allTxs
-			//bc.GetAllTxs()[tx.GetHash()] = tx
 
 			// add tx into txpool
 			success, err := Txpool.Add(tx)
@@ -507,10 +480,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		}
 
 	}
-
-	/*for k, v := range userCurTx {
-		bc.GetState()[users[k].PublicKey] = *v
-	}*/
 
 	fmt.Println("finish transforming bitcoin data to xoreum")
 	return bc
