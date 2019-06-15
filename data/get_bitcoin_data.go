@@ -618,10 +618,10 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	bc := TransformBitcoinData(200000, rpc)
+	bc := TransformBitcoinData(10, rpc)
 
 	fmt.Println("block height:", bc.CurrentBlock().Number())
-	rawdb.ReadStates(bc.GetDB())
+	//rawdb.ReadStates(bc.GetDB())
 	//bc.GetAccounts().PrintAccountsSum()
 	//bc.GetAccounts().CheckNegativeBalance()
 
@@ -643,11 +643,12 @@ func main() {
 
 // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
+// bitcoin server's config
 const (
-	SERVER_HOST        = "sirius.snu.ac.kr"
-	SERVER_PORT        = 8332
-	USER               = "vmolab"
-	PASSWD             = "ma55lab"
+	SERVER_HOST        = "server_host"
+	SERVER_PORT        = 111111111111
+	USER               = "user"
+	PASSWD             = "passwd"
 	USESSL             = false
 	WALLET_PASSPHRASE  = "p1"
 	WALLET_PASSPHRASE2 = "p2"
