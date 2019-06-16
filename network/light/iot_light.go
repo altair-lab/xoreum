@@ -26,8 +26,8 @@ type Configuration struct {
 	BlockNumber	int64
 	Participants	int64
 	Difficulty	int
+	PrintMode	bool
 	MiningInterval	int
-	BroadcastInterval	int
 }
 
 func main() {
@@ -40,7 +40,6 @@ func main() {
 	if err != nil {
 		log.Println("error : ", err)
 	}
-	log.Println(configuration)
 
 	// Load DB
 	db, _ := leveldb.New("chaindata-iot", 0, 0, "")
@@ -70,7 +69,7 @@ func main() {
 			log.Fatal(err)
 		}
 		currentBlock := &types.Block{}
-		
+
 		log.Println("Receive Interlink Blocks . . .")
 		for i := uint32(0); i < interlinkslen; i++ {
 			// Receive interlink block
@@ -87,8 +86,10 @@ func main() {
 			}
 			currentBlock = block
 
-			// Print block
-			block.PrintBlock()
+			// Print received blocks
+			if (configuration.PrintMode) {
+				block.PrintBlock()
+			}
 		}
 
 		// Make IoT blockchain with current block (= genesis block)
@@ -105,30 +106,10 @@ func main() {
 	}
 
 	// Print blockchain
-	Blockchain.PrintBlockChain()
-	//rawdb.ReadStates(db)
+	if (configuration.PrintMode) {
+		Blockchain.PrintBlockChain()
+		//rawdb.ReadStates(db)
+	}
 
-
-	/*
-		// [TODO] Keep mining every MINING_INTERVAL
-		go func() {
-			for {
-				time.Sleep(MINING_INTERVAL * time.Second)
-				// Mining from txpool
-				block := Miner.Mine(Txpool, uint64(0))
-				if block != nil {
-					block.PrintTxs()
-				} else {
-					fmt.Println("Mining Fail")
-				}
-				// Add to Blockchain
-				err := Blockchain.Insert(block)
-				if err != nil {
-					fmt.Println(err)
-				}
-				Blockchain.CurrentBlock().PrintBlock()
-			}
-		}()
-	*/
-
+	// [TODO] Keep mining every interval
 }

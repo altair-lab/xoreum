@@ -1,9 +1,8 @@
 {
     "Hostname": "localhost",
     "Port": "8081",
-    "BlockNumber": 1000,
+    "BlockNumber": 100,
     "Participants": 100,
-    "Difficulty": 1,
-    "MiningInterval": 5,
-    "BroadcastInterval": 5
+    "PrintMode": true, 
+    "MiningInterval": 0
 }

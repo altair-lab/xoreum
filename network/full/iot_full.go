@@ -18,12 +18,7 @@ import (
 	"github.com/altair-lab/xoreum/network"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
 )
-/*
-const MINING_INTERVAL = 10
-const DEFAULT_BLOCK_NUMBER = 255
-const DEFAULT_ACCOUNTS_NUMBER = 64
-const BROADCAST_INTERVAL = 5
-*/
+
 var Blockchain *core.BlockChain
 var mutex = &sync.Mutex{}
 
@@ -32,9 +27,8 @@ type Configuration struct {
 	Port		string
 	BlockNumber	int64
 	Participants	int64
-	Difficulty	int
+	PrintMode	bool
 	MiningInterval	int
-	BroadcastInterval	int
 }
 
 func main() {
@@ -47,7 +41,6 @@ func main() {
 	if err != nil {
 		log.Println("error : ", err)
 	}
-	log.Println(configuration)
 
 	// Load DB
 	db, _ := leveldb.New("chaindata", 0, 0, "")
@@ -58,18 +51,21 @@ func main() {
 	if last_BN == nil {
 		// Initialize chain and store to DB
 		log.Println("Initialize Chain")
-		Blockchain = network.MakeTestBlockChain(configuration.BlockNumber, configuration.Participants, db)
+		// Mining and Print Blocks
+		Blockchain = network.MakeTestBlockChain(configuration.BlockNumber, configuration.Participants, configuration.MiningInterval, configuration.PrintMode, db)
 		log.Println("Done")
 	} else {
 		// Load blocks from 1st block (0 = genesis)
 		log.Println("Load Chain")
 		Blockchain = core.NewBlockChain(db)
+		// Print blckchain
+		if (configuration.PrintMode) {
+			Blockchain.PrintBlockChain()
+			//rawdb.ReadStates(db)
+		}
 		log.Println("Done")
 	}
 
-	// Print blckchain
-	Blockchain.PrintBlockChain()
-	//rawdb.ReadStates(db)
 
 	// start TCP and serve TCP server
 	server, err := net.Listen("tcp", configuration.Hostname+":"+configuration.Port)
