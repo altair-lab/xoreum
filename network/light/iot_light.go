@@ -26,7 +26,6 @@ type Configuration struct {
 	Port		string
 	BlockNumber	int64
 	Participants	int64
-	Difficulty	int
 	PrintMode	bool
 	MiningInterval	int
 }
