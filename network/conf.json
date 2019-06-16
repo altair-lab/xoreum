@@ -1,8 +1,0 @@
-{
-    "Hostname": "localhost",
-    "Port": "8081",
-    "BlockNumber": 100,
-    "Participants": 100,
-    "PrintMode": true, 
-    "MiningInterval": 0
-}

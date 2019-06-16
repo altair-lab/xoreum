@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"encoding/json"
+	"path/filepath"
 
 	"github.com/altair-lab/xoreum/core"
 	"github.com/altair-lab/xoreum/core/rawdb"
@@ -32,11 +33,16 @@ type Configuration struct {
 
 func main() {
 	// Load configuration
-	file, _ := os.Open("../conf.json")
+        ex, err := os.Executable()
+        if err != nil {
+                log.Println(err)
+        }
+        exPath := filepath.Dir(ex)
+        file, _ := os.Open(exPath+"/conf.json")
 	defer file.Close()
 	decoder := json.NewDecoder(file)
 	configuration := Configuration{}
-	err := decoder.Decode(&configuration)
+	err = decoder.Decode(&configuration)
 	if err != nil {
 		log.Println("error : ", err)
 	}
