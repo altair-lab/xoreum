@@ -12,7 +12,7 @@
 
 1. Set configuration file (`conf.json`)
 2. `$ ./full`     // Initialize full node
-3. `$ ./light`   // Synchronize loT node with full node
+3. `$ ./light`   // Synchronize light node with full node
 
 
 
