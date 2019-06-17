@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
@@ -11,7 +13,9 @@ import (
 	"log"
 	"math/big"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/altair-lab/xoreum/core/rawdb"
@@ -58,6 +62,87 @@ func ToSatoshi(f string) uint64 {
 	return integer
 }
 
+// SavePrivateKey saves private key in file
+func SavePrivateKey(addr string, priv *ecdsa.PrivateKey) {
+
+	// set file path
+	filePath := "privatekeys.txt"
+
+	// change parameters into string
+	D := priv.D.String()
+	X := priv.PublicKey.X.String()
+	Y := priv.PublicKey.Y.String()
+
+	// sum up parameters
+	content := addr + " " + D + " " + X + " " + Y + "\n"
+
+	// save private key parameters in the file
+	file, _ := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file.WriteString(content)
+
+	// close file
+	file.Close()
+}
+
+// LoadPrivateKeys loads private keys in the file
+func LoadPrivateKeys() map[string]*ecdsa.PrivateKey {
+
+	// set file path
+	filePath := "privatekeys.txt"
+
+	// open private key file
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	users := make(map[string]*ecdsa.PrivateKey)
+
+	// curve of private key
+	curve := elliptic.P256()
+
+	// read lines in the file (line by line)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+
+		// read a line in the file (line by line)
+		line := scanner.Text()
+
+		// parse the line with whitespace
+		contents := strings.Fields(line)
+
+		// make private key object
+		priv := ecdsa.PrivateKey{}
+
+		// set curve
+		priv.Curve = curve
+
+		// get address of bitcoin
+		addr := contents[0]
+
+		// set D
+		d := new(big.Int)
+		d, _ = d.SetString(contents[1], 10)
+		priv.D = d
+
+		// set X
+		x := new(big.Int)
+		x, _ = x.SetString(contents[2], 10)
+		priv.PublicKey.X = x
+
+		// set Y
+		y := new(big.Int)
+		y, _ = y.SetString(contents[3], 10)
+		priv.PublicKey.Y = y
+
+		// insert private key into map (bitcoin address : xoreum private key)
+		users[addr] = &priv
+	}
+
+	return users
+}
+
 // transform bitcoin data to xoreum's data
 func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
@@ -77,17 +162,39 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 	// users on xoreum (map[bitcoin_user_address] = xoreum_user_private_key)
 	users := make(map[string]*ecdsa.PrivateKey)
+	genesisAddr := "GENESIS_ADDRESS"
+	groundAddr := "GROUND_ADDRESS"
+	if _, e := os.Stat("privatekeys.txt"); os.IsNotExist(e) {
 
-	// set genesis account (hard coded)
-	//genesisAddr := "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" // ??? 내가 왜 이걸로 해놨지?
+		// there is no private key save file
+		users = make(map[string]*ecdsa.PrivateKey)
+
+		// new version (move position)
+		// set genesis account (hard coded)
+		users[genesisAddr] = genesisPrivateKey
+		SavePrivateKey(genesisAddr, genesisPrivateKey)
+
+		// ground account for nonstandard transactions (keep burn coins)
+		groundPrivateKey, _ := crypto.GenerateKey()
+		users[groundAddr] = groundPrivateKey
+		SavePrivateKey(groundAddr, groundPrivateKey)
+
+	} else {
+		// there is a private key save file
+		users = LoadPrivateKeys()
+	}
+
+	// old version
+	/*// set genesis account (hard coded)
 	genesisAddr := "GENESIS_ADDRESS"
 	users[genesisAddr] = genesisPrivateKey
+	SavePrivateKey(genesisAddr, genesisPrivateKey)
 
 	// ground account for nonstandard transactions (keep burn coins)
 	groundAddr := "GROUND_ADDRESS"
 	groundPrivateKey, _ := crypto.GenerateKey()
 	users[groundAddr] = groundPrivateKey
-	//bc.GetAccounts().NewAccount(&users[groundAddr].PublicKey, 0, 0)
+	SavePrivateKey(groundAddr, groundPrivateKey)*/
 
 	// user's current tx hash (map[bitcoin_user_address] = xoreum_tx_hash)
 	userCurTx := make(map[string]*common.Hash)
@@ -164,7 +271,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				for m := uint64(0); m < addr_len; m++ {
 					if users[addr[m]] == nil {
 						users[addr[m]], _ = crypto.GenerateKey()
-						//bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
+						SavePrivateKey(addr[m], users[addr[m]])
 					}
 				}
 
@@ -211,29 +318,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				vinSum += blockReward
 				blockVinSum += blockReward
 
-				/*
-					// old version
-					// there can be several miners in coinbase tx
-					blockReward := uint64(0)
-					for m := 0; m < len(bb.Txs[j].Vout); m++ {
-						blockReward += ToSatoshi(bb.Txs[j].Vout[m].Value.String())
-					}
-
-					if blockReward >= 5000000000 {
-						blockReward = 5000000000
-					} else if blockReward >= 2500000000 {
-						blockReward = 2500000000
-					} else {
-						blockReward = 1250000000
-						// block reward would be 6.25 BTC in 2020
-					}
-					parties[genesisAddr] -= int64(blockReward)
-
-					// calculate vinSum
-					vinSum += blockReward
-					blockVinSum += blockReward
-				*/
-
 			} else {
 				for k := 0; k < len(bb.Txs[j].Vin); k++ {
 					string_value, addr := rpc.GetVinData(bb.Txs[j].Vin[k].Txid, bb.Txs[j].Vin[k].Vout)
@@ -257,7 +341,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 					for m := uint64(0); m < addr_len; m++ {
 						if users[addr[m]] == nil {
 							users[addr[m]], _ = crypto.GenerateKey()
-							//bc.GetAccounts().NewAccount(&users[addr[m]].PublicKey, 0, 0)
+							SavePrivateKey(addr[m], users[addr[m]])
 						}
 					}
 
@@ -618,10 +702,10 @@ func main() {
 
 	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
 
-	bc := TransformBitcoinData(200000, rpc)
+	bc := TransformBitcoinData(4, rpc)
 
 	fmt.Println("block height:", bc.CurrentBlock().Number())
-	rawdb.ReadStates(bc.GetDB())
+	rawdb.CheckBalanceAndAccounts(bc.GetDB())
 	//bc.GetAccounts().PrintAccountsSum()
 	//bc.GetAccounts().CheckNegativeBalance()
 
