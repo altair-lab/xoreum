@@ -179,7 +179,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		// there is no private key save file
 		users = make(map[string]*ecdsa.PrivateKey)
 
-		// new version (move position)
 		// set genesis account (hard coded)
 		users[genesisAddr] = genesisPrivateKey
 		SavePrivateKey(genesisAddr, genesisPrivateKey)
@@ -193,18 +192,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		// there is a private key save file
 		users = LoadPrivateKeys()
 	}
-
-	// old version
-	/*// set genesis account (hard coded)
-	genesisAddr := "GENESIS_ADDRESS"
-	users[genesisAddr] = genesisPrivateKey
-	SavePrivateKey(genesisAddr, genesisPrivateKey)
-
-	// ground account for nonstandard transactions (keep burn coins)
-	groundAddr := "GROUNDADDRESS"
-	groundPrivateKey, _ := crypto.GenerateKey()
-	users[groundAddr] = groundPrivateKey
-	SavePrivateKey(groundAddr, groundPrivateKey)*/
 
 	// user's current tx hash (map[bitcoin_user_address] = xoreum_tx_hash)
 	userCurTx := make(map[string]*common.Hash)
@@ -722,35 +709,13 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	/*bbb, _ := rpc.GetBlock("0000000000000028312d5439ba839027fad4078d266ab9124e297a88f1b2825a")
-	bbb.PrintBlock()
+	// transform bitcoin data
+	bc := TransformBitcoinData(80000, rpc)
 
-	rpc.GetRawTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")
-
-	rpc.GetTransaction("e51d2177332baff9cfbbc08427cf0d85d28afdc81411cdbb84f40c95858b080d")*/
-
-	bc := TransformBitcoinData(4, rpc)
-
-	// show results
+	// show transformation result
 	fmt.Println("block height:", bc.CurrentBlock().Number())
 	rawdb.CheckBalanceAndAccounts(bc.GetDB())
-	//bc.GetAccounts().PrintAccountsSum()
-	//bc.GetAccounts().CheckNegativeBalance()
-
-	//bc.GetAccounts().Print()
-	//bc.CurrentBlock().PrintBlock()
-
-	//fmt.Println()
-	//fmt.Println("Print Block Chain's all Accounts")
-	//bc.GetAccounts().Print()
-
-	//fmt.Println()
-	//fmt.Println("Print Block Chain's State")
-	//bc.GetState().Print()
-
-	//fmt.Println()
-	//fmt.Println("Print Block Chain's all Transactions")
-	//bc.GetAllTxs().Print()
+	//rawdb.ReadStates(bc.GetDB())
 }
 
 // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
