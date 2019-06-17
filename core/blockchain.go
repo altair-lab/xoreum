@@ -97,23 +97,6 @@ func NewBlockChainForBitcoin(db xordb.Database) (*BlockChain, *ecdsa.PrivateKey)
 		bc.currentBlock.Store(last_block)
 	}
 
-	/*
-		// NO bc.allTxs, bc.s
-
-		bc.allTxs = types.AllTxs{}
-		genesisTxs := bc.genesisBlock.GetTxs()
-		genesisTxHash := common.Hash{}
-
-		for _, tx := range *genesisTxs {
-			genesisTxHash = tx.GetHash()
-			bc.allTxs[genesisTxHash] = tx
-		}
-
-		bc.s = state.State{}
-		for k, _ := range bc.accounts {
-			bc.s[k] = genesisTxHash
-		}
-	*/
 	return bc, genesisPrivateKey
 }
 
