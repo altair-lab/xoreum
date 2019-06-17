@@ -29,6 +29,7 @@ import (
 	"github.com/altair-lab/xoreum/crypto"
 )
 
+// BitcoinBlock is struct to get bitcoin block by rpc call
 type BitcoinBlock struct {
 	Hash              string            `json:"hash"`
 	Height            *big.Int          `json:"height"`
@@ -38,7 +39,7 @@ type BitcoinBlock struct {
 	Txs               []*RawTransaction `json:"-"`
 }
 
-// convert BTC to Satoshi ( ex. "34.921" (BTC) -> 3492100000 (satoshi) ) (string -> uint64)
+// ToSatoshi convert BTC to Satoshi ( ex. "34.921" (BTC) -> 3492100000 (satoshi) ) (string -> uint64)
 func ToSatoshi(f string) uint64 {
 
 	dotPos := 0
@@ -148,17 +149,26 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 	fmt.Println("start to get bitcoin data")
 
+	// to calculate function execution time
+	startTime := time.Now()
+
 	// make or load database
 	db, _ := leveldb.New("chaindata", 0, 0, "")
-	last_hash := rawdb.ReadLastHeaderHash(db)        // last block hash in database
-	last_BN := rawdb.ReadHeaderNumber(db, last_hash) // last block number in database
+	lastHash := rawdb.ReadLastHeaderHash(db)       // last block hash in database
+	lastBN := rawdb.ReadHeaderNumber(db, lastHash) // last block number in database
 
 	// if there is no database before
-	if last_BN == nil {
+	if lastBN == nil {
 		zero := uint64(0)
-		last_BN = &zero
+		lastBN = &zero
 	}
 	bc, genesisPrivateKey := core.NewBlockChainForBitcoin(db) // already has bitcoin's genesis block
+
+	// if already get bitcoin data, end function
+	if int(*lastBN) >= targetBlockNum {
+		fmt.Println("already at block", *lastBN, "( target block:", targetBlockNum, ")")
+		return bc
+	}
 
 	// users on xoreum (map[bitcoin_user_address] = xoreum_user_private_key)
 	users := make(map[string]*ecdsa.PrivateKey)
@@ -191,7 +201,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	SavePrivateKey(genesisAddr, genesisPrivateKey)
 
 	// ground account for nonstandard transactions (keep burn coins)
-	groundAddr := "GROUND_ADDRESS"
+	groundAddr := "GROUNDADDRESS"
 	groundPrivateKey, _ := crypto.GenerateKey()
 	users[groundAddr] = groundPrivateKey
 	SavePrivateKey(groundAddr, groundPrivateKey)*/
@@ -206,13 +216,36 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	// block hashes of bitcoin
 	blockHashes := make(map[int]string)
 
-	if int(*last_BN) == targetBlockNum {
-		fmt.Println("already at target block", targetBlockNum)
-		return bc
-	}
+	// save bitcoin tx's vout (not to do tx rpc calls too much)
+	// this map is similar with utxo set
+	// ex. map[txid_voutIndex] = value_address1_address2_address3_...addressk
+	// should parse this strings with '_'
+	// ex. txVouts[0x1950343241_1] = 24.1596_AMFU3VKDS_NFDKCOWE42F
+	txVouts := make(map[string]string)
+
+	// burned tx fee sum
+	burendTxFeeSum := uint64(0)
+
+	// for panic information
+	var i int // block number
+	var j int // tx index
+	var k int // vout index
+	var p int // vin index
+
+	// print panic info
+	defer func() {
+
+		// when transformed successfully, do not print panic info
+		if i >= targetBlockNum {
+			return
+		}
+
+		fmt.Println("\n\n\npanic occured at block", i, ", at", j, "th transaction")
+		fmt.Println("vout index:", k, "/ vin index:", p, "\n\n\n")
+	}()
 
 	// get blocks of bitcoin and transform into xoreum format
-	for i := int(*last_BN) + 1; i <= targetBlockNum; i++ {
+	for i = int(*lastBN) + 1; i <= targetBlockNum; i++ {
 
 		if i%1000 == 0 {
 			fmt.Println("now at block", i)
@@ -222,7 +255,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		blockHashes[i], _ = rpc.GetBlockHash(uint64(i))
 
 		// get block from bitcoin
-		//bb := GetBitcoinBlock(blockHashes[i])
 		bb, _ := rpc.GetBlock(blockHashes[i])
 
 		// to check if sum of balance is changed
@@ -233,7 +265,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		txFeeSum := uint64(0)
 
 		// transform transactions in the bitcoin block
-		for j := 0; j < len(bb.TxHashes); j++ {
+		for j = 0; j < len(bb.TxHashes); j++ {
 
 			// make xoreum transaction
 
@@ -249,7 +281,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			vinSum := uint64(0)
 
 			// deal with Vouts of bitcoin tx
-			for k := 0; k < len(bb.Txs[j].Vout); k++ {
+			for k = 0; k < len(bb.Txs[j].Vout); k++ {
 
 				addr := bb.Txs[j].Vout[k].ScriptPubKey.Addresses
 				value := ToSatoshi(bb.Txs[j].Vout[k].Value.String())
@@ -262,6 +294,14 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 					addr = addrArray
 					addr_len = 1
 				}
+
+				// save each tx vout in txVouts
+				voutData := bb.Txs[j].Vout[k].Value.String()
+				for m := 0; m < len(addr); m++ {
+					voutData = voutData + "_" + addr[m]
+				}
+				key := bb.TxHashes[j] + "_" + strconv.Itoa(k)
+				txVouts[key] = voutData
 
 				// calculate vout sum
 				voutSum += value
@@ -305,10 +345,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			// if this tx is coinbase tx
 			if bb.Txs[j].Vin[0].Coinbase != "" {
 
-				// get actual block reward (50 BTC, 25 BTC, 12.5 BTC...)
-				// blockReward = actual_block_reward + all_tx_fee_in_block
-
-				// newest version
 				// just give all block reward from genesis account
 				// to do so, all tx fees goes to genesis account
 				blockReward := voutSum
@@ -319,8 +355,10 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				blockVinSum += blockReward
 
 			} else {
-				for k := 0; k < len(bb.Txs[j].Vin); k++ {
-					string_value, addr := rpc.GetVinData(bb.Txs[j].Vin[k].Txid, bb.Txs[j].Vin[k].Vout)
+				for p = 0; p < len(bb.Txs[j].Vin); p++ {
+
+					// get value and addresses from txVouts (utxo set)
+					string_value, addr := GetVinData(txVouts, bb.Txs[j].Vin[p].Txid, bb.Txs[j].Vin[p].Vout)
 					value := ToSatoshi(string_value)
 					addr_len := uint64(len(addr))
 
@@ -402,10 +440,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, v := range parties {
 				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
 
-				// old version
-				//acc := bc.GetAccounts()[users[k].PublicKey].Copy()
-
-				// new version
+				// get current account
 				curTxHash := rawdb.ReadState(db, &users[k].PublicKey)
 				emptyHash := common.Hash{}
 				acc := &state.Account{}
@@ -448,9 +483,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, _ := range parties {
 				userCurTx[k] = &h
 			}
-
-			// save tx into bc.allTxs
-			//bc.GetAllTxs()[tx.GetHash()] = tx
 
 			// add tx into txpool
 			success, err := Txpool.Add(tx)
@@ -490,7 +522,8 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		// if some of block rewards are burn
 		if burnCoins > uint64(0) {
 
-			fmt.Println("at block", i, "miners throw", burnCoins, " satoshi")
+			fmt.Println("at block", i, "miners throw", burnCoins, "satoshi")
+			burendTxFeeSum += burnCoins
 
 			// make transaction that
 			// genesis account ---------------> ground account
@@ -512,10 +545,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			for k, v := range parties {
 				parPublicKeys = append(parPublicKeys, &users[k].PublicKey)
 
-				// old version
-				//acc := bc.GetAccounts()[users[k].PublicKey].Copy()
-
-				// new version
+				// get current account
 				curTxHash := rawdb.ReadState(db, &users[k].PublicKey)
 				emptyHash := common.Hash{}
 				acc := &state.Account{}
@@ -558,9 +588,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 				userCurTx[k] = &h
 			}
 
-			// save tx into bc.allTxs
-			//bc.GetAllTxs()[tx.GetHash()] = tx
-
 			// add tx into txpool
 			success, err := Txpool.Add(tx)
 			if !success {
@@ -572,7 +599,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		}
 
 		if blockVinSum != blockVoutSum {
-			fmt.Println("\n\nblock", i, "doesnt keep balance sum")
+			fmt.Println("\n\nblock", i, "doesn't keep balance sum")
 			fmt.Println("\t\tvin sum:", blockVinSum)
 			fmt.Println("\t\tvout sum:", blockVoutSum)
 			return nil
@@ -592,11 +619,11 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 	}
 
-	/*for k, v := range userCurTx {
-		bc.GetState()[users[k].PublicKey] = *v
-	}*/
-
 	fmt.Println("finish transforming bitcoin data to xoreum")
+	elapsed := time.Since(startTime)
+	fmt.Println("execution time:", elapsed)
+	fmt.Println("burned tx fee sum:", burendTxFeeSum, "satoshi")
+
 	return bc
 }
 
@@ -689,7 +716,7 @@ func SearchInvalidVin(rpc *Bitcoind) {
 
 func main() {
 
-	//rpc, err := bitcoind.New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
+	// connect with rpc server
 	rpc, err := New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
 	if err != nil {
 		log.Fatalln(err)
@@ -704,6 +731,7 @@ func main() {
 
 	bc := TransformBitcoinData(4, rpc)
 
+	// show results
 	fmt.Println("block height:", bc.CurrentBlock().Number())
 	rawdb.CheckBalanceAndAccounts(bc.GetDB())
 	//bc.GetAccounts().PrintAccountsSum()
@@ -989,7 +1017,43 @@ func (b *Bitcoind) GetVinData(txid string, index int) (string, []string) {
 	var rawTx RawTransaction
 	err = json.Unmarshal(r.Result, &rawTx)
 
-	//fmt.Println("tx", txid, "\n\t-> vout[", index, "]'s value:", rawTx.Vout[index].Value, "/ addresses", rawTx.Vout[index].ScriptPubKey.Addresses)
-
 	return rawTx.Vout[index].Value.String(), rawTx.Vout[index].ScriptPubKey.Addresses
+}
+
+// GetVinData gets value and addresses from txVouts (utxo set)
+func GetVinData(txVouts map[string]string, txid string, index int) (string, []string) {
+
+	// get key to map -> key = txid_voutindex
+	key := txid + "_" + strconv.Itoa(index)
+
+	// get value from map -> txVouts[key] = BTCValue_address1_address2..._addressk
+	voutData := txVouts[key]
+
+	// find value
+	value := ""
+	for i := 0; i < len(voutData); i++ {
+		if string(voutData[i]) == "_" {
+			value = voutData[:i]
+			voutData = voutData[i+1:]
+			break
+		}
+	}
+
+	// find addresses
+	addresses := []string{}
+	address := ""
+	for i := 0; i < len(voutData); i++ {
+		if string(voutData[i]) == "_" {
+			address = voutData[:i]
+			addresses = append(addresses, address)
+			voutData = voutData[i+1:]
+			i -= len(address) + 1
+		}
+	}
+	addresses = append(addresses, voutData)
+
+	// delete value from map (spent utxo -> so delete it from utxo map)
+	delete(txVouts, key)
+
+	return value, addresses
 }
