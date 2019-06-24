@@ -701,6 +701,235 @@ func SearchInvalidVin(rpc *Bitcoind) {
 	}
 }
 
+// AddressInfo has informations of the bitcoin address
+type AddressInfo struct {
+	PosAmount     uint64   // balance added amount
+	NegAmount     uint64   // balance subed amount
+	AppearTxCount uint64   // # of txs that contains the address
+	SendCount     uint64   // # of sending of the address
+	ReceiveCount  uint64   // # of receiving of the address
+	AppearBlocks  []uint64 // block heights that contains the address
+}
+
+func (ai AddressInfo) PrintAddressInfo() {
+	fmt.Println(ai.PosAmount, "\t", ai.NegAmount, "\t", ai.AppearTxCount, "\t", ai.SendCount, "\t", ai.ReceiveCount, "\t", ai.AppearBlocks)
+}
+
+func PrintAddressInfos(addresses map[string]AddressInfo) {
+
+	fmt.Println("\t\tAddress\t\t\t\tPosAmount\t\tNegAmount\t\tAppearTxCount\t\tSendCount\t\tReceiveCount\t\tAppearBlocks")
+
+	for k, v := range addresses {
+		fmt.Println(k, "\t\t", v.PosAmount, "\t\t", v.NegAmount, "\t\t\t", v.AppearTxCount, "\t\t\t", v.SendCount, "\t\t\t", v.ReceiveCount, "\t\t\t", v.AppearBlocks)
+	}
+
+}
+
+func SaveAnalysisResult(addresses map[string]AddressInfo, targetBlockNum int) {
+
+	// set file path
+	filePath := "bitcoinAnalysisResult.txt"
+
+	content := ""
+
+	content += strconv.FormatUint(uint64(targetBlockNum), 10) + "\n"
+
+	for k, v := range addresses {
+
+		content += k + " " + strconv.FormatUint(v.PosAmount, 10) + " " + strconv.FormatUint(v.NegAmount, 10) + " "
+		content += strconv.FormatUint(v.AppearTxCount, 10) + " " + strconv.FormatUint(v.SendCount, 10) + " " + strconv.FormatUint(v.ReceiveCount, 10)
+
+		for i := 0; i < len(v.AppearBlocks); i++ {
+			content += " " + strconv.FormatUint(v.AppearBlocks[i], 10)
+		}
+
+		content += "\n"
+	}
+
+	// save information in the file
+	//file, _ := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, _ := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0644)
+	file.WriteString(content)
+
+	// close file
+	file.Close()
+}
+
+func LoadAnalysisResult() (map[string]AddressInfo, int) {
+
+	// set file path
+	filePath := "bitcoinAnalysisResult.txt"
+
+	// open file
+	file, err := os.Open(filePath)
+	if err != nil {
+		//log.Fatal(err)
+
+		// if there is no file
+		return make(map[string]AddressInfo), 0
+	}
+	defer file.Close()
+
+	addresses := make(map[string]AddressInfo)
+
+	// read lines in the file (line by line)
+	scanner := bufio.NewScanner(file)
+
+	var lastBlockNum uint64
+
+	// print last block num
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		lastBlockNum, _ = strconv.ParseUint(line, 10, 64)
+
+		break
+	}
+
+	for scanner.Scan() {
+
+		// read a line in the file (line by line)
+		line := scanner.Text()
+
+		// parse the line with whitespace
+		contents := strings.Fields(line)
+
+		tempAI := addresses[contents[0]]
+		tempAI.PosAmount, _ = strconv.ParseUint(contents[1], 10, 64)
+		tempAI.NegAmount, _ = strconv.ParseUint(contents[2], 10, 64)
+		tempAI.AppearTxCount, _ = strconv.ParseUint(contents[3], 10, 64)
+		tempAI.SendCount, _ = strconv.ParseUint(contents[4], 10, 64)
+		tempAI.ReceiveCount, _ = strconv.ParseUint(contents[5], 10, 64)
+
+		for i := 6; i < len(contents); i++ {
+			blockNum, _ := strconv.ParseUint(contents[i], 10, 64)
+			tempAI.AppearBlocks = append(tempAI.AppearBlocks, blockNum)
+		}
+
+		addresses[contents[0]] = tempAI
+	}
+
+	return addresses, int(lastBlockNum)
+}
+
+// AnalyzeBitcoin analyzes address's activity (every detail's about each address -> +amount, -amount, tx count which this address is in...)
+func AnalyzeBitcoin(targetBlockNum int, rpc *Bitcoind) {
+
+	fmt.Println("start analyze bitcoin")
+
+	// to calculate function execution time
+	startTime := time.Now()
+
+	// bitcoin address's informations ( addresses[bitcoinAddress] = AddressInfo )
+	//addresses := make(map[string]AddressInfo)
+	addresses, lastBlockNum := LoadAnalysisResult()
+
+	if lastBlockNum >= targetBlockNum {
+		fmt.Println("already over target block. ( last block num:", lastBlockNum, "/ target block:", targetBlockNum, ")")
+		return
+	}
+
+	groundAddr := "GROUNDADDRESS"
+
+	txVouts := make(map[string]string)
+
+	for i := lastBlockNum + 1; i <= targetBlockNum; i++ {
+
+		if i%1000 == 0 {
+			fmt.Println("now at block", i)
+		}
+
+		// get block hash
+		blockHash, _ := rpc.GetBlockHash(uint64(i))
+
+		// get block from bitcoin
+		bb, _ := rpc.GetBlock(blockHash)
+
+		// transform transactions in the bitcoin block
+		for j := 0; j < len(bb.TxHashes); j++ {
+
+			// make xoreum transaction
+
+			// get bitcoin tx
+			bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
+
+			// deal with Vouts of bitcoin tx
+			for k := 0; k < len(bb.Txs[j].Vout); k++ {
+
+				addr := bb.Txs[j].Vout[k].ScriptPubKey.Addresses
+				value := ToSatoshi(bb.Txs[j].Vout[k].Value.String())
+
+				// to deal with nonstandard tx (no address field)
+				// keep this value in ground account
+				if len(addr) == 0 {
+					addrArray := []string{groundAddr}
+					addr = addrArray
+				}
+
+				// save each tx vout in txVouts
+				voutData := bb.Txs[j].Vout[k].Value.String()
+				for m := 0; m < len(addr); m++ {
+					voutData = voutData + "_" + addr[m]
+				}
+				key := bb.TxHashes[j] + "_" + strconv.Itoa(k)
+				txVouts[key] = voutData
+
+				if len(addr) != 1 || addr[0] == groundAddr {
+					continue
+				}
+
+				// update addresses
+				addressInfo := addresses[addr[0]]
+				addressInfo.AppearTxCount++
+				addressInfo.PosAmount += value
+				addressInfo.ReceiveCount++
+				if len(addressInfo.AppearBlocks) == 0 || addressInfo.AppearBlocks[len(addressInfo.AppearBlocks)-1] != uint64(i) {
+					addressInfo.AppearBlocks = append(addressInfo.AppearBlocks, uint64(i))
+				}
+				addresses[addr[0]] = addressInfo
+
+			}
+
+			// deal with Vins of bitcoin tx
+			for p := 0; p < len(bb.Txs[j].Vin); p++ {
+
+				if bb.Txs[j].Vin[0].Coinbase != "" {
+					continue
+				}
+
+				// get value and addresses from txVouts (utxo set)
+				stringValue, addr := GetVinData(txVouts, bb.Txs[j].Vin[p].Txid, bb.Txs[j].Vin[p].Vout)
+				value := ToSatoshi(stringValue)
+
+				if len(addr) != 1 {
+					continue
+				}
+
+				// update addresses
+				addressInfo := addresses[addr[0]]
+				addressInfo.AppearTxCount++
+				addressInfo.NegAmount += value
+				addressInfo.SendCount++
+				if len(addressInfo.AppearBlocks) == 0 || addressInfo.AppearBlocks[len(addressInfo.AppearBlocks)-1] != uint64(i) {
+					addressInfo.AppearBlocks = append(addressInfo.AppearBlocks, uint64(i))
+				}
+				addresses[addr[0]] = addressInfo
+
+			}
+
+		}
+
+	}
+
+	SaveAnalysisResult(addresses, targetBlockNum)
+
+	fmt.Println("finish analyze bitcoin")
+	elapsed := time.Since(startTime)
+	fmt.Println("execution time:", elapsed)
+
+	return
+}
+
 func main() {
 
 	// connect with rpc server
@@ -709,13 +938,19 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// transform bitcoin data
-	bc := TransformBitcoinData(80000, rpc)
+	AnalyzeBitcoin(100000, rpc)
+	//addresses, _ := LoadAnalysisResult()
+	//PrintAddressInfos(addresses)
 
-	// show transformation result
-	fmt.Println("block height:", bc.CurrentBlock().Number())
-	rawdb.CheckBalanceAndAccounts(bc.GetDB())
-	//rawdb.ReadStates(bc.GetDB())
+	/*
+		// transform bitcoin data
+		bc := TransformBitcoinData(10, rpc)
+
+		// show transformation result
+		fmt.Println("block height:", bc.CurrentBlock().Number())
+		rawdb.CheckBalanceAndAccounts(bc.GetDB())
+		//rawdb.ReadStates(bc.GetDB())
+	*/
 }
 
 // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
