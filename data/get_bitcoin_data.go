@@ -1130,7 +1130,7 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind, windowSize in
 	points = append(points, activeAddressNum)
 
 	// draw graph
-	DrawGraph(points, targetBlockNum)
+	DrawGraph(points, targetBlockNum, windowSize)
 
 	fmt.Println("save plot complete")
 	fmt.Println("finish analyze address activity")
@@ -1140,7 +1140,7 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind, windowSize in
 	return
 }
 
-func DrawGraph(points [][]float64, targetBlockNum int) {
+func DrawGraph(points [][]float64, targetBlockNum int, windowSize int) {
 	dimensions := 2
 	// The dimensions supported by the plot
 	persist := false
@@ -1165,7 +1165,8 @@ func DrawGraph(points [][]float64, targetBlockNum int) {
 	plot.SetYrange(0, 105)              // from 0% ~ 100%
 
 	// Optional: Setting axis ranges
-	plot.SavePlot("BitcoinAddressActivity.png")
+	title := "BitcoinAddressActivity_" + strconv.Itoa(targetBlockNum) + "_" + strconv.Itoa(windowSize) + ".png"
+	plot.SavePlot(title)
 }
 
 func main() {
@@ -1176,7 +1177,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	PlotBitcoinAddressActivity(50000, rpc, 4320)
+	PlotBitcoinAddressActivity(10, rpc, 3)
 
 	/*AnalyzeBitcoin(10, rpc)
 	addresses, _ := LoadAnalysisResult()
