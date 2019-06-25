@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Arafatk/glot"
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
 
@@ -930,6 +931,131 @@ func AnalyzeBitcoin(targetBlockNum int, rpc *Bitcoind) {
 	return
 }
 
+func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind) {
+
+	/*groundAddr := "GROUNDADDRESS"
+
+	txVouts := make(map[string]string)
+
+	for i := 1; i <= targetBlockNum; i++ {
+
+		if i%1000 == 0 {
+			fmt.Println("now at block", i)
+		}
+
+		// get block hash
+		blockHash, _ := rpc.GetBlockHash(uint64(i))
+
+		// get block from bitcoin
+		bb, _ := rpc.GetBlock(blockHash)
+
+		// transform transactions in the bitcoin block
+		for j := 0; j < len(bb.TxHashes); j++ {
+
+			// make xoreum transaction
+
+			// get bitcoin tx
+			bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
+
+			// deal with Vouts of bitcoin tx
+			for k := 0; k < len(bb.Txs[j].Vout); k++ {
+
+				addr := bb.Txs[j].Vout[k].ScriptPubKey.Addresses
+				value := ToSatoshi(bb.Txs[j].Vout[k].Value.String())
+
+				// to deal with nonstandard tx (no address field)
+				// keep this value in ground account
+				if len(addr) == 0 {
+					addrArray := []string{groundAddr}
+					addr = addrArray
+				}
+
+				// save each tx vout in txVouts
+				voutData := bb.Txs[j].Vout[k].Value.String()
+				for m := 0; m < len(addr); m++ {
+					voutData = voutData + "_" + addr[m]
+				}
+				key := bb.TxHashes[j] + "_" + strconv.Itoa(k)
+				txVouts[key] = voutData
+
+				if len(addr) != 1 || addr[0] == groundAddr {
+					continue
+				}
+
+				// update addresses
+				addressInfo := addresses[addr[0]]
+				addressInfo.AppearTxCount++
+				addressInfo.PosAmount += value
+				addressInfo.ReceiveCount++
+				if len(addressInfo.AppearBlocks) == 0 || addressInfo.AppearBlocks[len(addressInfo.AppearBlocks)-1] != uint64(i) {
+					addressInfo.AppearBlocks = append(addressInfo.AppearBlocks, uint64(i))
+				}
+				addresses[addr[0]] = addressInfo
+
+			}
+
+			// deal with Vins of bitcoin tx
+			for p := 0; p < len(bb.Txs[j].Vin); p++ {
+
+				if bb.Txs[j].Vin[0].Coinbase != "" {
+					continue
+				}
+
+				// get value and addresses from txVouts (utxo set)
+				stringValue, addr := GetVinData(txVouts, bb.Txs[j].Vin[p].Txid, bb.Txs[j].Vin[p].Vout)
+				value := ToSatoshi(stringValue)
+
+				if len(addr) != 1 {
+					continue
+				}
+
+				// update addresses
+				addressInfo := addresses[addr[0]]
+				addressInfo.AppearTxCount++
+				addressInfo.NegAmount += value
+				addressInfo.SendCount++
+				if len(addressInfo.AppearBlocks) == 0 || addressInfo.AppearBlocks[len(addressInfo.AppearBlocks)-1] != uint64(i) {
+					addressInfo.AppearBlocks = append(addressInfo.AppearBlocks, uint64(i))
+				}
+				addresses[addr[0]] = addressInfo
+
+			}
+
+		}
+
+	}*/
+
+	return
+}
+
+func DrawGraph(points [][]float64) {
+	dimensions := 2
+	// The dimensions supported by the plot
+	persist := false
+	debug := false
+	plot, _ := glot.NewPlot(dimensions, persist, debug)
+	pointGroupName := "addresses"
+	style := "circle"                                      // "lines", "points", "linepoints", "impulses", "dots", "bar", "steps", "fill solid", "histogram", "circle", "errorbars", "boxerrorbars", "boxes", "lp"
+	points = [][]float64{{1, 3, 5, 7, 9}, {1, 3, 5, 7, 9}} // only float type
+
+	// Adding a point group
+	plot.AddPointGroup(pointGroupName, style, points)
+
+	// A plot type used to make points/ curves and customize and save them as an image.
+	plot.SetTitle("Bitcoin Address Activity")
+
+	// Optional: Setting the title of the plot
+	plot.SetXLabel("Block")
+	plot.SetYLabel("Activity(%)")
+
+	// Optional: Setting label for X and Y axis
+	plot.SetXrange(0, 20) // from block 1 to block 100000
+	plot.SetYrange(0, 20) // from 0% ~ 100%
+
+	// Optional: Setting axis ranges
+	plot.SavePlot("BitcoinAddressActivity.png")
+}
+
 func main() {
 
 	// connect with rpc server
@@ -937,10 +1063,14 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	fmt.Println(rpc)
 
-	AnalyzeBitcoin(100000, rpc)
-	//addresses, _ := LoadAnalysisResult()
-	//PrintAddressInfos(addresses)
+	points := [][]float64{{1, 3, 5, 7, 9}, {9, 7, 5, 3, 1}}
+	DrawGraph(points)
+
+	/*AnalyzeBitcoin(10, rpc)
+	addresses, _ := LoadAnalysisResult()
+	PrintAddressInfos(addresses)*/
 
 	/*
 		// transform bitcoin data
