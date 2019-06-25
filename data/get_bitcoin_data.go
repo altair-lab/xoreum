@@ -931,13 +931,36 @@ func AnalyzeBitcoin(targetBlockNum int, rpc *Bitcoind) {
 	return
 }
 
-func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind) {
+func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind, windowSize int) {
 
-	/*groundAddr := "GROUNDADDRESS"
+	fmt.Println("start analyze address activity")
+	// to calculate function execution time
+	startTime := time.Now()
+
+	// blockAddresses[blockNum] => map["abc"] = 1 // "abc" appeared once in this block
+	//							=> map["def"] = 2 // "def" appeared twice in this block
+	// len(blockAddresses[blockNum]) = # of appeared accounts in this block
+	blocksAddresses := make(map[int]map[string]int)
+
+	// window[address] = # of appearence of this account in block window
+	// len(window) = # of active accounts for some time duration
+	window := make(map[string]int)
+
+	// all accounts in bitcoin
+	// accounts[address] = # of appearence of this account in bitcoin
+	// len(accounts) = # of all accounts
+	accounts := make(map[string]int)
 
 	txVouts := make(map[string]string)
 
-	for i := 1; i <= targetBlockNum; i++ {
+	// make 2d slice for graph
+	points := [][]float64{}
+	// x-axis: block num
+	blockIndex := []float64{}
+	// y-axis: active account percentage
+	activeAddressNum := []float64{}
+
+	for i := 1; i < windowSize; i++ {
 
 		if i%1000 == 0 {
 			fmt.Println("now at block", i)
@@ -949,7 +972,10 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind) {
 		// get block from bitcoin
 		bb, _ := rpc.GetBlock(blockHash)
 
-		// transform transactions in the bitcoin block
+		// element for blocksAddresses
+		blockAddress := make(map[string]int)
+
+		// collect all addresses appeared in this block's transactions
 		for j := 0; j < len(bb.TxHashes); j++ {
 
 			// make xoreum transaction
@@ -960,14 +986,12 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind) {
 			// deal with Vouts of bitcoin tx
 			for k := 0; k < len(bb.Txs[j].Vout); k++ {
 
+				// get appeared address list
 				addr := bb.Txs[j].Vout[k].ScriptPubKey.Addresses
-				value := ToSatoshi(bb.Txs[j].Vout[k].Value.String())
 
-				// to deal with nonstandard tx (no address field)
-				// keep this value in ground account
-				if len(addr) == 0 {
-					addrArray := []string{groundAddr}
-					addr = addrArray
+				// add them into blockAddress
+				for m := 0; m < len(addr); m++ {
+					blockAddress[addr[m]]++
 				}
 
 				// save each tx vout in txVouts
@@ -977,20 +1001,6 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind) {
 				}
 				key := bb.TxHashes[j] + "_" + strconv.Itoa(k)
 				txVouts[key] = voutData
-
-				if len(addr) != 1 || addr[0] == groundAddr {
-					continue
-				}
-
-				// update addresses
-				addressInfo := addresses[addr[0]]
-				addressInfo.AppearTxCount++
-				addressInfo.PosAmount += value
-				addressInfo.ReceiveCount++
-				if len(addressInfo.AppearBlocks) == 0 || addressInfo.AppearBlocks[len(addressInfo.AppearBlocks)-1] != uint64(i) {
-					addressInfo.AppearBlocks = append(addressInfo.AppearBlocks, uint64(i))
-				}
-				addresses[addr[0]] = addressInfo
 
 			}
 
@@ -1002,41 +1012,143 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind) {
 				}
 
 				// get value and addresses from txVouts (utxo set)
-				stringValue, addr := GetVinData(txVouts, bb.Txs[j].Vin[p].Txid, bb.Txs[j].Vin[p].Vout)
-				value := ToSatoshi(stringValue)
+				_, addr := GetVinData(txVouts, bb.Txs[j].Vin[p].Txid, bb.Txs[j].Vin[p].Vout)
 
-				if len(addr) != 1 {
-					continue
+				// add them into blockAddress
+				for m := 0; m < len(addr); m++ {
+					blockAddress[addr[m]]++
 				}
-
-				// update addresses
-				addressInfo := addresses[addr[0]]
-				addressInfo.AppearTxCount++
-				addressInfo.NegAmount += value
-				addressInfo.SendCount++
-				if len(addressInfo.AppearBlocks) == 0 || addressInfo.AppearBlocks[len(addressInfo.AppearBlocks)-1] != uint64(i) {
-					addressInfo.AppearBlocks = append(addressInfo.AppearBlocks, uint64(i))
-				}
-				addresses[addr[0]] = addressInfo
 
 			}
 
 		}
 
-	}*/
+		// set window and accounts
+		for appearedAddress := range blockAddress {
+			window[appearedAddress]++
+			accounts[appearedAddress]++
+		}
+
+		// set blocksAddresses
+		blocksAddresses[i] = blockAddress
+
+	}
+
+	for i := windowSize; i <= targetBlockNum; i++ {
+
+		if i%1000 == 0 {
+			fmt.Println("now at block", i)
+		}
+
+		// get block hash
+		blockHash, _ := rpc.GetBlockHash(uint64(i))
+
+		// get block from bitcoin
+		bb, _ := rpc.GetBlock(blockHash)
+
+		// element for blocksAddresses
+		blockAddress := make(map[string]int)
+
+		// collect all addresses appeared in this block's transactions
+		for j := 0; j < len(bb.TxHashes); j++ {
+
+			// make xoreum transaction
+
+			// get bitcoin tx
+			bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
+
+			// deal with Vouts of bitcoin tx
+			for k := 0; k < len(bb.Txs[j].Vout); k++ {
+
+				// get appeared address list
+				addr := bb.Txs[j].Vout[k].ScriptPubKey.Addresses
+
+				// add them into blockAddress
+				for m := 0; m < len(addr); m++ {
+					blockAddress[addr[m]]++
+				}
+
+				// save each tx vout in txVouts
+				voutData := bb.Txs[j].Vout[k].Value.String()
+				for m := 0; m < len(addr); m++ {
+					voutData = voutData + "_" + addr[m]
+				}
+				key := bb.TxHashes[j] + "_" + strconv.Itoa(k)
+				txVouts[key] = voutData
+
+			}
+
+			// deal with Vins of bitcoin tx
+			for p := 0; p < len(bb.Txs[j].Vin); p++ {
+
+				if bb.Txs[j].Vin[0].Coinbase != "" {
+					continue
+				}
+
+				// get value and addresses from txVouts (utxo set)
+				_, addr := GetVinData(txVouts, bb.Txs[j].Vin[p].Txid, bb.Txs[j].Vin[p].Vout)
+
+				// add them into blockAddress
+				for m := 0; m < len(addr); m++ {
+					blockAddress[addr[m]]++
+				}
+
+			}
+
+		}
+
+		// update window and accounts - add new appeared addresses
+		for appearedAddress := range blockAddress {
+			window[appearedAddress]++
+			accounts[appearedAddress]++
+		}
+
+		// calculate active accounts percentage
+		// activity = accounts in window / all accounts
+		activeAddressNum = append(activeAddressNum, float64(float64(len(window))/float64(len(accounts)))*100)
+
+		// update window - delete addresses which are out of window
+		for disappearedAddress := range blocksAddresses[i-windowSize+1] {
+			window[disappearedAddress]--
+			if window[disappearedAddress] == 0 {
+				delete(window, disappearedAddress)
+			}
+		}
+
+		// set blocksAddresses
+		blocksAddresses[i] = blockAddress
+
+	}
+
+	// set x-axis of graph
+	for i := windowSize; i <= targetBlockNum; i++ {
+		blockIndex = append(blockIndex, float64(i))
+	}
+
+	// set 2d slice
+	points = append(points, blockIndex)
+	points = append(points, activeAddressNum)
+
+	// draw graph
+	DrawGraph(points, targetBlockNum)
+
+	fmt.Println("save plot complete")
+	fmt.Println("finish analyze address activity")
+	elapsed := time.Since(startTime)
+	fmt.Println("execution time:", elapsed)
 
 	return
 }
 
-func DrawGraph(points [][]float64) {
+func DrawGraph(points [][]float64, targetBlockNum int) {
 	dimensions := 2
 	// The dimensions supported by the plot
 	persist := false
 	debug := false
 	plot, _ := glot.NewPlot(dimensions, persist, debug)
 	pointGroupName := "addresses"
-	style := "circle"                                      // "lines", "points", "linepoints", "impulses", "dots", "bar", "steps", "fill solid", "histogram", "circle", "errorbars", "boxerrorbars", "boxes", "lp"
-	points = [][]float64{{1, 3, 5, 7, 9}, {1, 3, 5, 7, 9}} // only float type
+	style := "lines" // "lines", "points", "linepoints", "impulses", "dots", "bar", "steps", "fill solid", "histogram", "circle", "errorbars", "boxerrorbars", "boxes", "lp"
+	//points = [][]float64{{1, 3, 5, 7, 9}, {1, 3, 5, 7, 9}} // only float type
 
 	// Adding a point group
 	plot.AddPointGroup(pointGroupName, style, points)
@@ -1049,8 +1161,8 @@ func DrawGraph(points [][]float64) {
 	plot.SetYLabel("Activity(%)")
 
 	// Optional: Setting label for X and Y axis
-	plot.SetXrange(0, 20) // from block 1 to block 100000
-	plot.SetYrange(0, 20) // from 0% ~ 100%
+	plot.SetXrange(0, targetBlockNum+1) // from block 1 to block 100000
+	plot.SetYrange(0, 105)              // from 0% ~ 100%
 
 	// Optional: Setting axis ranges
 	plot.SavePlot("BitcoinAddressActivity.png")
@@ -1063,10 +1175,8 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(rpc)
 
-	points := [][]float64{{1, 3, 5, 7, 9}, {9, 7, 5, 3, 1}}
-	DrawGraph(points)
+	PlotBitcoinAddressActivity(50000, rpc, 4320)
 
 	/*AnalyzeBitcoin(10, rpc)
 	addresses, _ := LoadAnalysisResult()
