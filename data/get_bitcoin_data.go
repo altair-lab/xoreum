@@ -6,6 +6,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/tls"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,6 +20,8 @@ import (
 	"time"
 
 	"github.com/Arafatk/glot"
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/altair-lab/xoreum/core/rawdb"
 	"github.com/altair-lab/xoreum/xordb/leveldb"
 
@@ -1169,16 +1172,143 @@ func DrawGraph(points [][]float64, targetBlockNum int, windowSize int) {
 	plot.SavePlot(title)
 }
 
+func SaveBitcoinInMysql(targetBlockNum int, rpc *Bitcoind) {
+
+	fmt.Println("start save bitcoin in mysql")
+
+	// to calculate function execution time
+	startTime := time.Now()
+
+	db, err := sql.Open("mysql", "root:ma55lab@tcp(127.0.0.1:3306)/bitcoin")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	// load last block number, to start save from last saved block
+	var lastBlockNum int
+	db.QueryRow("SELECT MAX(height) FROM blocks").Scan(&lastBlockNum)
+	fmt.Println("last block number in mysql:", lastBlockNum)
+
+	for i := lastBlockNum + 1; i <= targetBlockNum; i++ {
+
+		if i%1000 == 0 {
+			fmt.Println("now at block", i)
+		}
+
+		// get block hash
+		blockHash, _ := rpc.GetBlockHash(uint64(i))
+
+		// get block from bitcoin
+		bb, _ := rpc.GetBlock(blockHash)
+
+		// convert tx hash array into json
+		jsonTxHashes, _ := json.Marshal(bb.TxHashes)
+
+		// insert block into mysql
+		_, err := db.Exec("INSERT INTO blocks(hash, height, tx, time, previousblockhash) VALUES (?,?,?,?,?)", bb.Hash, bb.Height.Int64(), jsonTxHashes, bb.Time, bb.Previousblockhash)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		/*// check insert result
+		n, err := result.RowsAffected()
+		if n == 1 {
+			fmt.Println("1 block inserted")
+		}*/
+
+		// transform transactions in the bitcoin block
+		for j := 0; j < len(bb.TxHashes); j++ {
+
+			// make xoreum transaction
+
+			// get bitcoin tx
+			bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
+
+			// convert vin/vout array into json
+			jsonVin, _ := json.Marshal(bb.Txs[j].Vin)
+			jsonVout, _ := json.Marshal(bb.Txs[j].Vout)
+
+			// insert tx into mysql
+			_, err := db.Exec("INSERT INTO transactions(txid, vin, vout, blockhash, time) VALUES (?,?,?,?,?)", bb.Txs[j].Txid, jsonVin, jsonVout, bb.Hash, bb.Txs[j].Time)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			/*// check insert result
+			n, err := result.RowsAffected()
+			if n == 1 {
+				fmt.Println("1 tx inserted")
+			}*/
+
+		}
+
+	}
+
+	fmt.Println("finish save bitcoin in mysql until block", targetBlockNum)
+
+	elapsed := time.Since(startTime)
+	fmt.Println("execution time:", elapsed)
+	return
+
+}
+
+func TestMysqlLoad(targetBlockNum int) {
+	db, err := sql.Open("mysql", "root:ma55lab@tcp(127.0.0.1:3306)/bitcoin")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	for i := 1; i <= targetBlockNum; i++ {
+
+		// get block hash
+		//blockHash, _ := rpc.GetBlockHash(uint64(i))
+		var blockHash string
+		db.QueryRow("SELECT hash FROM blocks WHERE height=?", i).Scan(&blockHash)
+		fmt.Println("block hash:", blockHash)
+
+		// get block from bitcoin
+		var bb BitcoinBlock
+		var blockHeight int64
+		var blockTxJson []byte
+		db.QueryRow("SELECT hash,height,tx FROM blocks WHERE height=?", i).Scan(&bb.Hash, &blockHeight, &blockTxJson)
+		bb.Height = big.NewInt(blockHeight)
+		json.Unmarshal(blockTxJson, &bb.TxHashes)
+
+		bb.Txs = make([]*RawTransaction, len(bb.TxHashes))
+
+		// transform transactions in the bitcoin block
+		for j := 0; j < len(bb.TxHashes); j++ {
+
+			// get bitcoin tx
+			var tx RawTransaction
+			var vin []byte
+			var vout []byte
+			db.QueryRow("SELECT * FROM transactions WHERE txid=?", bb.TxHashes[j]).Scan(&tx.Txid, &vin, &vout, &tx.BlockHash, &tx.Time)
+			json.Unmarshal(vin, &tx.Vin)
+			json.Unmarshal(vin, &tx.Vout)
+			bb.Txs[j] = &tx
+
+		}
+	}
+
+}
+
 func main() {
 
 	// connect with rpc server
-	rpc, err := New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
+	/*rpc, err := New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
 	if err != nil {
 		log.Fatalln(err)
-	}
+	}*/
+
+	TestMysqlLoad(5)
+
+	//SaveBitcoinInMysql(30000, rpc)
 
 	//PlotBitcoinAddressActivity(300000, rpc, 4320)
-	PlotBitcoinAddressActivity(200000, rpc, 25920)
+	//PlotBitcoinAddressActivity(200000, rpc, 25920)
 	//PlotBitcoinAddressActivity(300000, rpc, 51840)
 
 	/*AnalyzeBitcoin(10, rpc)
