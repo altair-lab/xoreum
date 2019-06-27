@@ -1177,7 +1177,9 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	PlotBitcoinAddressActivity(10, rpc, 3)
+	//PlotBitcoinAddressActivity(300000, rpc, 4320)
+	PlotBitcoinAddressActivity(200000, rpc, 25920)
+	//PlotBitcoinAddressActivity(300000, rpc, 51840)
 
 	/*AnalyzeBitcoin(10, rpc)
 	addresses, _ := LoadAnalysisResult()
