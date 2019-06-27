@@ -205,7 +205,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	Miner := miner.Miner{common.Address{0}}
 
 	// block hashes of bitcoin
-	blockHashes := make(map[int]string)
+	//blockHashes := make(map[int]string)
 
 	// save bitcoin tx's vout (not to do tx rpc calls too much)
 	// this map is similar with utxo set
@@ -235,6 +235,13 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		fmt.Println("vout index:", k, "/ vin index:", p, "\n\n\n")
 	}()
 
+	// open mysql database
+	mysqlDB, err := sql.Open("mysql", "root:ma55lab@tcp(127.0.0.1:3306)/bitcoin")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer mysqlDB.Close()
+
 	// get blocks of bitcoin and transform into xoreum format
 	for i = int(*lastBN) + 1; i <= targetBlockNum; i++ {
 
@@ -242,11 +249,25 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			fmt.Println("now at block", i)
 		}
 
+		/* old version
 		// get block hash
 		blockHashes[i], _ = rpc.GetBlockHash(uint64(i))
 
 		// get block from bitcoin
 		bb, _ := rpc.GetBlock(blockHashes[i])
+		*/
+
+		// get block hash (new version)
+		var blockHash string
+		mysqlDB.QueryRow("SELECT hash FROM blocks WHERE height=?", i).Scan(&blockHash)
+		// get block from bitcoin
+		var bb BitcoinBlock
+		var blockHeight int64
+		var blockTxJson []byte
+		mysqlDB.QueryRow("SELECT hash,height,tx FROM blocks WHERE height=?", i).Scan(&bb.Hash, &blockHeight, &blockTxJson)
+		bb.Height = big.NewInt(blockHeight)
+		json.Unmarshal(blockTxJson, &bb.TxHashes)
+		bb.Txs = make([]*RawTransaction, len(bb.TxHashes))
 
 		// to check if sum of balance is changed
 		blockVinSum := uint64(0)
@@ -260,8 +281,17 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 			// make xoreum transaction
 
+			// get bitcoin tx (old version)
+			//bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
+
 			// get bitcoin tx
-			bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
+			var bitcoinTx RawTransaction
+			var vin []byte
+			var vout []byte
+			mysqlDB.QueryRow("SELECT * FROM transactions WHERE txid=?", bb.TxHashes[j]).Scan(&bitcoinTx.Txid, &vin, &vout, &bitcoinTx.BlockHash, &bitcoinTx.Time)
+			json.Unmarshal(vin, &bitcoinTx.Vin)
+			json.Unmarshal(vout, &bitcoinTx.Vout)
+			bb.Txs[j] = &bitcoinTx
 
 			// users in this tx (bb.Txs[j])
 			parties := make(map[string]int64)
@@ -1266,7 +1296,6 @@ func TestMysqlLoad(targetBlockNum int) {
 		//blockHash, _ := rpc.GetBlockHash(uint64(i))
 		var blockHash string
 		db.QueryRow("SELECT hash FROM blocks WHERE height=?", i).Scan(&blockHash)
-		fmt.Println("block hash:", blockHash)
 
 		// get block from bitcoin
 		var bb BitcoinBlock
@@ -1287,7 +1316,7 @@ func TestMysqlLoad(targetBlockNum int) {
 			var vout []byte
 			db.QueryRow("SELECT * FROM transactions WHERE txid=?", bb.TxHashes[j]).Scan(&tx.Txid, &vin, &vout, &tx.BlockHash, &tx.Time)
 			json.Unmarshal(vin, &tx.Vin)
-			json.Unmarshal(vin, &tx.Vout)
+			json.Unmarshal(vout, &tx.Vout)
 			bb.Txs[j] = &tx
 
 		}
@@ -1298,10 +1327,10 @@ func TestMysqlLoad(targetBlockNum int) {
 func main() {
 
 	// connect with rpc server
-	/*rpc, err := New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
+	rpc, err := New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
 	if err != nil {
 		log.Fatalln(err)
-	}*/
+	}
 
 	TestMysqlLoad(5)
 
@@ -1315,15 +1344,14 @@ func main() {
 	addresses, _ := LoadAnalysisResult()
 	PrintAddressInfos(addresses)*/
 
-	/*
-		// transform bitcoin data
-		bc := TransformBitcoinData(10, rpc)
+	// transform bitcoin data
+	bc := TransformBitcoinData(10, rpc)
 
-		// show transformation result
-		fmt.Println("block height:", bc.CurrentBlock().Number())
-		rawdb.CheckBalanceAndAccounts(bc.GetDB())
-		//rawdb.ReadStates(bc.GetDB())
-	*/
+	// show transformation result
+	fmt.Println("block height:", bc.CurrentBlock().Number())
+	rawdb.CheckBalanceAndAccounts(bc.GetDB())
+	rawdb.ReadStates(bc.GetDB())
+
 }
 
 // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
