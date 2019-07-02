@@ -219,6 +219,12 @@ func RecvState(conn net.Conn, db xordb.Database) (error) {
 			return err
 		}
 		tx := types.UnmarshalJSON(txbuf)
+	
+		// Validate tx
+		err = tx.ValidateTx()
+		if err != nil {
+			return err
+		}
 
 		// Write Transaction in DB
 		rawdb.WriteTransaction(db, common.BytesToHash(txhashbuf), tx)
