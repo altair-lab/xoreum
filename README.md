@@ -11,8 +11,9 @@
 - **Prerequisite**: Golang
 
 1. Set configuration file (`conf.json`)
-2. `$ ./full`     // Initialize full node
-3. `$ ./light`   // Synchronize light node with full node
+2. `$ sh build.sh` // Build project
+3. `$ ./full`     // Initialize full node
+4. `$ ./light`   // Synchronize light node with full node
 
 
 
@@ -33,7 +34,7 @@
 
 #### Simulation depending on the block number and participants number
 
-1. Set `BlockNumber`, `Participants` in `network/conf.json`
+1. Set `BlockNumber`, `Participants` in `conf.json`
 
 2. Remove old DB directory, if it exists (or rename it)
 
@@ -41,11 +42,11 @@
 
 3. Run full node
 
-   `$ ./iot_full.go`
+   `$ ./full`
 
 4. Synchronize light node with full node
 
-   `$ ./iot_light.go`
+   `$ ./light`
 
 
 
