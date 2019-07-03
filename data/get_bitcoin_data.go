@@ -149,7 +149,7 @@ func LoadPrivateKeys() map[string]*ecdsa.PrivateKey {
 }
 
 // transform bitcoin data to xoreum's data
-func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
+func TransformBitcoinData(targetBlockNum int) *core.BlockChain {
 
 	fmt.Println("start to get bitcoin data")
 
@@ -249,19 +249,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			fmt.Println("now at block", i)
 		}
 
-		/*// get block hash (new version)
-		var blockHash string
-		mysqlDB.QueryRow("SELECT hash FROM blocks WHERE height=?", i).Scan(&blockHash)
-		// get block from bitcoin
-		var bb BitcoinBlock
-		var blockHeight int64
-		var blockTxJson []byte
-		mysqlDB.QueryRow("SELECT hash,height,tx FROM blocks WHERE height=?", i).Scan(&bb.Hash, &blockHeight, &blockTxJson)
-		bb.Height = big.NewInt(blockHeight)
-		json.Unmarshal(blockTxJson, &bb.TxHashes)
-		bb.Txs = make([]*RawTransaction, len(bb.TxHashes))*/
-
-		// get block (new new version)
+		// get block from mysql
 		bb := LoadBlock(i, mysqlDB)
 
 		// to check if sum of balance is changed
@@ -276,19 +264,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 
 			// make xoreum transaction
 
-			// get bitcoin tx (old version)
-			//bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
-
-			/*// get bitcoin tx (new version)
-			var bitcoinTx RawTransaction
-			var vin []byte
-			var vout []byte
-			mysqlDB.QueryRow("SELECT * FROM transactions WHERE txid=?", bb.TxHashes[j]).Scan(&bitcoinTx.Txid, &vin, &vout, &bitcoinTx.BlockHash, &bitcoinTx.Time)
-			json.Unmarshal(vin, &bitcoinTx.Vin)
-			json.Unmarshal(vout, &bitcoinTx.Vout)
-			bb.Txs[j] = &bitcoinTx*/
-
-			// get bitcoin tx (new new version)
+			// get bitcoin tx from mysql
 			bb.Txs[j] = LoadTransaction(bb.TxHashes[j], mysqlDB)
 
 			// users in this tx (bb.Txs[j])
@@ -646,53 +622,6 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 	return bc
 }
 
-// to know block reward period
-// 25BTC point => block 210000
-// 12.5BTC point => block 420000
-func SearchBlockReward(rpc *Bitcoind) {
-
-	isFind1 := false
-	isFind2 := false
-
-	for i := 410000; i <= 500000; i++ {
-
-		if i%10000 == 0 {
-			fmt.Println("now at block", i)
-		}
-
-		// get block hash
-		blockHash, _ := rpc.GetBlockHash(uint64(i))
-
-		// get block from bitcoin
-		bb, _ := rpc.GetBlock(blockHash)
-
-		// get coinbase tx
-		coinbaseTx, _ := rpc.GetRawTransaction(bb.TxHashes[0])
-
-		blockReward := uint64(0)
-		for j := 0; j < len(coinbaseTx.Vout); j++ {
-			blockReward += ToSatoshi(coinbaseTx.Vout[j].Value.String())
-		}
-
-		//fmt.Println("at block", i, "block reward:", blockReward)
-
-		if blockReward < 4000000000 && blockReward >= 2500000000 && isFind1 == false {
-			fmt.Println("find 25 BTC point:", i)
-			isFind1 = true
-		}
-		if blockReward < 2000000000 && blockReward >= 1250000000 && isFind2 == false {
-			fmt.Println("find 12.5 BTC point:", i)
-			isFind2 = true
-		}
-
-		if isFind1 == true && isFind2 == true {
-			break
-		}
-
-	}
-
-}
-
 // there is a vout that has no address field (=> block 128239)
 // find that strange vout
 // (there is a case that using that strange vout as vin successfully => block 129878)
@@ -962,7 +891,14 @@ func AnalyzeBitcoin(targetBlockNum int, rpc *Bitcoind) {
 	return
 }
 
-func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind, windowSize int) {
+func PlotBitcoinAddressActivity(targetBlockNum int, windowSize int) {
+
+	// open mysql db
+	db, err := sql.Open("mysql", "root:ma55lab@tcp(127.0.0.1:3306)/bitcoin")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	fmt.Println("start analyze address activity")
 	// to calculate function execution time
@@ -997,11 +933,8 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind, windowSize in
 			fmt.Println("now at block", i)
 		}
 
-		// get block hash
-		blockHash, _ := rpc.GetBlockHash(uint64(i))
-
-		// get block from bitcoin
-		bb, _ := rpc.GetBlock(blockHash)
+		// get bitcoin block from mysql
+		bb := LoadBlock(i, db)
 
 		// element for blocksAddresses
 		blockAddress := make(map[string]int)
@@ -1009,10 +942,8 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind, windowSize in
 		// collect all addresses appeared in this block's transactions
 		for j := 0; j < len(bb.TxHashes); j++ {
 
-			// make xoreum transaction
-
-			// get bitcoin tx
-			bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
+			// get bitcoin tx from mysql
+			bb.Txs[j] = LoadTransaction(bb.TxHashes[j], db)
 
 			// deal with Vouts of bitcoin tx
 			for k := 0; k < len(bb.Txs[j].Vout); k++ {
@@ -1071,11 +1002,8 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind, windowSize in
 			fmt.Println("now at block", i)
 		}
 
-		// get block hash
-		blockHash, _ := rpc.GetBlockHash(uint64(i))
-
-		// get block from bitcoin
-		bb, _ := rpc.GetBlock(blockHash)
+		// get bitcoin block from mysql
+		bb := LoadBlock(i, db)
 
 		// element for blocksAddresses
 		blockAddress := make(map[string]int)
@@ -1083,10 +1011,8 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind, windowSize in
 		// collect all addresses appeared in this block's transactions
 		for j := 0; j < len(bb.TxHashes); j++ {
 
-			// make xoreum transaction
-
 			// get bitcoin tx
-			bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
+			bb.Txs[j] = LoadTransaction(bb.TxHashes[j], db)
 
 			// deal with Vouts of bitcoin tx
 			for k := 0; k < len(bb.Txs[j].Vout); k++ {
@@ -1171,6 +1097,7 @@ func PlotBitcoinAddressActivity(targetBlockNum int, rpc *Bitcoind, windowSize in
 	return
 }
 
+// DrawGraph draws graph for 2d points
 func DrawGraph(points [][]float64, targetBlockNum int, windowSize int) {
 	dimensions := 2
 	// The dimensions supported by the plot
@@ -1277,42 +1204,6 @@ func SaveBitcoinInMysql(targetBlockNum int, rpc *Bitcoind) {
 
 }
 
-func TestMysqlLoad(targetBlockNum int) {
-	db, err := sql.Open("mysql", "root:ma55lab@tcp(127.0.0.1:3306)/bitcoin")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	for i := 1; i <= targetBlockNum; i++ {
-
-		// get block from bitcoin
-		var bb BitcoinBlock
-		var blockHeight int64
-		var blockTxJson []byte
-		db.QueryRow("SELECT hash,height,tx FROM blocks WHERE height=?", i).Scan(&bb.Hash, &blockHeight, &blockTxJson)
-		bb.Height = big.NewInt(blockHeight)
-		json.Unmarshal(blockTxJson, &bb.TxHashes)
-
-		bb.Txs = make([]*RawTransaction, len(bb.TxHashes))
-
-		// transform transactions in the bitcoin block
-		for j := 0; j < len(bb.TxHashes); j++ {
-
-			// get bitcoin tx
-			var tx RawTransaction
-			var vin []byte
-			var vout []byte
-			db.QueryRow("SELECT * FROM transactions WHERE txid=?", bb.TxHashes[j]).Scan(&tx.Txid, &vin, &vout, &tx.BlockHash, &tx.Time)
-			json.Unmarshal(vin, &tx.Vin)
-			json.Unmarshal(vout, &tx.Vout)
-			bb.Txs[j] = &tx
-
-		}
-	}
-
-}
-
 // LoadBlock loads block from mysql db
 func LoadBlock(blockNum int, db *sql.DB) BitcoinBlock {
 
@@ -1357,26 +1248,26 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	//TestMysqlLoad(5)
-
+	fmt.Println(rpc)
 	//SaveBitcoinInMysql(500000, rpc)
 
-	PlotBitcoinAddressActivity(10000, rpc, 4320)
+	PlotBitcoinAddressActivity(200000, 4320)
 	//PlotBitcoinAddressActivity(200000, rpc, 25920)
-	//PlotBitcoinAddressActivity(300000, rpc, 51840)
+	PlotBitcoinAddressActivity(200000, 51840)
 
 	/*AnalyzeBitcoin(10, rpc)
 	addresses, _ := LoadAnalysisResult()
 	PrintAddressInfos(addresses)*/
 
-	// transform bitcoin data
-	bc := TransformBitcoinData(10, rpc)
+	/*
+		// transform bitcoin data
+		bc := TransformBitcoinData(10)
 
-	// show transformation result
-	fmt.Println("block height:", bc.CurrentBlock().Number())
-	rawdb.CheckBalanceAndAccounts(bc.GetDB())
-	rawdb.ReadStates(bc.GetDB())
+		// show transformation result
+		fmt.Println("block height:", bc.CurrentBlock().Number())
+		rawdb.CheckBalanceAndAccounts(bc.GetDB())
+		rawdb.ReadStates(bc.GetDB())
+	*/
 
 }
 
