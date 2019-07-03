@@ -249,15 +249,7 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			fmt.Println("now at block", i)
 		}
 
-		/* old version
-		// get block hash
-		blockHashes[i], _ = rpc.GetBlockHash(uint64(i))
-
-		// get block from bitcoin
-		bb, _ := rpc.GetBlock(blockHashes[i])
-		*/
-
-		// get block hash (new version)
+		/*// get block hash (new version)
 		var blockHash string
 		mysqlDB.QueryRow("SELECT hash FROM blocks WHERE height=?", i).Scan(&blockHash)
 		// get block from bitcoin
@@ -267,7 +259,10 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 		mysqlDB.QueryRow("SELECT hash,height,tx FROM blocks WHERE height=?", i).Scan(&bb.Hash, &blockHeight, &blockTxJson)
 		bb.Height = big.NewInt(blockHeight)
 		json.Unmarshal(blockTxJson, &bb.TxHashes)
-		bb.Txs = make([]*RawTransaction, len(bb.TxHashes))
+		bb.Txs = make([]*RawTransaction, len(bb.TxHashes))*/
+
+		// get block (new new version)
+		bb := LoadBlock(i, mysqlDB)
 
 		// to check if sum of balance is changed
 		blockVinSum := uint64(0)
@@ -284,14 +279,17 @@ func TransformBitcoinData(targetBlockNum int, rpc *Bitcoind) *core.BlockChain {
 			// get bitcoin tx (old version)
 			//bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
 
-			// get bitcoin tx
+			/*// get bitcoin tx (new version)
 			var bitcoinTx RawTransaction
 			var vin []byte
 			var vout []byte
 			mysqlDB.QueryRow("SELECT * FROM transactions WHERE txid=?", bb.TxHashes[j]).Scan(&bitcoinTx.Txid, &vin, &vout, &bitcoinTx.BlockHash, &bitcoinTx.Time)
 			json.Unmarshal(vin, &bitcoinTx.Vin)
 			json.Unmarshal(vout, &bitcoinTx.Vout)
-			bb.Txs[j] = &bitcoinTx
+			bb.Txs[j] = &bitcoinTx*/
+
+			// get bitcoin tx (new new version)
+			bb.Txs[j] = LoadTransaction(bb.TxHashes[j], mysqlDB)
 
 			// users in this tx (bb.Txs[j])
 			parties := make(map[string]int64)
@@ -1220,7 +1218,7 @@ func SaveBitcoinInMysql(targetBlockNum int, rpc *Bitcoind) {
 	db.QueryRow("SELECT MAX(height) FROM blocks").Scan(&lastBlockNum)
 	fmt.Println("last block number in mysql:", lastBlockNum)
 
-	for i := lastBlockNum + 1; i <= targetBlockNum; i++ {
+	for i := lastBlockNum; i <= targetBlockNum; i++ {
 
 		if i%1000 == 0 {
 			fmt.Println("now at block", i)
@@ -1235,22 +1233,17 @@ func SaveBitcoinInMysql(targetBlockNum int, rpc *Bitcoind) {
 		// convert tx hash array into json
 		jsonTxHashes, _ := json.Marshal(bb.TxHashes)
 
-		// insert block into mysql
-		_, err := db.Exec("INSERT INTO blocks(hash, height, tx, time, previousblockhash) VALUES (?,?,?,?,?)", bb.Hash, bb.Height.Int64(), jsonTxHashes, bb.Time, bb.Previousblockhash)
+		// insert block into mysql (ignore duplicate error)
+		_, err := db.Exec("INSERT IGNORE INTO blocks(hash, height, tx, time, previousblockhash) VALUES (?,?,?,?,?)", bb.Hash, bb.Height.Int64(), jsonTxHashes, bb.Time, bb.Previousblockhash)
 		if err != nil {
+			fmt.Println("error at", i, "th block")
 			log.Fatal(err)
 		}
-
-		/*// check insert result
-		n, err := result.RowsAffected()
-		if n == 1 {
-			fmt.Println("1 block inserted")
-		}*/
 
 		// transform transactions in the bitcoin block
 		for j := 0; j < len(bb.TxHashes); j++ {
 
-			// make xoreum transaction
+			//fmt.Println("at", j, "th transaction", "/", bb.TxHashes[j])
 
 			// get bitcoin tx
 			bb.Txs[j], _ = rpc.GetRawTransaction(bb.TxHashes[j])
@@ -1259,9 +1252,10 @@ func SaveBitcoinInMysql(targetBlockNum int, rpc *Bitcoind) {
 			jsonVin, _ := json.Marshal(bb.Txs[j].Vin)
 			jsonVout, _ := json.Marshal(bb.Txs[j].Vout)
 
-			// insert tx into mysql
-			_, err := db.Exec("INSERT INTO transactions(txid, vin, vout, blockhash, time) VALUES (?,?,?,?,?)", bb.Txs[j].Txid, jsonVin, jsonVout, bb.Hash, bb.Txs[j].Time)
+			// insert tx into mysql (ignore duplicate error)
+			_, err := db.Exec("INSERT IGNORE INTO transactions(txid, vin, vout, blockhash, time) VALUES (?,?,?,?,?)", bb.Txs[j].Txid, jsonVin, jsonVout, bb.Hash, bb.Txs[j].Time)
 			if err != nil {
+				fmt.Println("error at", j, "th transaction")
 				log.Fatal(err)
 			}
 
@@ -1292,11 +1286,6 @@ func TestMysqlLoad(targetBlockNum int) {
 
 	for i := 1; i <= targetBlockNum; i++ {
 
-		// get block hash
-		//blockHash, _ := rpc.GetBlockHash(uint64(i))
-		var blockHash string
-		db.QueryRow("SELECT hash FROM blocks WHERE height=?", i).Scan(&blockHash)
-
 		// get block from bitcoin
 		var bb BitcoinBlock
 		var blockHeight int64
@@ -1324,6 +1313,43 @@ func TestMysqlLoad(targetBlockNum int) {
 
 }
 
+// LoadBlock loads block from mysql db
+func LoadBlock(blockNum int, db *sql.DB) BitcoinBlock {
+
+	var bb BitcoinBlock
+	var blockHeight int64
+	var blockTxJson []byte
+
+	// get block from mysql
+	db.QueryRow("SELECT hash,height,tx FROM blocks WHERE height=?", blockNum).Scan(&bb.Hash, &blockHeight, &blockTxJson)
+
+	// set block field
+	bb.Height = big.NewInt(blockHeight)
+	json.Unmarshal(blockTxJson, &bb.TxHashes)
+
+	// alloc txs
+	bb.Txs = make([]*RawTransaction, len(bb.TxHashes))
+
+	return bb
+}
+
+// LoadTransaction loads tx from mysql db
+func LoadTransaction(txHash string, db *sql.DB) *RawTransaction {
+
+	var tx RawTransaction
+	var vin []byte
+	var vout []byte
+
+	// get tx from mysql
+	db.QueryRow("SELECT * FROM transactions WHERE txid=?", txHash).Scan(&tx.Txid, &vin, &vout, &tx.BlockHash, &tx.Time)
+
+	// set tx field (vin, vout)
+	json.Unmarshal(vin, &tx.Vin)
+	json.Unmarshal(vout, &tx.Vout)
+
+	return &tx
+}
+
 func main() {
 
 	// connect with rpc server
@@ -1332,11 +1358,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	TestMysqlLoad(5)
+	//TestMysqlLoad(5)
 
-	//SaveBitcoinInMysql(30000, rpc)
+	//SaveBitcoinInMysql(500000, rpc)
 
-	//PlotBitcoinAddressActivity(300000, rpc, 4320)
+	PlotBitcoinAddressActivity(10000, rpc, 4320)
 	//PlotBitcoinAddressActivity(200000, rpc, 25920)
 	//PlotBitcoinAddressActivity(300000, rpc, 51840)
 
@@ -1562,7 +1588,7 @@ func (b *Bitcoind) GetRawTransaction(txId string) (*RawTransaction, error) {
 type RawTransaction struct {
 	Hex           string `json:"hex"`
 	Txid          string `json:"txid"` // txhash
-	Version       uint32 `json:"version"`
+	Version       int32  `json:"version"`
 	LockTime      uint32 `json:"locktime"`
 	Vin           []Vin  `json:"vin"`  // inputs
 	Vout          []Vout `json:"vout"` // ouputs
