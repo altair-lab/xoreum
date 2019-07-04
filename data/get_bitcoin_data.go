@@ -17,6 +17,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Arafatk/glot"
@@ -32,6 +33,9 @@ import (
 	"github.com/altair-lab/xoreum/core/types"
 	"github.com/altair-lab/xoreum/crypto"
 )
+
+// a variable to wait for goroutine functions end
+var wg = &sync.WaitGroup{}
 
 // BitcoinBlock is struct to get bitcoin block by rpc call
 type BitcoinBlock struct {
@@ -1243,17 +1247,35 @@ func LoadTransaction(txHash string, db *sql.DB) *RawTransaction {
 
 func main() {
 
+	// to calculate function execution time
+	startTime := time.Now()
+
 	// connect with rpc server
 	rpc, err := New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(rpc)
+	//fmt.Println(rpc)
 	//SaveBitcoinInMysql(500000, rpc)
 
-	PlotBitcoinAddressActivity(200000, 4320)
-	//PlotBitcoinAddressActivity(200000, rpc, 25920)
-	PlotBitcoinAddressActivity(200000, 51840)
+	windowSizes := []int{4320, 12960, 25920, 51840}
+	for i := 0; i < len(windowSizes); i++ {
+		wg.Add(1)
+		go func(index int) {
+			PlotBitcoinAddressActivity(250000, windowSizes[index])
+			wg.Done()
+		}(i)
+	}
+
+	wg.Add(1)
+	go func() {
+		SaveBitcoinInMysql(500000, rpc)
+		wg.Done()
+	}()
+
+	//PlotBitcoinAddressActivity(200000, 4320)
+	//PlotBitcoinAddressActivity(200000, 25920)
+	//PlotBitcoinAddressActivity(200000, 51840)
 
 	/*AnalyzeBitcoin(10, rpc)
 	addresses, _ := LoadAnalysisResult()
@@ -1268,6 +1290,12 @@ func main() {
 		rawdb.CheckBalanceAndAccounts(bc.GetDB())
 		rawdb.ReadStates(bc.GetDB())
 	*/
+
+	wg.Wait()
+	fmt.Println("finish")
+
+	elapsed := time.Since(startTime)
+	fmt.Println("main function execution time:", elapsed)
 
 }
 
